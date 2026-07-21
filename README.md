@@ -12,7 +12,7 @@ Personal, version-controlled [Claude Code](https://claude.com/claude-code) skill
 | **skill-library-builder** | Turns a real repo into a project-specific skill library that preserves operating knowledge. Project-agnostic; moved here from the PropOS repo 2026-07-20. |
 | **verified-citations** | Stops fabricated and drifted `file:line` / PR / date references in docs that cite code. Requires every citation to carry the quoted line, so it cannot be produced from recall. |
 
-All three are **forks** of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches applied for our workflow — see each skill's `UPSTREAM.md` for the exact source commit and what we changed.
+The three **unslop-\*** skills are **forks** of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches applied for our workflow — see each skill's `UPSTREAM.md` for the exact source commit and what we changed. `skill-library-builder` and `verified-citations` are ours, written in-house.
 
 ## Install on a new machine
 
