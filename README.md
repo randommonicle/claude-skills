@@ -9,6 +9,7 @@ Personal, version-controlled [Claude Code](https://claude.com/claude-code) skill
 | **unslop-ui** | Strips the design "tells" that make a web UI read as AI-generated. Scanner + build/audit guidance. |
 | **unslop-text** | Strips the tells that make prose read as AI-generated (reports, copy, chat). |
 | **unslop-code** | Strips the surface tells that make source code read as AI-generated. |
+| **verified-citations** | Stops fabricated and drifted `file:line` / PR / date references in docs that cite code. Requires every citation to carry the quoted line, so it cannot be produced from recall. |
 
 All three are **forks** of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches applied for our workflow — see each skill's `UPSTREAM.md` for the exact source commit and what we changed.
 
