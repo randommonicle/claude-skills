@@ -1,6 +1,6 @@
 ---
 name: verified-citations
-description: Stops fabricated and drifted references in any document that cites code, schema, config or history. Load BEFORE writing or reviewing a handover, design doc, plan, spec, decision log, lessons entry, audit, review report, PR description, or commit message that points at files, line numbers, migrations, commits, PRs or dates. The failure it prevents is specific and measured, a model grounds technical facts correctly while inventing the PATH around a borrowed line number, drifting a line number onto a blank line, citing a range that spans unrelated blocks, or misattributing when something landed, and then self-reports that everything was verified. Triggers on file:line, "landed in PR", "added on", "see <file>", migration numbers, or any claim a reader would act on without re-deriving. Do not load for writing code itself.
+description: Stops fabricated and drifted references in any document that cites code, schema, config or history. Load BEFORE writing or reviewing a handover, design doc, plan, spec, decision log, lessons entry, audit, review report, PR description, or commit message that points at files, line numbers, migrations, commits, PRs or dates. The failure it prevents is specific and measured, a model grounds technical facts correctly while inventing the PATH around a borrowed line number, drifting a line number onto a blank line, citing a range that spans unrelated blocks, or misattributing when something landed, and then self-reports that everything was verified. Triggers on file:line, "landed in PR", "added on", "see some/file.ts", migration numbers, or any claim a reader would act on without re-deriving. Do not load for writing code itself.
 ---
 
 # Verified citations
@@ -38,7 +38,7 @@ be careful, because you cannot quote a line without having opened the file at th
 at that line. It kills the two commonest failures outright: a fabricated path has no line to quote,
 and a drifted line number quotes a blank string.
 
-It also makes review mechanical. A reviewer runs `sed -n 'Np' <file>` and compares, instead of
+It also makes review mechanical. A reviewer runs `sed -n 'Np' FILE` and compares, instead of
 re-deriving your argument to decide whether they believe you.
 
 If quoting every line would bloat the document, quote in the citations table at the end (below) and
