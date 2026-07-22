@@ -11,8 +11,9 @@ Personal, version-controlled [Claude Code](https://claude.com/claude-code) skill
 | **unslop-code** | Strips the surface tells that make source code read as AI-generated. |
 | **skill-library-builder** | Turns a real repo into a project-specific skill library that preserves operating knowledge. Project-agnostic; moved here from the PropOS repo 2026-07-20. |
 | **verified-citations** | Stops fabricated and drifted `file:line` / PR / date references in docs that cite code. Requires every citation to carry the quoted line, so it cannot be produced from recall. |
+| **committee-review** | Three-lens committee review (positive, adversarial, neutral chair) of a whole project: one shared evidence pass, attribution-stripped consolidation, item-by-item voting with recorded dissents and amendments. Written from the PropOS 2026-07-22 first run. |
 
-The three **unslop-\*** skills are **forks** of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches applied for our workflow — see each skill's `UPSTREAM.md` for the exact source commit and what we changed. `skill-library-builder` and `verified-citations` are ours, written in-house.
+The three **unslop-\*** skills are **forks** of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches applied for our workflow — see each skill's `UPSTREAM.md` for the exact source commit and what we changed. `skill-library-builder`, `verified-citations`, and `committee-review` are ours, written in-house.
 
 [LESSONS_LEARNED.md](LESSONS_LEARNED.md) holds field notes from applying these skills on real jobs: what broke, what the skills caught, and what only a human pass caught.
 
