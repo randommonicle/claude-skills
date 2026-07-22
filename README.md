@@ -14,6 +14,8 @@ Personal, version-controlled [Claude Code](https://claude.com/claude-code) skill
 
 The three **unslop-\*** skills are **forks** of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches applied for our workflow — see each skill's `UPSTREAM.md` for the exact source commit and what we changed. `skill-library-builder` and `verified-citations` are ours, written in-house.
 
+[LESSONS_LEARNED.md](LESSONS_LEARNED.md) holds field notes from applying these skills on real jobs: what broke, what the skills caught, and what only a human pass caught.
+
 ## Install on a new machine
 
 ```bash
