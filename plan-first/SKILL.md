@@ -44,3 +44,19 @@ If the user proceeds without explicit confirmation language but with substantive
 ## Why
 
 Drift in long sessions is a dominant failure mode. Stating the plan upfront forces alignment before the cost of writing code is sunk, and lets the user redirect cheaply. The pattern compounds: a plan-first gate at commit boundaries also surfaces deferred items, naming conventions, and test shape before they get baked into code that has to be unpicked later.
+
+## Additions from cross-repo lessons (ratified 2026-07-23)
+
+- **Plan step zero is a grep: does this already exist?** A schema grep killed a full
+  migration that duplicated live columns; a planned Edge Function turned out to be
+  already-live RLS. Grep before designing, not just before writing SQL.
+- **When an estimate exceeds a session, propose two or three concrete split strategies**,
+  not "should I split?" — the user picks a shape, not a yes/no.
+- **Surface the scope fork mid-build.** When implementation reveals the spec's premise is
+  shaky, stop and put the fork to the user; never silently build around it.
+
+## Routes
+
+- The plan changes X "in A and B", adds a gate/constraint, or drops/renames anything → load **blast-radius-grep** before sizing.
+- The plan asserts an invariant in prose ("single source of truth", "never auto-X") → load **enforce-invariants-in-build**.
+- Anything is deferred or out of scope → **flag-deferred-items** (as already required above).
