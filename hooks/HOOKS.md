@@ -55,3 +55,11 @@ carries the confirm-before-push reason.
 - Banned-character gate — per-project scope by convention (R-39), so it installs as a
   project pre-commit hook or project-level PostToolUse hook, not globally from here.
   FORWARD: banned-character gate per-project template, see docs/SKILL_PROPOSALS_2026-07-23.md Layer 0.
+
+## Plugin machines: none of the above applies
+
+Machines that installed the `ash` plugin (see the README's install section) get every hook
+in this directory automatically via `hooks/hooks.json`, plus `norms-inject.mjs` (which
+injects the NORMS.md block at session start — plugin machines skip the manual CLAUDE.md
+copy too). The manual settings.json install above is ONLY for the direct-clone dev machine.
+Never do both on one machine: the hooks would fire twice per event.

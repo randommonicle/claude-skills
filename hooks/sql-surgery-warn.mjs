@@ -5,7 +5,7 @@
 // R-21: only the push gate blocks; an over-firing hook trains bypass).
 // Promotion path per the rating ladder: if the misses log shows this being
 // too quiet, promote to permissionDecision "ask".
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -18,8 +18,10 @@ process.stdin.on('end', () => {
     const evt = JSON.parse(raw);
     const cmd = evt.tool_input?.command ?? '';
     if (DESTRUCTIVE.test(cmd)) {
+      const dir = join(homedir(), '.claude', 'skills');
+      mkdirSync(dir, { recursive: true }); // plugin installs don't create this dir
       appendFileSync(
-        join(homedir(), '.claude', 'skills', 'SURGERY_LOG.jsonl'),
+        join(dir, 'SURGERY_LOG.jsonl'),
         JSON.stringify({ ts: new Date().toISOString(), cwd: evt.cwd ?? '', command: cmd.slice(0, 500) }) + '\n',
       );
     }

@@ -60,11 +60,33 @@ Tier and layer assignments are measured, not declared: the fire-log hook records
 
 ## Install on a new machine
 
+Two modes — pick ONE per machine (both at once double-registers every skill and double-fires
+every hook):
+
+**Plugin (recommended — skills + hooks + norms in one step, auto-updates on every push):**
+
+```
+/plugin marketplace add randommonicle/claude-skills
+/plugin install ash@ash-skills
+```
+
+The repo doubles as a plugin marketplace (`.claude-plugin/marketplace.json`). The plugin
+serves the skills from the repo root (`"skills": "./"` in plugin.json), wires all Layer 0
+hooks via `hooks/hooks.json`, and injects the NORMS.md block at every session start
+(`hooks/norms-inject.mjs`) — no manual CLAUDE.md or settings.json editing. Updates arrive
+when the machine refreshes the marketplace (no version field is set, so every push to main
+counts as a new version). Private-repo note: the machine needs git credentials that can read
+this repo (`gh auth login` or a credential manager).
+
+**Direct clone (the maintainer's dev machine only):**
+
 ```bash
 git clone <this-repo-url> ~/.claude/skills
 ```
 
-Then: copy the NORMS.md block into `~/.claude/CLAUDE.md`, and install the hooks per [hooks/HOOKS.md](hooks/HOOKS.md). Claude Code discovers the skills automatically; they trigger on their descriptions.
+Then copy the NORMS.md block into `~/.claude/CLAUDE.md` and install the hooks per
+[hooks/HOOKS.md](hooks/HOOKS.md). This mode is for editing the skills; a machine on this
+mode must NOT also install the plugin.
 
 ## Conventions
 

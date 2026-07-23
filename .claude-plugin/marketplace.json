@@ -1,0 +1,13 @@
+{
+  "name": "ash-skills",
+  "owner": {
+    "name": "Ben Graham"
+  },
+  "plugins": [
+    {
+      "name": "ash",
+      "source": "./",
+      "description": "ASH engineering skills: 38 guardrail skills plus Layer 0 hooks and always-on norms. One install covers skills, hooks, and norms; updates arrive on every push to main."
+    }
+  ]
+}

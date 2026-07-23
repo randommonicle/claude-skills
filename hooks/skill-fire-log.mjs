@@ -2,7 +2,7 @@
 // PostToolUse hook, matcher: Skill. The rating system's fire log (proposal doc,
 // "The rating system"): one JSONL line per skill invocation, machine-local.
 // Fail-open by design — a broken fire log must never break a session.
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -17,7 +17,9 @@ process.stdin.on('end', () => {
       args: evt.tool_input?.args ?? null,
       cwd: evt.cwd ?? process.cwd(),
     });
-    appendFileSync(join(homedir(), '.claude', 'skills', 'FIRE_LOG.jsonl'), line + '\n');
+    const dir = join(homedir(), '.claude', 'skills');
+    mkdirSync(dir, { recursive: true }); // plugin installs don't create this dir
+    appendFileSync(join(dir, 'FIRE_LOG.jsonl'), line + '\n');
   } catch {}
   process.exit(0);
 });

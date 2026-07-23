@@ -1,0 +1,10 @@
+{
+  "name": "ash",
+  "description": "ASH engineering skills: 38 guardrail skills in a four-layer architecture (hooks, norms, hubs, leaves), distilled from cross-repo lessons learned and committee-ratified. Includes the Layer 0 hooks (push gate, skill fire log, destructive-SQL warn, session recon) and the always-on norms injected at session start.",
+  "author": {
+    "name": "Ben Graham"
+  },
+  "repository": "https://github.com/randommonicle/claude-skills",
+  "skills": "./",
+  "hooks": "./hooks/hooks.json"
+}
