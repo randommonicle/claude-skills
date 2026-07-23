@@ -11,3 +11,7 @@
 1. **UTF-8 stdout.** Added `sys.stdout.reconfigure(encoding="utf-8")` after the imports, so the report doesn't crash with `UnicodeEncodeError` on emoji snippets on Windows cp1252 consoles.
 
 When updating from upstream, re-apply.
+
+Local patch 2026-07-23: appended "Banned-character gate scope" section to SKILL.md
+(per-project convention scope, from PropOS Sessions 14/16/18; committee item R-39).
+Re-apply after any upstream sync.

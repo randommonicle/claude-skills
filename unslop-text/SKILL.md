@@ -206,3 +206,11 @@ Lead with the verdict and the single highest-impact change. Then findings by pri
 file:line and the fix. Close with the slop score and the top three changes. Plain and
 specific. The goal is prose that reads like one person who meant it, which is the one thing
 the scanner cannot do for them.
+
+## Banned-character gate scope (local patch, 2026-07-23)
+
+The grep gate for banned characters applies to every generated deliverable in scope — and
+scope is set per project by convention, not by an outward/internal split. The mined
+incidents bit on internal test headers and code comments, not client documents, so each
+project's CLAUDE.md states which artifact classes its gate covers. "Write carefully" failed
+three times where a grep would not have; run the grep.
