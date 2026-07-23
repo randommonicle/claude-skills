@@ -53,3 +53,14 @@ This skill does not promise the deferred work will be done. The anchor's job is 
 ## Why
 
 Out-of-scope items recorded only in a session-specific document decay. By the time the relevant phase or area is touched again, the document may not be the most recently read, and the deferred item gets forgotten or rediscovered the hard way (rework, missed regulatory requirement, or worse). Anchoring at the future landing point means the reminder is visible from multiple angles when the work happens.
+
+## Additions from cross-repo lessons (ratified 2026-07-23)
+
+- **Expected-breakage tests carry the anchor in `.fixme()`**, never `.skip()` or deletion —
+  a fixme stays visible in every run's output; a skip disappears into green.
+- **FORWARD anchors are the milestone checklist.** Before scoping a milestone,
+  `grep -rn "FORWARD(<milestone>)"` and treat every hit as a checklist item; the
+  predecessor migration's header records the contract a handover summarised away.
+- **Dormant controls say so everywhere.** A gate that bites nothing yet states its dormancy
+  in the migration, the smoke, the decision log, and to the user — otherwise its first bite
+  is diagnosed as a new bug.
