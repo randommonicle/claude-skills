@@ -49,3 +49,25 @@ It does not replace catalog verification, which proves the schema, and it does n
 ## Why
 
 Shared-database tests run against data other people rely on. One `.delete()` on the wrong row is a regulatory and trust incident, and it has happened once. Flip-and-restore makes the destructive path impossible to take by accident: the test never holds a delete on state it did not create.
+
+## Additions from cross-repo lessons (ratified 2026-07-23)
+
+- **Teardown must prove itself.** A `.delete()` under RLS returns success with zero rows —
+  on any no-DELETE-policy table an authenticated teardown is a silent leak (the same bug sat
+  in 12 files; one instance leaked 1,148 rows). Assert teardown row counts; use service-role
+  teardown for no-DELETE tables, and never "fix" the no-op by adding a DELETE policy to an
+  audit table. When one instance is found, grep the whole tree for the verb-on-table.
+- **Prove zero residue** with a prefix-scoped post-run count, not with the absence of errors.
+- **Scope assertions on shared data.** Never assert a global or firm-wide exact count on a
+  shared database: floor globals, exact-match only rows the test owns. A read-only money
+  smoke needs a stability gate on the rows it reads.
+- **Isolation conversions are not mechanical.** Moving a smoke to throwaway-fixture
+  isolation requires checking HOW each written table is made append-only (an RLS deny is
+  teardown-able by service role; a trigger is not), which gates a fresh fixture trips that
+  the shared fixture had already satisfied, FK-ordered teardown, and self-cleaning on
+  partial seed failure.
+- **A fixture shortcut is a finding.** When a test exploits a gap to build its fixtures,
+  that gap is an attacker's path, not a convenience — report it.
+
+Note on hub routing: prove-it-can-fail routes here for any shared-data test. The route adds
+a path in; it does not narrow this skill's own trigger.
