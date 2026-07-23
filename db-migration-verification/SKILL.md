@@ -90,3 +90,89 @@ This skill does not decide which catalog query to use. The query is part of the 
 Smokes test runtime behaviour. They do not tell you whether 30 RLS policies were correctly recreated, whether a CHECK constraint was added with the predicate you intended, or whether a policy from an earlier migration is now shadowing the new one. The cost of one extra round-trip to verify is small. The cost of writing application code against a schema you assumed was in place but isn't is substantial.
 
 This skill is the catalog-state counterpart to the plan-first skill's test list. Plan-first ensures the runtime behaviour is named before code; this skill ensures the schema state is named and verified before code.
+
+## Additions from cross-repo lessons (ratified 2026-07-23)
+
+### A foreign key breaks embeds elsewhere
+
+A migration adding a FK to an already-referenced table breaks every PostgREST-style embed of
+that table ("more than one relationship found"). Grep every `.select()` embed of the
+now-doubly-referenced table and pin the FK (`users!inspector_id(...)`) — including queries
+introduced by concurrently-merged branches, not just the files the current change touched.
+It bit twice in one repo. And a feature flag gates code, not schema: the migration is live
+on apply regardless of the flag, so follow any migration with one real end-to-end run of the
+highest-value path (see one-real-ride) — the only check invisible neither to tsc nor to
+synthetic-data tests.
+
+### Work from the live definition
+
+Before any `CREATE OR REPLACE` (or edit to any DB object), dump the live definition
+(`pg_get_functiondef`, catalog views) and diff the replacement against it. Hand-applied
+migrations drift from the repo in both directions, and a replacement authored from an old
+migration file reverts every fix applied since — live, on apply.
+
+### Out-of-band applies
+
+Applying DDL via a management API or SQL editor bypasses the migration-history table, so the
+migration tool will later re-apply it. Use idempotent SQL for out-of-band applies and
+reconcile history afterwards (`migration repair --status applied`), then catalog-verify.
+
+### Multi-statement tools show only the last result
+
+A verification block pasted into a SQL editor is not verified if you only saw its last
+query's result — and the most important check is rarely last. Run load-bearing verification
+queries individually.
+
+### Upsert needs UPDATE
+
+Any table or storage bucket written with upsert takes the `ON CONFLICT DO UPDATE` branch on
+re-runs, which Postgres evaluates against an UPDATE policy. INSERT + SELECT policies alone
+deny every re-run. Test the re-run path, not just the first write.
+
+### Numbering under parallel work
+
+Claim migration numbers by scanning ALL refs including remote, at merge time — two branches
+once shipped colliding five-migration sets and git flagged nothing (see
+parallel-work-recon).
+
+### Verify the delta, not the regression grid
+
+A clean apply plus a green regression grid does not prove the NEW deltas landed. Read each
+delta directly from the catalog. Where live data cannot exercise the change, a disposable
+dry-run database (Docker) with negative controls is the gate, run pre-apply.
+
+### Verbatim re-issues get a mechanical diff
+
+Any "re-issued verbatim / same body plus one line" migration gets a normalised diff or
+checksum fidelity gate against the original — a dropped `::int` in a hand-retyped body once
+shipped a nightly time bomb. Never retype a regulated body.
+
+### Read back privileges after CREATE
+
+Platform default grants re-open every new function and view, and `REVOKE FROM PUBLIC` does
+not strip named role grants. Prove the ACL with `has_function_privilege` /
+`information_schema.role_table_grants` as a standard verification block — this recurred four
+times, the fourth as a live privilege-escalation hole.
+
+### Eyeball real values
+
+The verification query is also a units and semantics check: reading actual row values caught
+a 100x money bug that types could not.
+
+### Trap checklist
+
+Unset-GUC `current_setting` returns NULL and kills combined booleans — audit each use-site.
+A BEFORE-UPDATE gate leaves the INSERT vector open. Triggers on trigger-maintained columns
+need `pg_trigger_depth()`. Self-referential deletes need a fixpoint loop.
+
+### Phased RLS-axis rollouts
+
+When a JWT claim becomes an RLS axis: register the hook, force re-login, decode a fresh
+token and confirm the claims, and only then flip RLS — creating the hook function is not
+activating it, and a pre-hook token means "all my data is gone". A nullable RLS-axis column
+is a latent lockout: enforce NOT NULL before the column becomes the axis.
+
+## Routes
+
+- Ad-hoc destructive SQL outside a test harness → load **live-data-surgery**.
+- The change drops, renames, or gates anything existing code writes → load **blast-radius-grep**.
