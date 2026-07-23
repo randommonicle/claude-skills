@@ -50,3 +50,33 @@ Branch creation, worktree setup, and similar local operations are not push event
 ## Why
 
 Pushing is visible to others and hard to reverse. CI runs, deploy webhooks, and anyone watching the repository all consume pushes the moment they land. Even on a solo direct-to-main project, every push is the moment a commit becomes off-machine durable and shared. Per-action authorisation prevents the case where standing approval from earlier in a session is used to push work the user has not yet reviewed.
+
+## Remote branch deletion (added 2026-07-23)
+
+The gate extends to deleting any remote branch, including `--delete-branch` on a merge.
+Deleting a branch an open PR points at closes the PR unrecoverably (a fresh PR gets a new
+number; one deletion left the work's only surviving copy in a local object store). Before
+any branch delete, run the mechanical preflight:
+
+```bash
+gh pr list --head <branch> --state all
+gh pr list --base <branch>
+git log main..<branch>
+```
+
+In a squash-merge repo, "merged" is a PR fact, never an ancestry fact — `git branch
+--merged` lies in both directions. Judge a stale branch by the diff it would apply to main
+today. Redundancy means content-on-main AND no open PR — never a name or someone's say-so.
+
+## Merge mechanics (added 2026-07-23)
+
+- Diff a branch with `git diff $(git merge-base main branch) branch`, not `main..branch` —
+  the symmetric diff misleads for branches forked before a main-side hotfix. After merging
+  onto a hotfixed base, grep the queries the branch introduced (see blast-radius-grep).
+- `gh pr merge` from a worktree can error on the local step while the remote merge
+  succeeded: verify the real outcome with `gh pr view --json state,mergedAt` and sync main
+  separately with `git -C`.
+
+Enforcement note: the push-gate hook (hooks/push-gate.mjs) mechanises this gate by forcing
+the permission prompt on pushes, PR merges, and remote ref deletion. The hook is the
+control; this skill is the policy and the preflight.
