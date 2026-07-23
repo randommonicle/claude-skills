@@ -44,3 +44,13 @@ It does not decide to wrap up; the context bands do that. It does not push or co
 ## Why
 
 Long sessions fail at the seams: the next session re-discovers what the last one already knew, or misses a deferred item or an unrun verification. A fixed handover shape, produced from a real context reading, makes the seam cheap to cross and keeps deferred and unverified work from falling through it.
+
+## Additions from cross-repo lessons (ratified 2026-07-23)
+
+- **Stamp superseded sections.** A session that makes a prior handover's "next build"
+  section stale stamps that section superseded in the same PR — a one-session-stale
+  handover cost real rework.
+- **Carry-forward items cite a live-state verification or are marked unverified.** A
+  "still open" item once rode four consecutive handovers a month after the work was done.
+  Re-verifying at write time is cheaper than the duplicate build it prevents (see
+  live-state-first).
