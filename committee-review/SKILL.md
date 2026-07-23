@@ -119,3 +119,15 @@ The three lenses are not redundancy; each uniquely produced findings the others 
 first run. The vote converts findings into decisions the project has actually accepted, and
 recorded dissent keeps minority technical judgement from being silently lost. The disclosure
 section keeps the process honest about itself, which is what makes the output trustworthy.
+
+## Additions from cross-repo lessons (ratified 2026-07-23)
+
+- **A reviewer's severity label is a hypothesis.** Before gating a merge on a
+  Critical/Blocker, refute it against the installed dependency's actual source — a
+  "critical" exploit was once refuted by reading the installed auth library. A wrong
+  exploit can still sit on a real smell: fix what is real, drop the inflated severity.
+  (Canonical rule: findings-are-evidence.)
+- **Diverse lenses beat N identical reviewers.** Two reviewers with distinct lenses
+  independently found different real blockers; convergence on the same defect is the signal
+  it is real. For append-only writes, run reviewers pre-apply — post-apply review of an
+  immutable record can only document the mistake.
