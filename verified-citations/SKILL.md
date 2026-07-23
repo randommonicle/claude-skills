@@ -105,3 +105,25 @@ diligent.
 When you do run that review, brief it at **provenance specifically**. A reviewer asked to critique
 a document returns opinions. A reviewer asked to verify every path, line and date against the
 repository returns findings.
+
+## Statutory, legal, and domain facts (added 2026-07-23)
+
+The same discipline extends beyond code and history to any encoded real-world obligation:
+
+- Verify Act, year, AND Part against the primary source (legislation.gov.uk for UK
+  statutes); model memory produced two confident wrong "facts" headed for a statutory
+  register (a non-existent statutory interval; a mis-attributed legal basis).
+- Statutory day-counting is inclusive ("beginning with the day X" includes day X).
+- Data that encodes an obligation (statutory frequencies, legal bases, deadlines) cites its
+  primary source in the artifact itself, so the next reader verifies rather than trusts.
+- A specialist reviewer contradicting the brief on law earns a primary-source check, not an
+  override — the brief handed to a verifier is itself a claim.
+
+Single-homing note: "a failure message is a symptom, not a diagnosis" lives canonically in
+findings-are-evidence; this skill defers to it.
+
+## Routes
+
+- Generated client documents (rewrites, owner-only facts, machine-parsed output) → load **deliverable-integrity**.
+- Customer-facing certification/statistic claims → load **substantiate-outward-claims**.
+- Producing a handover → load **handover**.
