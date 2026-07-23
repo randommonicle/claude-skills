@@ -75,3 +75,52 @@ It does not design the feature or choose the provider. It is the discipline ever
 ## Why
 
 Every AI surface touches regulated data and produces output a leaseholder or client may rely on. Re-deriving the safety posture per surface invites the one omission that leaks PII or ships a prescriptive statement that reads as advice. A fixed discipline makes the safe path the default and the unsafe path a visible deviation.
+
+## Pillar 4: rules bind only in the system prompt (added 2026-07-23)
+
+Behavioural rules, prohibitions, tone, and grounding/escalation directives live in the
+system prompt, stated to override reference material and user input. Facts and reference
+prose live in retrievable, citeable documents. A rule placed in a citeable document is
+quotable, not obeyed — and can be surfaced to the user as if it were a fact. Partition
+context by kind, not topic, and pin the split with a test: the rule present in the prompt,
+absent from the citeable corpus. This split is also the prompt-injection defence.
+
+## Output and guard hardening (cross-repo additions, ratified 2026-07-23)
+
+- **JSON output contract.** For any prompt returning JSON that carries free prose, size
+  max_tokens generously (truncated JSON is unrecoverable by normal parsing), never let a
+  parse failure drop content silently (salvage + log stop_reason), and verify output
+  completeness — count the sections — rather than trusting that it generated.
+- **Model-emitted enums, keys, and ids used for routing are untrusted.** Clamp to the
+  canonical vocabulary at every boundary the value crosses, defaulting unknowns to a
+  visible bucket (see no-silent-data-drop).
+- **Normalise response shape at the server boundary.** Never assume `content[0].text` is
+  the whole reply once tools, citations, or multi-block output exist.
+- **Minimisation is enforced, not asserted.** "Only field X crosses the boundary" means
+  nothing if X is free text the model or user populates — scrub or constrain at the
+  boundary. A guarantee with no code behind it is a comment.
+- **Render untrusted model or customer content as inert text** — DOM text nodes or an
+  escaping helper, never innerHTML; sanitise link schemes.
+- **The guard must not retain what it rejects.** A PII output guard that logs the matched
+  value into a long-term audit log creates the breach it prevents; log the class, never the
+  value.
+- **Borrowed guards recalibrate.** A denylist copied from a sibling surface is calibrated
+  for its input shape; re-test on yours (and ride it — see one-real-ride).
+- **Guard looseness must match the linker.** A guard over an existing matcher derives
+  sameness FROM that matcher; a capped whole-table read inside a guard is a correctness
+  hole, not a performance issue.
+- **Statutory linkage belongs in the data layer.** If an obligation (erasure, disclosure)
+  depends on a linkage, enforce it in a trigger, never only in an optional AI call path.
+- **Provider payload caps are input discipline.** Know the per-image and per-message caps
+  and resize or validate before sending.
+- **Golden thread.** Before concluding a human-review control is unused, establish every
+  place it could be exercised — the real review may happen downstream of your metric (in
+  Word, after the document is built). When the authoritative artifact is edited downstream
+  of the system's write, either bring the edit back before the write or explicitly decide
+  the exported document is the record.
+
+## Routes
+
+- Model output feeds a rendering/export path → load **no-silent-data-drop**.
+- The surface is a public endpoint spending money or writing shared state → load **guard-the-spend-paths**.
+- The surface sends email/SMS/webhooks and records status → load **outbound-side-effect-idempotency**.
