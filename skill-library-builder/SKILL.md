@@ -121,3 +121,11 @@ Volatile facts and their re-checks:
 |---|---|---|
 | Unslop scanners installed | `ls ~/.claude/skills \| grep unslop` | `unslop-text`, `unslop-code`, `unslop-ui` |
 | The worked-example artefacts still present | `ls docs/PLAN_fable_skill_library.md docs/FABLE_PROMPT_skill_library.md` | both listed |
+
+## A lesson is not a control (added 2026-07-23)
+
+Skills must encode mechanical steps — grep this, run that, assert this count — not
+awareness. A documented trap in the worked-example repo recurred anyway until the procedure
+was fixed mechanically; prose that raises awareness fails exactly when attention is
+elsewhere, which is when the trap fires. When authoring any skill, convert each "be careful
+about X" into a command or a check, or expect the lesson to repeat.
