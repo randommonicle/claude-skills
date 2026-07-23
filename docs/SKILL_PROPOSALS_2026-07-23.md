@@ -705,15 +705,16 @@ the fire-log will test it. The architecture pushes rules that must always hold o
 description-matching game entirely, consolidates the workflow-moment rules into a few hubs
 with disjoint triggers, and lets genuinely narrow skills stay narrow.
 
-### Mechanics verification status (R-15) — spike before building
+### Mechanics verification status (R-15) — spiked 2026-07-23 against code.claude.com/docs
 
 | Claim | Status |
 |---|---|
-| Unknown frontmatter keys are ignored (no native tier/weight field) | believed — verify against current docs when convenient |
-| A PreToolUse hook can match shell commands (git push etc.) | believed — verify with the update-config skill at hook-authoring time |
-| A PostToolUse hook can observe Skill-tool invocations (the fire log) | MUST SPIKE before the rating system is built; if false, the ladder keeps only its miss-driven inputs |
-| Hub-to-leaf chaining (a skill body instructing a named Skill load) works reliably | MUST SPIKE — one observed success in this library's use is anecdote, not verification |
-| A SessionStart hook event exists for the recon row | MUST SPIKE before that Layer 0 row ships |
+| No native tier/weight frontmatter field | VERIFIED — the frontmatter reference enumerates name, description, disable-model-invocation, user-invocable, allowed-tools, disallowed-tools, arguments, context/agent; no priority field exists. Malformed YAML loads the body with empty metadata. |
+| A PreToolUse hook can match shell commands (git push etc.) | VERIFIED — matchers match tool names; hook scripts receive tool_input JSON (the command string) on stdin; an `if` field accepts permission-rule syntax like `Bash(git push*)`; blocking via exit code 2 or `permissionDecision: "deny"/"ask"`. |
+| A PostToolUse hook can observe Skill-tool invocations (the fire log) | VERIFIED — PostToolUse matchers match any tool by name, including `Skill`. |
+| A SessionStart hook event exists for the recon row | VERIFIED — SessionStart fires on start/resume/clear/compact and can return `additionalContext`, so the recon results can be injected directly into the session's context. |
+| Hub-to-leaf chaining (a skill body instructing a named Skill load) | Mechanism VERIFIED (the Skill tool loads skills programmatically; an invoked skill's content persists for the session). Whether the model reliably follows a routing instruction is behavioural — monitor via the fire log. |
+| Norm + playbook narrowing (R-17) | VERIFIED as the right mechanism — `disable-model-invocation: true` would remove the description from context but also blocks Claude loading the skill (breaking hub routes); keeping skills model-invocable with narrowed descriptions is the correct shape. |
 
 ### Layer 0 — hooks: deterministic, zero dilution
 
