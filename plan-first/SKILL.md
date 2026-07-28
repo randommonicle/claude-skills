@@ -60,3 +60,4 @@ Drift in long sessions is a dominant failure mode. Stating the plan upfront forc
 - The plan changes X "in A and B", adds a gate/constraint, or drops/renames anything → load **blast-radius-grep** before sizing.
 - The plan asserts an invariant in prose ("single source of truth", "never auto-X") → load **enforce-invariants-in-build**.
 - Anything is deferred or out of scope → **flag-deferred-items** (as already required above).
+- The plan adds anything recurring (a schedule, cron, poll, keep-warm, always-on compute, a paid tier) → load **price-the-spend** and put the monthly cost in the plan.
