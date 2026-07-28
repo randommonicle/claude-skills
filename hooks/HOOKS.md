@@ -14,8 +14,13 @@ on 2026-07-23 (see the proposal doc's mechanics table).
 | `skill-fire-log.mjs` | PostToolUse / Skill | appends one JSONL line per skill invocation to `~/.claude/skills/FIRE_LOG.jsonl` (the rating system's measurement arm) | fail-open |
 | `sql-surgery-warn.mjs` | PreToolUse / Bash | logs commands carrying `DELETE FROM` / `TRUNCATE` / `DROP TABLE` to `~/.claude/skills/SURGERY_LOG.jsonl` | fail-open, warn-and-log; promote to "ask" if the misses log shows it is too quiet |
 | `session-recon.mjs` | SessionStart | in a git repo: fetch, `status -sb`, all-refs log, open PRs → injected as `additionalContext` (parallel-work-recon's session-start half) | fail-open, silent on timeout/offline |
+| `schedule-cost-warn.mjs` | PreToolUse / Write\|Edit | a payload landing a schedule (`.github/workflows/*.yml` carrying `schedule:`/`cron:`, or `vercel.json`/`wrangler.toml`/`netlify.toml`/crontab carrying `cron`) → pricing reminder as `systemMessage` + `additionalContext` (mechanises price-the-spend, whose description cannot match "add a cron job") | fail-open, warn-only, never blocks |
 
-Both `.jsonl` logs are machine-local and gitignored.
+Both `.jsonl` logs are machine-local and gitignored. The `Write|Edit` matcher is an unanchored
+regex, so it also covers `MultiEdit` and `NotebookEdit`; `schedule-cost-warn.mjs` reads `content`,
+`new_string` and `edits[].new_string` for that reason. Its fire-and-quiet cases, including five
+negative controls, are asserted by `schedule-cost-warn.test.mjs` in this directory
+(`node hooks/schedule-cost-warn.test.mjs`, prints PASS/FAIL per case).
 
 ## Install (per machine)
 
@@ -32,6 +37,9 @@ on macOS/Linux replace `%USERPROFILE%` with `$HOME`.
       { "matcher": "Bash", "hooks": [
         { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\push-gate.mjs\"" },
         { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\sql-surgery-warn.mjs\"" }
+      ] },
+      { "matcher": "Write|Edit", "hooks": [
+        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\schedule-cost-warn.mjs\"" }
       ] }
     ],
     "PostToolUse": [

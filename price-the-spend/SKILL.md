@@ -138,6 +138,14 @@ not the logs:
 gh api repos/OWNER/REPO/check-runs/JOB_ID/annotations
 ```
 
+## Mechanics
+
+A cron job never mentions cost, so this skill's description cannot match the moment that
+matters. `hooks/schedule-cost-warn.mjs` covers that moment mechanically: any Write or Edit
+landing a schedule into a workflow or a scheduling config prints the pricing reminder. It is
+warn-only and never blocks. If the reminder appears, do the arithmetic in the same turn rather
+than noting it for later.
+
 ## Routes
 
 - The recurring thing is a CI job that cannot go red, or you are arming a new gate, load

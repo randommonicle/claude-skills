@@ -6,7 +6,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 
 ## Layers
 
-- **Hooks** ([hooks/HOOKS.md](hooks/HOOKS.md)) — deterministic enforcement in `~/.claude/settings.json`, per machine: push gate, skill fire log, destructive-SQL warn, session recon.
+- **Hooks** ([hooks/HOOKS.md](hooks/HOOKS.md)) — deterministic enforcement in `~/.claude/settings.json`, per machine: push gate, skill fire log, destructive-SQL warn, session recon, schedule-cost warn.
 - **Norms** ([NORMS.md](NORMS.md)) — six always-on one-liners copied into the global `~/.claude/CLAUDE.md`; each points at its skill playbook.
 - **Hubs** — skills owning a workflow moment, each with a routing table to leaves.
 - **Leaves** — narrow triggers, orthogonal vocabulary, one "does not fire on" line each.
