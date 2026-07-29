@@ -2,11 +2,11 @@
 
 Personal, version-controlled [Claude Code](https://claude.com/claude-code) skills, synced to `~/.claude/skills/`. Installed at the **user level**, so they apply to every project on this machine automatically (no per-project setup).
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 39 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 38 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
-- **Hooks** ([hooks/HOOKS.md](hooks/HOOKS.md)) — deterministic enforcement in `~/.claude/settings.json`, per machine: push gate, skill fire log, destructive-SQL warn, session recon, schedule-cost warn.
+- **Hooks** ([hooks/HOOKS.md](hooks/HOOKS.md)) — deterministic enforcement in `~/.claude/settings.json`, per machine: push gate (with a live freshness block in the ask), surgery gate (destructive SQL asks, carrying the target script's own header), skill fire log, session recon, and the warn family that fires where descriptions cannot: schedule-cost, migration-write, test-write, lint-after-edit.
 - **Norms** ([NORMS.md](NORMS.md)) — six always-on one-liners copied into the global `~/.claude/CLAUDE.md`; each points at its skill playbook.
 - **Hubs** — skills owning a workflow moment, each with a routing table to leaves.
 - **Leaves** — narrow triggers, orthogonal vocabulary, one "does not fire on" line each.
@@ -54,7 +54,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 
 ## The rating system
 
-Tier and layer assignments are measured, not declared: the fire-log hook records every skill invocation to `FIRE_LOG.jsonl` (gitignored, machine-local); every new LESSONS_LEARNED entry in any repo ends with "skill that should have prevented this: X / none — new candidate" (the misses log); a prune pass runs when a skill is added. Promotion ladder: hub bullet → leaf → norm → hook. Norm-backed, hub-routed, and rare-event-high-consequence skills are exempt from zero-fires demotion.
+Tier and layer assignments are measured, not declared: the fire-log hook records every skill invocation to `FIRE_LOG.jsonl` (gitignored, machine-local); every new LESSONS_LEARNED entry in any repo ends with "skill that should have prevented this: X / none — new candidate" (the misses log, plus a "class:" line when a first instance is plainly broader than itself); a prune pass runs when a skill is added. Promotion ladder: hub bullet → leaf → norm → hook. Norm-backed, hub-routed, and rare-event-high-consequence skills are exempt from zero-fires demotion. `hooks/audit-fires.mjs` turns both halves of the measurement into one report (`node hooks/audit-fires.mjs --repo <path>...`): fires per skill, never-fired skills tagged with the layer that explains the zero, and misses per skill. The fire log cannot see the norms, the hooks, or knowledge applied without loading a skill, so a zero there is a question, not a verdict; the 2026-07-29 activation audit (docs/AUDIT_2026-07-29_activation.md) is the worked example of reading it wrong and then right.
 
 [LESSONS_LEARNED.md](LESSONS_LEARNED.md) holds field notes from applying these skills on real jobs: what broke, what the skills caught, and what only a human pass caught.
 
