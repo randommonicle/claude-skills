@@ -2,7 +2,8 @@
 // PreToolUse hook, matcher: Bash. Mechanical enforcement of confirm-before-push:
 // any push, PR merge, or remote branch deletion gets permissionDecision "ask",
 // forcing the per-action prompt regardless of session permission mode.
-// This is the library's one fail-closed-by-intent gate (proposal doc, Layer 0).
+// One of the library's two fail-closed-by-intent gates (proposal doc, Layer 0;
+// the other is sql-surgery-warn, promoted 2026-07-29).
 // On script error it exits 0 (cannot match what it cannot parse) — the skill
 // remains the behavioural backstop for that residual case.
 //

@@ -3,8 +3,8 @@
 // A cron job never mentions cost, so the skill's description cannot match the
 // moment that matters. This fires on the write itself: any payload that lands a
 // schedule into a workflow or a scheduling config gets the pricing reminder.
-// Warn-only, never blocks (ratified R-21: only the push gate blocks; an
-// over-firing hook trains bypass). Fail-open: exits 0 on any parse error, and
+// Warn-only, never blocks (ratified R-21: only the push and surgery gates
+// block; an over-firing hook trains bypass). Fail-open: exits 0 on any parse error, and
 // the skill plus its norm-adjacent memory entry remain the backstop.
 
 // Rule 1: a GitHub Actions workflow, where the payload itself carries the cadence.
