@@ -33,9 +33,27 @@ A fixed shape, so the next session can read it once and resume:
 
 Dates are absolute, not relative. Money is stated in pounds.
 
+Every diagnosis and causal claim in the note carries a confidence marker: verified, with
+the command or evidence that proved it, or unverified. The note opens with one line:
+"diagnoses in this note are unverified unless marked". A recommendation built on an
+unverified diagnosis inherits the marker. The incident behind this (2026-07-20): a
+second-order claim about a fix, reasoned from structure rather than probed, was written
+into a migration header and DECISIONS as fact, and a reader had no way to tell asserted
+from proven until a smoke forced the correction.
+
 ## Step 3: persist it
 
 Write the note to the project's handover location, or to `DECISIONS.md` / `LESSONS_LEARNED.md` where an item qualifies for those. If no handover location is established, write to `HANDOVER.md` in the project root. Append; do not overwrite. The history of handovers is itself useful, and an overwrite loses the trail. If something this session qualifies as a documented decision or a lesson learned, prompt to record it.
+
+## Step 4: promote before closing
+
+Sweep the note's traps and working agreements before finishing. Anything that would change
+how a future session behaves is a lesson, not a handover line: promote it to the project's
+LESSONS_LEARNED.md now, with its misses-log line, or plant a grep-able FORWARD anchor at
+the landing point (flag-deferred-items). Knowledge that stops in a handover never reaches
+the library's admission pipeline. The incident behind this (2026-07-27): five coordination
+rules learned the hard way in one session sat in a handover section behind "consider
+folding these in later", and were never folded in.
 
 ## What this skill does not do
 

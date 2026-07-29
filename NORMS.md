@@ -6,7 +6,7 @@ Drift check: diff that block against this file whenever a norm changes or during
 review. Cap: at most six norms (R-19); a norm that never bites demotes to a hub bullet, a
 norm violated anyway promotes to a hook where mechanisable.
 
-<!-- BEGIN CLAUDE-SKILLS NORMS v2026-07-23 -->
+<!-- BEGIN CLAUDE-SKILLS NORMS v2026-07-29 -->
 ## Engineering norms (always on — each links to a full skill playbook)
 
 - Never report success from a proxy signal (green step, 200, "accepted", exit 0) — assert
@@ -23,5 +23,8 @@ norm violated anyway promotes to a hook where mechanisable.
   regulatory claims from the primary source before acting. Playbook: findings-are-evidence.
 
 When closing a lessons-learned entry in any repo, add one line: "skill that should have
-prevented this: <name> / none — new candidate". That line is the library's misses log.
-<!-- END CLAUDE-SKILLS NORMS v2026-07-23 -->
+prevented this: <name> / none - new candidate". That line is the library's misses log.
+When the incident is the first of its kind but the class is plainly broader than the
+instance, add a second line: "class: <the general category the next instance will belong
+to>", so the second instance reads as recurrence rather than novelty when it lands.
+<!-- END CLAUDE-SKILLS NORMS v2026-07-29 -->
