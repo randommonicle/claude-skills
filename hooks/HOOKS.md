@@ -15,6 +15,7 @@ on 2026-07-23 (see the proposal doc's mechanics table).
 | `sql-surgery-warn.mjs` | PreToolUse / Bash | logs commands carrying `DELETE FROM` / `TRUNCATE` / `DROP TABLE` to `~/.claude/skills/SURGERY_LOG.jsonl` | fail-open, warn-and-log; promote to "ask" if the misses log shows it is too quiet |
 | `session-recon.mjs` | SessionStart | in a git repo: fetch, `status -sb`, all-refs log, open PRs → injected as `additionalContext` (parallel-work-recon's session-start half) | fail-open, silent on timeout/offline |
 | `schedule-cost-warn.mjs` | PreToolUse / Write\|Edit | a payload landing a schedule (`.github/workflows/*.yml` carrying `schedule:`/`cron:`, or `vercel.json`/`wrangler.toml`/`netlify.toml`/crontab carrying `cron`) → pricing reminder as `systemMessage` + `additionalContext` (mechanises price-the-spend, whose description cannot match "add a cron job") | fail-open, warn-only, never blocks |
+| `migration-write-warn.mjs` | PreToolUse / Write\|Edit | a payload writing a `.sql` file under a `migrations` path segment → migration discipline as `systemMessage` + `additionalContext`: derive the guard predicate from the actual write, probe the target's environmental premises, execute against a throwaway container first, ship the catalog query; an invariant asserted in SQL comment prose appends the enforce-invariants-in-build clause (mechanises the moment db-migration-verification, live-state-first and prove-it-can-fail cannot description-match: a bare `.sql` write has no trigger vocabulary) | fail-open, warn-only, never blocks |
 
 Both `.jsonl` logs are machine-local and gitignored. The `Write|Edit` matcher is an unanchored
 regex, so it also covers `MultiEdit` and `NotebookEdit`; `schedule-cost-warn.mjs` reads `content`,
@@ -39,7 +40,8 @@ on macOS/Linux replace `%USERPROFILE%` with `$HOME`.
         { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\sql-surgery-warn.mjs\"" }
       ] },
       { "matcher": "Write|Edit", "hooks": [
-        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\schedule-cost-warn.mjs\"" }
+        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\schedule-cost-warn.mjs\"" },
+        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\migration-write-warn.mjs\"" }
       ] }
     ],
     "PostToolUse": [
