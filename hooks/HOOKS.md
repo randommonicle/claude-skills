@@ -10,7 +10,7 @@ on 2026-07-23 (see the proposal doc's mechanics table).
 
 | Script | Event / matcher | Behaviour | Failure mode |
 |---|---|---|---|
-| `push-gate.mjs` | PreToolUse / Bash | `git push`, `gh pr merge`, remote ref deletion → `permissionDecision: "ask"` (forces the per-action prompt; mechanises confirm-before-push) | fail-closed for matched commands; exits 0 on script error (skill is the backstop) |
+| `push-gate.mjs` | PreToolUse / Bash | `git push`, `gh pr merge`, remote ref deletion → `permissionDecision: "ask"` (forces the per-action prompt; mechanises confirm-before-push), with a best-effort `git fetch` + `status -sb` freshness block appended to the reason, so the prompt carries live remote state rather than the session-start snapshot (parallel-work-recon's pre-push half) | fail-closed for matched commands; exits 0 on script error (skill is the backstop); freshness degrades to the original reason on non-repo cwd, missing git or timeout, and the fetch runs only on matched commands |
 | `skill-fire-log.mjs` | PostToolUse / Skill | appends one JSONL line per skill invocation to `~/.claude/skills/FIRE_LOG.jsonl` (the rating system's measurement arm) | fail-open |
 | `sql-surgery-warn.mjs` | PreToolUse / Bash | logs commands carrying `DELETE FROM` / `TRUNCATE` / `DROP TABLE` to `~/.claude/skills/SURGERY_LOG.jsonl` | fail-open, warn-and-log; promote to "ask" if the misses log shows it is too quiet |
 | `session-recon.mjs` | SessionStart | in a git repo: fetch, `status -sb`, all-refs log, open PRs → injected as `additionalContext` (parallel-work-recon's session-start half) | fail-open, silent on timeout/offline |
@@ -19,10 +19,12 @@ on 2026-07-23 (see the proposal doc's mechanics table).
 | `test-write-warn.mjs` | PreToolUse / Write\|Edit | a test-shaped path (`.spec.`/`.test.`, or a `tests`/`test`/`smoke`/`smokes`/`e2e` segment) whose payload carries a DB-context delete, a service-role credential, or an error-existence-only assertion → the matching rule lines as `systemMessage` + `additionalContext` (mechanises safe-smokes and prove-it-can-fail, whose descriptions cannot match "write me a smoke") | fail-open, warn-only, never blocks |
 
 Both `.jsonl` logs are machine-local and gitignored. The `Write|Edit` matcher is an unanchored
-regex, so it also covers `MultiEdit` and `NotebookEdit`; `schedule-cost-warn.mjs` reads `content`,
-`new_string` and `edits[].new_string` for that reason. Its fire-and-quiet cases, including five
-negative controls, are asserted by `schedule-cost-warn.test.mjs` in this directory
-(`node hooks/schedule-cost-warn.test.mjs`, prints PASS/FAIL per case).
+regex, so it also covers `MultiEdit` and `NotebookEdit`; `schedule-cost-warn.mjs`,
+`migration-write-warn.mjs` and `test-write-warn.mjs` read `content`, `new_string` and
+`edits[].new_string` for that reason. Every hook with fire-and-quiet behaviour ships its
+asserted cases as a sibling suite in this directory (`node hooks/<name>.test.mjs`, prints
+PASS/FAIL per case); `push-gate.test.mjs` builds throwaway git fixtures so the freshness
+block is proven against a genuinely stale clone, offline.
 
 ## Install (per machine)
 
