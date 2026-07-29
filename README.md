@@ -50,7 +50,6 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **handover** | leaf | Structured handover from a real /context reading; supersession stamps; carry-forwards cite live state. |
 | **committee-review** | process | Three-lens review with shared evidence, attribution-stripped consolidation, and voting. |
 | **skill-library-builder** | process | Turn a repo into a project-specific skill library; skills encode mechanical steps, not awareness. |
-| **lint-after-edit** | leaf | Run the project's linter on each edited JS/TS file; report without blocking. |
 | **ai-surface-discipline / unslop-ui / unslop-text / unslop-code** | see rows above / forks | The three **unslop-\*** skills are forks of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches — see each skill's `UPSTREAM.md`. |
 
 ## The rating system

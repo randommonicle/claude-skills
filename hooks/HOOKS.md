@@ -17,6 +17,7 @@ on 2026-07-23 (see the proposal doc's mechanics table).
 | `schedule-cost-warn.mjs` | PreToolUse / Write\|Edit | a payload landing a schedule (`.github/workflows/*.yml` carrying `schedule:`/`cron:`, or `vercel.json`/`wrangler.toml`/`netlify.toml`/crontab carrying `cron`) → pricing reminder as `systemMessage` + `additionalContext` (mechanises price-the-spend, whose description cannot match "add a cron job") | fail-open, warn-only, never blocks |
 | `migration-write-warn.mjs` | PreToolUse / Write\|Edit | a payload writing a `.sql` file under a `migrations` path segment → migration discipline as `systemMessage` + `additionalContext`: derive the guard predicate from the actual write, probe the target's environmental premises, execute against a throwaway container first, ship the catalog query; an invariant asserted in SQL comment prose appends the enforce-invariants-in-build clause (mechanises the moment db-migration-verification, live-state-first and prove-it-can-fail cannot description-match: a bare `.sql` write has no trigger vocabulary) | fail-open, warn-only, never blocks |
 | `test-write-warn.mjs` | PreToolUse / Write\|Edit | a test-shaped path (`.spec.`/`.test.`, or a `tests`/`test`/`smoke`/`smokes`/`e2e` segment) whose payload carries a DB-context delete, a service-role credential, or an error-existence-only assertion → the matching rule lines as `systemMessage` + `additionalContext` (mechanises safe-smokes and prove-it-can-fail, whose descriptions cannot match "write me a smoke") | fail-open, warn-only, never blocks |
+| `lint-after-edit.mjs` | PostToolUse / Write\|Edit | an edited `.js/.jsx/.ts/.tsx/.mjs/.cjs` file outside `node_modules`/`dist`/`build`/`.git`: walks up to the nearest `package.json`, picks Biome (`biome.json`/`biome.jsonc`) else ESLint (`eslint.config.*`, `.eslintrc*`, or an `eslintConfig` key), resolves the binary strictly from that project's `node_modules/.bin` (never npx, never an install), lints the single edited file and reports up to 30 lines as `systemMessage` + `additionalContext` (retires the lint-after-edit skill, whose moment is the edit itself and which no prompt names) | fail-open, warn-only, never blocks; silent on no config, no binary, crash or the 15s internal timeout |
 | `audit-fires.mjs` | none: CLI, run by hand (`node hooks/audit-fires.mjs --repo <path>...`) | scores the rating system on this machine's data: fires per skill (count, first and last ts, distinct cwds), never-fired skills each tagged with the layer that explains the zero (norms and hook-backed skills are invisible to the fire log by construction), misses per skill from each repo's `docs/LESSONS_LEARNED.md`, and a loads-vs-misses cross-reference, the promotion and prune signal | fail-open per line, fail-loud per file: a malformed JSONL line is skipped and counted, a missing log prints a notice and the run continues; never registered as a hook, so it cannot affect a session |
 
 Both `.jsonl` logs are machine-local and gitignored. The `Write|Edit` matcher is an unanchored
@@ -52,6 +53,9 @@ on macOS/Linux replace `%USERPROFILE%` with `$HOME`.
     "PostToolUse": [
       { "matcher": "Skill", "hooks": [
         { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\skill-fire-log.mjs\"" }
+      ] },
+      { "matcher": "Write|Edit", "hooks": [
+        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\lint-after-edit.mjs\"", "timeout": 20 }
       ] }
     ]
   }
@@ -64,9 +68,12 @@ carries the confirm-before-push reason.
 
 ## Deferred hook rows
 
-- `lint-after-edit` as a PostToolUse hook — the skill covers the behaviour today; a hook
-  version needs per-project linter detection and speed guards.
-  FORWARD: lint-after-edit hook row, see docs/SKILL_PROPOSALS_2026-07-23.md Layer 0.
+- `lint-after-edit` shipped 2026-07-29 as the `lint-after-edit.mjs` row above: detection
+  walks up to the nearest `package.json`, and the speed guards are extension, path
+  segment, on-disk existence, installed-binary-only resolution and a 15 second internal
+  cap (the 20s harness timeout sits deliberately above it, so the internal cap fires and
+  the skip stays silent). The skill is deleted rather than kept as a backstop. It reads
+  the file from disk after the write, not the payload, which is why it is PostToolUse.
 - Banned-character gate — per-project scope by convention (R-39), so it installs as a
   project pre-commit hook or project-level PostToolUse hook, not globally from here.
   FORWARD: banned-character gate per-project template, see docs/SKILL_PROPOSALS_2026-07-23.md Layer 0.
