@@ -61,7 +61,16 @@ After a subagent batch, an agent workflow, a paid model call, or a one-off cloud
 what it actually cost without being asked: per unit and total, with a cost estimate. Read the
 real usage numbers (the token counts in each agent's result, the per-agent usage in the workflow
 transcript, the run's own billing timing endpoint), never an estimate reconstructed from what
-you think you did. The point is to let the operator weigh the value against the spend
+you think you did.
+
+**An agent's own account of its spend is not a usage number.** A result carries two different
+things and only one of them is measured: the harness's usage metadata, which is real, and the
+agent's prose claim about how much of its budget it used, which is a guess it has no instrument
+to make. Measured 2026-08-03: an agent briefed at roughly 150k reported "used roughly half the
+~150k budget" while its metadata read 310,017, an error of four times, with no dishonesty
+involved. Take the number from the metadata and treat the self-report as colour. Load
+**commission-the-roster** if you are about to set a budget on the strength of one, because the
+same fact means a briefed budget is not a control. The point is to let the operator weigh the value against the spend
 deliberately, per task, so use actuals.
 
 ## Where the prices live, because they change
