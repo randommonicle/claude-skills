@@ -1,12 +1,21 @@
-# The library's only CI. It exists because the drift it catches was caused by a
+# The library's CI. Two jobs, and the split is deliberate.
+#
+# index: the drift gate. It exists because the drift it catches was caused by a
 # DELETION, which no Write or Edit hook can observe, so the warn family in
-# hooks/ is structurally the wrong layer for this invariant.
+# hooks/ is structurally the wrong layer for that invariant.
+#
+# hooks: every hook's own suite. Added because seven of the eight suites were
+# running nowhere. lint-after-edit.test.mjs is the reason it matters: its stubs
+# are #!/bin/sh scripts, so its six "fires" cases cannot execute on the Windows
+# machine the library is maintained from, and until this job existed they were
+# not executed on Linux either. Six cases that guard nothing look exactly like
+# six cases that pass.
 #
 # Cost, per price-the-spend, before it shipped: this repo is PUBLIC, so standard
-# runners are free and draw on no metered allowance. One ubuntu job, no npm
-# install, node stdlib only, about ten seconds, billed as zero minutes. Re-price
-# if the repo ever goes private, where per-job rounding would make it one billed
-# minute per push.
+# runners are free and draw on no metered allowance. Two ubuntu jobs, no npm
+# install, node stdlib only, seconds each, billed as zero minutes. Re-price if
+# the repo ever goes private, where per-job rounding bills each job a whole
+# minute and the two-job split would cost double a single one.
 name: check-index
 
 on:
@@ -15,7 +24,7 @@ on:
   pull_request:
 
 # Deliberately NOT paths-filtered. A paths filter on a required check leaves it
-# permanently "Expected" and nothing merges, and this check's whole job is to
+# permanently "Expected" and nothing merges, and this workflow's whole job is to
 # notice a deleted directory, which is exactly the change a naive filter misses.
 jobs:
   index:
@@ -29,3 +38,30 @@ jobs:
         run: node hooks/check-index.test.mjs
       - name: the index agrees with the disk
         run: node hooks/check-index.mjs
+
+  hooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # push-gate.test.mjs builds throwaway git repos. It sets user.email itself,
+      # but a runner with no global identity fails on the first commit, so the
+      # identity is established here rather than depended upon.
+      - name: git identity for the fixture repos
+        run: |
+          git config --global user.email ci@example.invalid
+          git config --global user.name CI
+      # Every suite runs even after one fails, so a red run reports the whole
+      # picture rather than only the first fault. A single early exit would turn
+      # one platform defect into an unknown number of them.
+      - name: every hook suite
+        run: |
+          failed=0
+          for t in hooks/*.test.mjs; do
+            echo "::group::$t"
+            if node "$t"; then echo "PASS $t"; else echo "FAIL $t"; failed=1; fi
+            echo "::endgroup::"
+          done
+          exit $failed

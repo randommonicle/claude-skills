@@ -67,6 +67,8 @@ node hooks/check-index.mjs
 
 It asserts the **set** in both directions, which is the load-bearing half, plus each skill's frontmatter `name` against its directory, a non-empty description, and all three stated counts. It is a CI gate rather than a hook because the drift was caused by a **deletion**, which no Write or Edit hook can see. `hooks/check-index.test.mjs` proves it can go red: fourteen cases, each mutating one thing and pinning the substring that identifies its own defect, including a regression case named for `1d780cb`. Run against real history the gate reds with three problems at `1d780cb` and two at `385755d`, tracking the partial fix exactly.
 
+The same workflow's second job runs **every** hook suite (`hooks/*.test.mjs`) on ubuntu, and that job is why it is worth having. `lint-after-edit.test.mjs` builds `#!/bin/sh` linter stubs, so its six "fires" cases cannot execute on the Windows machine this library is maintained from, and before the job existed they were not executed on Linux either. Six cases guarding nothing look identical to six cases passing. Every suite runs even after one fails, so a red run reports the whole picture rather than the first fault.
+
 [LESSONS_LEARNED.md](LESSONS_LEARNED.md) holds field notes from applying these skills on real jobs: what broke, what the skills caught, and what only a human pass caught.
 
 ## Install on a new machine
