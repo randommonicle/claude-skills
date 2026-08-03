@@ -99,7 +99,8 @@ RE-DERIVE ANYWAY (regulated, dual derivation required): <list, or "none">
 BUDGET: ~<n>k tokens. If you approach it, stop and report what remains undone
   rather than continuing.
 DELIVERABLE: one <artifact>. Report the diff and the evidence, not a narrative.
-OUT OF SCOPE: <what it must not touch>
+OUT OF SCOPE: <what it must not touch>. If you find necessary work outside SCOPE,
+  report it and STOP. Do not do it, however obviously right it looks.
 ```
 
 The "do not re-derive" line collides with **live-state-first** and **findings-are-evidence** on
@@ -114,7 +115,30 @@ purpose, so bound the collision explicitly rather than leaving each agent to gue
   do not need to rediscover the schema.
 
 The STOP clause is what keeps this honest. An agent that silently accepts a wrong fact is worse
-than one that re-derives everything, so give it a cheap, explicit way to refuse.
+than one that re-derives everything, so give it a cheap, explicit way to refuse. Extend the same
+courtesy to scope: an agent that finds necessary work outside its remit should report it and
+stop, because the reasoning that justifies stepping outside will be sound most of the time, and
+the one time it is not, nobody was asked. Measured 2026-08-03: an agent scoped to `docs/` edited
+five files outside it, including the repo's always-on instruction file. Every edit was correct
+and its argument was good. It still should have come back.
+
+**Budget derive-it-yourself scope separately, and expect it to dominate.** This rule saves
+tokens when you hold the facts. When you genuinely do not, the derivation IS the expensive part,
+and a cheaper tier does not make it cheap, it makes it more tool-heavy. Measured 2026-08-03, one
+wave, one repo:
+
+| Agent | Tier | Brief | Tokens | Tool calls |
+|---|---|---|---|---|
+| Docs mechanics | mid | "derive this yourself" on 3 of 4 tasks | **310,017** | 102 |
+| Adversarial review | strong | nine pre-verified facts, tight file list | 144,467 | 36 |
+| Strategic review | strongest | verified findings only, repo access denied | **44,305** | **0** |
+
+The cheap tier cost 2.1x the strong one, and the most expensive model in the commission was the
+cheapest agent in it. Tier sets the rate, scope sets the volume, and volume wins by enough that
+tier barely shows. So mark the derive-it-yourself rows in the roster explicitly and budget them
+at a multiple rather than a discount. Handing over facts you do not have is not an option, and
+pretending you have them is worse, so the honest move is to name the uncertainty and pay for it
+deliberately.
 
 ## Rule 4: no agent without a single named artifact
 
@@ -198,8 +222,14 @@ interns, zero watchers.
 - **Two agents in one working copy invalidate every recon either did.** Give each agent its own
   worktree or serialise them, and expect a fresh worktree to need a dependency install before
   anything runs. See **parallel-work-recon**.
-- **A budget line with no stop instruction is decoration.** "Roughly 300k" without "stop and
-  report what remains" reads as an estimate, not a ceiling.
+- **A budget line is decoration even WITH a stop instruction, because the agent has no meter.**
+  Measured 2026-08-03: an agent briefed at "roughly 150k, stop and report what remains" spent
+  310,017 tokens and then reported that it had "used roughly half the ~150k budget". It was not
+  being dishonest. It cannot see its own consumption, so it estimated, and the estimate was out
+  by a factor of four. Write the number anyway, because it sets intent and it makes the overrun
+  legible afterwards, but never treat it as a control. The only real ceilings are one the harness
+  enforces and a scope too small to overrun. **If a task genuinely must not exceed a budget, cut
+  the scope until it cannot.**
 
 ## Routes
 
@@ -228,4 +258,7 @@ once agents are running, because by then the orientation is already paid and the
 lever is stopping. Publishing a roster converts all of that into one table an operator can trim
 in ten seconds. Evidence: PropOS, 2026-07-31, about 4.6M tokens over 16 run-segments across
 eighteen identities for five merged PRs, roughly a third of it recoverable by briefing and
-tiering alone.
+tiering alone. Then PropOS again, 2026-08-03, where a four-agent wave run to this skill's own
+rules cost 499k for a confirmed three-HIGH review, a strategic ruling and a docs pass, and where
+the two measurements that corrected the skill both came from watching what the agents actually
+spent rather than from what they reported spending.
