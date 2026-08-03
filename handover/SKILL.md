@@ -33,6 +33,10 @@ A fixed shape, so the next session can read it once and resume:
 
 Dates are absolute, not relative. Money is stated in pounds.
 
+Where the project keeps a checkpoint log (per the checkpoint-log skill), synthesise items
+3, 4, and 5 from the log rather than from memory; the log is the record, the handover is
+the digest.
+
 Every diagnosis and causal claim in the note carries a confidence marker: verified, with
 the command or evidence that proved it, or unverified. The note opens with one line:
 "diagnoses in this note are unverified unless marked". A recommendation built on an
