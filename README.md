@@ -57,6 +57,16 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 
 Tier and layer assignments are measured, not declared: the fire-log hook records every skill invocation to `FIRE_LOG.jsonl` (gitignored, machine-local); every new LESSONS_LEARNED entry in any repo ends with "skill that should have prevented this: X / none — new candidate" (the misses log, plus a "class:" line when a first instance is plainly broader than itself); a prune pass runs when a skill is added. Promotion ladder: hub bullet → leaf → norm → hook. Norm-backed, hub-routed, and rare-event-high-consequence skills are exempt from zero-fires demotion. `hooks/audit-fires.mjs` turns both halves of the measurement into one report (`node hooks/audit-fires.mjs --repo <path>...`): fires per skill, never-fired skills tagged with the layer that explains the zero, and misses per skill. The fire log cannot see the norms, the hooks, or knowledge applied without loading a skill, so a zero there is a question, not a verdict; the 2026-07-29 activation audit (docs/AUDIT_2026-07-29_activation.md) is the worked example of reading it wrong and then right.
 
+## The index gate
+
+One fact, the skill count, was stated in four places (the README table, the README prose, `plugin.json`, `marketplace.json`) with nothing asserting any of them, and it drifted: `1d780cb` deleted a skill on promotion to a hook and updated the table row only, so both manifests shipped wrong by one until a later addition made them accidentally right. `hooks/check-index.mjs` closes it, run by `.github/workflows/check-index.yml` on every push and PR (free, this repo is public):
+
+```bash
+node hooks/check-index.mjs
+```
+
+It asserts the **set** in both directions, which is the load-bearing half, plus each skill's frontmatter `name` against its directory, a non-empty description, and all three stated counts. It is a CI gate rather than a hook because the drift was caused by a **deletion**, which no Write or Edit hook can see. `hooks/check-index.test.mjs` proves it can go red: fourteen cases, each mutating one thing and pinning the substring that identifies its own defect, including a regression case named for `1d780cb`. Run against real history the gate reds with three problems at `1d780cb` and two at `385755d`, tracking the partial fix exactly.
+
 [LESSONS_LEARNED.md](LESSONS_LEARNED.md) holds field notes from applying these skills on real jobs: what broke, what the skills caught, and what only a human pass caught.
 
 ## Install on a new machine

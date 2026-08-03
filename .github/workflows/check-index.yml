@@ -1,0 +1,31 @@
+# The library's only CI. It exists because the drift it catches was caused by a
+# DELETION, which no Write or Edit hook can observe, so the warn family in
+# hooks/ is structurally the wrong layer for this invariant.
+#
+# Cost, per price-the-spend, before it shipped: this repo is PUBLIC, so standard
+# runners are free and draw on no metered allowance. One ubuntu job, no npm
+# install, node stdlib only, about ten seconds, billed as zero minutes. Re-price
+# if the repo ever goes private, where per-job rounding would make it one billed
+# minute per push.
+name: check-index
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Deliberately NOT paths-filtered. A paths filter on a required check leaves it
+# permanently "Expected" and nothing merges, and this check's whole job is to
+# notice a deleted directory, which is exactly the change a naive filter misses.
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: the gate can go red
+        run: node hooks/check-index.test.mjs
+      - name: the index agrees with the disk
+        run: node hooks/check-index.mjs

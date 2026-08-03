@@ -97,3 +97,31 @@ any regression into a build failure.
 hold: render gaps as unmissable tokens, collect the questions once in a form the
 owner can actually answer, gate the build on the token set, and never resolve a
 factual contradiction by picking a side.
+
+## 6. The library shipped the defect its own skills describe
+
+**What happened.** One fact, the skill count, lived in four places: the README
+table, the README prose, `plugin.json` and `marketplace.json`. Nothing asserted
+any of them. `1d780cb` deleted a skill on promoting it to a hook and updated the
+README table row only, leaving the prose and both manifests at 39 against 38 on
+disk. `385755d` then corrected the prose and left the manifests, so the two
+published descriptions shipped wrong by one for two commits, and a later
+addition took the disk back to 39 and made them accidentally right rather than
+maintained. It surfaced only because adding a skill meant reading the count, and
+reading it meant counting the directories.
+
+**The lesson.** `blast-radius-grep` and `enforce-invariants-in-build` both name
+this exactly, and neither fired, because the moment that needed them was a
+deletion rather than a write. That is also why the fix could not be a hook: the
+warn family in `hooks/` observes Write and Edit, and a removed directory is
+neither. A skill's description can only match a moment somebody is having, so an
+invariant broken by absence needs a gate that runs on the whole tree.
+
+**How to apply.** When one fact appears in more than one file, either
+single-source it or gate it, and pick the layer by asking what change breaks it:
+a write-triggered warn cannot see a deletion, and a manual report is only as
+good as the last time somebody ran it. Assert the set, not the count, because
+the count is a lossy proxy for the invariant that matters. Then prove the gate
+against real history rather than only against fixtures, which here meant
+`git archive` at the two offending commits and watching the failure count fall
+from three to two as the partial fix landed.
