@@ -5,16 +5,19 @@
 // stale snapshot. Fail-open: any error or timeout yields no context, never a
 // broken session. The pre-commit re-run stays behavioural in the skill —
 // this hook only covers session start.
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-function run(cmd, timeout = 6000) {
-  try {
-    return execSync(cmd, { timeout, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-  } catch {
-    return null;
-  }
+// argv form, never a shell string. cwd is untrusted text: a directory name may
+// legally contain a double quote on POSIX, and interpolating it into a shell
+// command made this hook injectable. The .git test below is not a defence, since
+// a crafted directory can hold a .git entry, and a ';' payload executes
+// regardless of git's exit status. Same rule lint-after-edit already states.
+function run(bin, args, timeout = 6000) {
+  const r = spawnSync(bin, args, { timeout, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  if (r.error || r.status !== 0) return null;
+  return r.stdout.trim();
 }
 
 let raw = '';
@@ -25,10 +28,10 @@ process.stdin.on('end', () => {
     const cwd = evt.cwd ?? process.cwd();
     if (!existsSync(join(cwd, '.git'))) process.exit(0);
 
-    run(`git -C "${cwd}" fetch --quiet`, 8000);
-    const status = run(`git -C "${cwd}" status -sb`);
-    const log = run(`git -C "${cwd}" log --oneline --decorate --all -8`);
-    const prs = run(`gh pr list --state open --limit 10`, 8000);
+    run('git', ['-C', cwd, 'fetch', '--quiet'], 8000);
+    const status = run('git', ['-C', cwd, 'status', '-sb']);
+    const log = run('git', ['-C', cwd, 'log', '--oneline', '--decorate', '--all', '-8']);
+    const prs = run('gh', ['pr', 'list', '--state', 'open', '--limit', '10'], 8000);
 
     const parts = [];
     if (status) parts.push(`status:\n${status}`);

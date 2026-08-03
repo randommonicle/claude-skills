@@ -19,7 +19,7 @@
 // Bash calls. Decoration only: if cwd is not a repo, git is missing, or a probe
 // times out, the original reason is emitted unchanged. A failed freshness probe
 // must never be the reason this gate does not ask.
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 
 const GATED = [
   /\bgit\s+push\b/, // includes --force and push-based remote branch deletion
@@ -30,22 +30,29 @@ const GATED = [
 const REASON =
   'confirm-before-push: pushes, PR merges and remote branch deletion need per-action confirmation. Branch deletion also needs the preflight (gh pr list --head/--base, git log main..branch).';
 
-function run(cmd, timeout = 6000) {
-  try {
-    return execSync(cmd, { timeout, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-  } catch {
-    return null;
-  }
+// argv form, never a shell string. cwd is untrusted text: a directory name may
+// legally contain a double quote on POSIX, and interpolating it into a shell
+// command made this hook injectable, since a ';' payload executes regardless of
+// git's exit status and the strict 'true' test below runs only afterwards. Same
+// rule lint-after-edit already states for the edited path.
+function run(args, timeout = 6000, withStderr = false) {
+  const r = spawnSync('git', args, {
+    timeout,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', withStderr ? 'pipe' : 'ignore'],
+  });
+  if (r.error || r.status !== 0) return null;
+  return `${r.stdout}${withStderr ? r.stderr : ''}`.trim();
 }
 
 // Live remote state for the prompt. '' on anything short of two clean probes:
 // the caller must be able to append this unconditionally, so it never throws.
-// The strict 'true' test is what keeps a surprising cwd out of the probes.
+// The strict 'true' test is what keeps a surprising cwd out of the later probes.
 function freshness(cwd) {
   try {
-    if (run(`git -C "${cwd}" rev-parse --is-inside-work-tree`) !== 'true') return '';
-    const fetched = run(`git -C "${cwd}" fetch 2>&1`); // ref updates print to stderr
-    const status = run(`git -C "${cwd}" status -sb`);
+    if (run(['-C', cwd, 'rev-parse', '--is-inside-work-tree']) !== 'true') return '';
+    const fetched = run(['-C', cwd, 'fetch'], 6000, true); // ref updates print to stderr
+    const status = run(['-C', cwd, 'status', '-sb']);
     if (fetched === null || status === null) return '';
     const moved = fetched
       .split('\n')
