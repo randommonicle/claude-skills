@@ -2,7 +2,7 @@
 
 Personal, version-controlled [Claude Code](https://claude.com/claude-code) skills, synced to `~/.claude/skills/`. Installed at the **user level**, so they apply to every project on this machine automatically (no per-project setup).
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 38 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 39 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
@@ -36,6 +36,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **email-delivery-verification** | leaf | 2xx means accepted, not delivered; suppression lists, every recipient leg, attachment-class blocks. |
 | **guard-the-spend-paths** | leaf | Per-IP caps on every money/shared-state endpoint from day one; a fail-open guardrail is inert until closed. |
 | **price-the-spend** | leaf | Price recurring spend before it ships (billed unit x frequency x month, as a % of the allowance); report per-action burn after it runs. |
+| **commission-the-roster** | leaf (commission moment) | Publish a roster (role / model tier / budget / scope / single artifact) for approval before spawning a fleet; tier by decision class; brief pre-verified facts, not questions. |
 | **outbound-side-effect-idempotency** | leaf | Choose which failure harms the recipient less; claim states, not read-then-write pre-checks. |
 | **substantiate-outward-claims** | leaf | Customer-facing certification/statistic claims need a primary source or explicit attribution. |
 | **deliverable-integrity** | leaf | Generated documents: claim-by-claim rewrite diff, loud placeholders for owner-only facts, re-extract-and-assert for parsers. |

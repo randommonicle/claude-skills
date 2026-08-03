@@ -155,6 +155,8 @@ than noting it for later.
 - You are producing a plan for work that adds anything recurring, put the monthly cost in the
   plan itself, see **plan-first**.
 - The spend is a Claude or Anthropic API call, load **claude-api** for current model prices.
+- The spend is a multi-agent commission you are about to appoint, load **commission-the-roster**
+  before the first spawn; that skill shapes the spend, this one reports it.
 
 ## What this skill does not do
 

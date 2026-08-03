@@ -3,3 +3,4 @@ __pycache__/
 .DS_Store
 FIRE_LOG.jsonl
 SURGERY_LOG.jsonl
+audit-output.txt
