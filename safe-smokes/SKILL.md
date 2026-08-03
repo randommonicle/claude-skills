@@ -13,7 +13,7 @@ Any test, smoke, or seed that connects to a shared or live database. In PropOS t
 
 ## Confirm the target before you run
 
-Two Supabase projects exist (PropOS and the Inspection App), and the active credentials or the Dashboard can point at the wrong one. Before running any smoke that can write, confirm which project the run targets and that it is the one you intend (PropOS is `tmngfuonanizxyffrsjy`). The 2026-05-18 incident combined a destructive delete with an unconfirmed target: flip-and-restore removes the first risk, and confirming the target removes the second.
+More than one project exists per environment, and the active credentials or the Dashboard can point at the wrong one. Before running any smoke that can write, confirm which project the run targets and that it is the one you intend, against the project ref recorded in the repo's own instructions rather than one memorised here. The 2026-05-18 incident combined a destructive delete with an unconfirmed target: flip-and-restore removes the first risk, and confirming the target removes the second.
 
 ## Core rules
 
