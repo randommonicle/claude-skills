@@ -2,6 +2,8 @@
 
 Personal, version-controlled [Claude Code](https://claude.com/claude-code) skills, synced to `~/.claude/skills/`. Installed at the **user level**, so they apply to every project on this machine automatically (no per-project setup).
 
+**If you have arrived here from outside:** these are engineering guardrails, not prompts or personas. Each skill is a short playbook that loads when Claude is about to do the specific thing it guards, and almost every one exists because a real defect shipped without it. They were distilled from the lessons-learned corpora of four production repos, one of them a regulated UK property-management platform, so the examples are concrete and some are domain-specific. You are welcome to install the lot, fork it, or read a few and steal the ideas. Start with [`verify-the-effect`](verify-the-effect/SKILL.md) and [`prove-it-can-fail`](prove-it-can-fail/SKILL.md), which are the two that change the most behaviour for the least reading. **No licence file is present yet**, so formally all rights are reserved; open an issue if you want explicit terms. The three `unslop-*` skills are forks and carry their upstream's terms, recorded in their own `UPSTREAM.md`.
+
 The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 39 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
@@ -73,6 +75,30 @@ The same workflow's second job runs **every** hook suite (`hooks/*.test.mjs`) on
 
 ## Install on a new machine
 
+**Prerequisites.** Claude Code, `git`, and **`node` on PATH** (every hook is a node script). The
+session-recon and push-gate hooks also shell out to `git` and `gh`, so install the
+[GitHub CLI](https://cli.github.com/) and run `gh auth login` if you want their live repo state.
+Everything degrades quietly rather than breaking: a missing `node` or `gh` means the affected hook
+produces nothing, which looks identical to nothing being wrong. If a hook seems inert, check the
+prerequisite first.
+
+**What installing changes about your sessions**, stated plainly because none of it is obvious
+afterwards and one item can interrupt you:
+
+- **Eight hooks are wired**, listed in [hooks/HOOKS.md](hooks/HOOKS.md). Two are gates that ask
+  for confirmation rather than warn: `push-gate` intercepts every `git push`, `gh pr merge` and
+  remote branch deletion, and `sql-surgery-warn` intercepts destructive SQL in an execution
+  context. If you do not want a confirmation prompt on every push, do not install the plugin
+  mode; take the skills only.
+- **A SessionStart hook runs `git fetch` and `gh pr list`** in your repo at the start of every
+  session, and injects the result as context. That is network activity in your repo, on your
+  credentials, without a prompt.
+- **`skill-fire-log.mjs` appends the skill name, its arguments and your cwd** to
+  `~/.claude/skills/FIRE_LOG.jsonl` every time a skill loads. It is local-only and gitignored,
+  nothing is transmitted anywhere, and no hook in this library makes a network call. Delete the
+  file or remove the hook if you would rather not keep it.
+- **The six norms are injected into every session** as instructions, per [NORMS.md](NORMS.md).
+
 Two modes — pick ONE per machine (both at once double-registers every skill and double-fires
 every hook):
 
@@ -88,8 +114,21 @@ serves the skills from the repo root (`"skills": "./"` in plugin.json), wires al
 hooks via `hooks/hooks.json`, and injects the NORMS.md block at every session start
 (`hooks/norms-inject.mjs`) — no manual CLAUDE.md or settings.json editing. Updates arrive
 when the machine refreshes the marketplace (no version field is set, so every push to main
-counts as a new version). Private-repo note: the machine needs git credentials that can read
-this repo (`gh auth login` or a credential manager).
+counts as a new version). The repo is public, so no credentials are needed to read it.
+
+**Check it worked**, rather than assuming:
+
+```bash
+node ~/.claude/skills/hooks/check-index.mjs
+```
+
+That prints `ok: N skills, all indexed, ...` and exits 0. In a session, `/plugin` lists the
+installed plugin, and asking Claude to do something a skill guards (say, write a test) should
+visibly load the relevant skill. If skills are present but nothing ever fires, the hooks are the
+part that did not install.
+
+**To remove it:** `/plugin uninstall ash@ash-skills`, then delete
+`~/.claude/skills/FIRE_LOG.jsonl` and `SURGERY_LOG.jsonl` if you want the local logs gone.
 
 **Direct clone (the maintainer's dev machine only):**
 
