@@ -87,7 +87,9 @@ hands over what the lead already verified:
 ROLE: <one sentence>
 SCOPE: exactly these paths, nothing else: <paths>
 
-FACTS, pre-verified by the lead. Do NOT re-derive:
+FACTS for ORIENTATION ONLY, pre-verified by the lead. Do NOT re-derive.
+  Nothing in this list is the premise of an edit; anything you must act on is
+  in RE-DERIVE ANYWAY below:
   - <fact, quoted, with file:line>
   - migration slot <n>, confirmed free across all refs on <date>
   - decisions that bind: <log entry date + one line each>
@@ -113,6 +115,19 @@ purpose, so bound the collision explicitly rather than leaving each agent to gue
 - **Everywhere else, handing over a verified fact is not a shortcut**, it is declining to pay
   twice for the same grep. UI work, docs passes, comment sweeps, test scaffolding and git chores
   do not need to rediscover the schema.
+- **A fact the agent must ACT ON never belongs in the FACTS list.** The facts block is for
+  orientation, the things an agent needs in order to navigate to the work. The moment a fact
+  becomes the premise of an edit, move it to RE-DERIVE ANYWAY, because otherwise you are telling
+  the agent to trust precisely the thing it is about to change, and your error becomes its
+  instruction. Sort every fact by what the agent will DO with it: navigate by it, or act on it.
+
+  Measured 2026-08-03, and this is the lead's own error rather than an agent's. The brief asserted
+  "table X is not hash-chained, do not re-derive", cited from the migration that deferred the
+  chaining. The very next migration, named for the thing, resolved that deferral and had been live
+  for seven weeks. The instructed edit would have replaced a true comment with a false one and
+  re-opened a closed anchor on a client-money audit trail. The agent refused it, but only because
+  its task forced it into the same territory, so the STOP clause fired by luck and not by design.
+  A fact under the knife gets re-derived; a fact you merely navigate by does not.
 
 The STOP clause is what keeps this honest. An agent that silently accepts a wrong fact is worse
 than one that re-derives everything, so give it a cheap, explicit way to refuse. Extend the same
