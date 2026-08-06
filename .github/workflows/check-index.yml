@@ -1,8 +1,16 @@
-# The library's CI. Two jobs, and the split is deliberate.
+# The library's CI. Three jobs, and the split is deliberate.
 #
 # index: the drift gate. It exists because the drift it catches was caused by a
 # DELETION, which no Write or Edit hook can observe, so the warn family in
 # hooks/ is structurally the wrong layer for that invariant.
+#
+# archives: the same shape for a different derived store. Each */*.skill archive
+# is a committed zip of its skill directory, and nothing regenerated it on edit,
+# so the two drifted silently (LESSONS_LEARNED entry 9: three archives shipped a
+# scanner their own patch log said was fixed). A stale archive has no reader
+# until something installs it, and then it installs the past — invisible to a
+# Write/Edit hook for the same reason a deletion is, so it too is a whole-tree
+# gate rather than a warn.
 #
 # hooks: every hook's own suite. Added because seven of the eight suites were
 # running nowhere. lint-after-edit.test.mjs is the reason it matters: its stubs
@@ -12,10 +20,10 @@
 # six cases that pass.
 #
 # Cost, per price-the-spend, before it shipped: this repo is PUBLIC, so standard
-# runners are free and draw on no metered allowance. Two ubuntu jobs, no npm
+# runners are free and draw on no metered allowance. Three ubuntu jobs, no npm
 # install, node stdlib only, seconds each, billed as zero minutes. Re-price if
 # the repo ever goes private, where per-job rounding bills each job a whole
-# minute and the two-job split would cost double a single one.
+# minute and the three-job split would cost triple a single one.
 name: check-index
 
 on:
@@ -38,6 +46,18 @@ jobs:
         run: node hooks/check-index.test.mjs
       - name: the index agrees with the disk
         run: node hooks/check-index.mjs
+
+  archives:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: the archive gate can go red
+        run: node hooks/check-archives.test.mjs
+      - name: every .skill archive matches its skill directory
+        run: node hooks/check-archives.mjs
 
   hooks:
     runs-on: ubuntu-latest

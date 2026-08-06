@@ -73,6 +73,16 @@ It asserts the **set** in both directions, which is the load-bearing half, plus 
 
 The same workflow's second job runs **every** hook suite (`hooks/*.test.mjs`) on ubuntu, and that job is why it is worth having. `lint-after-edit.test.mjs` builds `#!/bin/sh` linter stubs, so its six "fires" cases cannot execute on the Windows machine this library is maintained from, and before the job existed they were not executed on Linux either. Six cases guarding nothing look identical to six cases passing. Every suite runs even after one fails, so a red run reports the whole picture rather than the first fault.
 
+## The archive gate
+
+Each `*/*.skill` file is a committed zip of its skill directory (`SKILL.md`, `references/*`, `scripts/*`; `README.md`, `UPSTREAM.md` and `.gitkeep` are deliberately not bundled). Nothing regenerated one on edit and nothing diffed one against the tree, so the two drifted silently: LESSONS_LEARNED entry 9 records three archives shipping a scanner their own `UPSTREAM.md` said was patched, because a stale package has no reader until something installs it, and then it installs the past. `hooks/check-archives.mjs` closes it, run by the same workflow on every push and PR:
+
+```bash
+node hooks/check-archives.mjs
+```
+
+It reads each archive's members with a stdlib-only zip reader (no dependencies) and asserts the **set** against the directory in both directions — every bundled file present in the archive, every archive member still on disk — plus each shared file's content, normalising CRLF so a checkout's line endings are never mistaken for drift. It reds naming every stale, missing or orphaned member. Like the index gate it is a whole-tree gate, not a Write/Edit hook, because an archive going stale is a non-edit to a second file the edit never touched. `hooks/check-archives.test.mjs` proves it can go red: ten cases each mutating one thing and pinning its own substring, including one in the shape of entry 9's incident (a script patched on disk but not repacked). When it reds, `node hooks/pack-skill.mjs <skill-dir>` (or `--all`) rebuilds the archive deterministically, so the fix is one command.
+
 [LESSONS_LEARNED.md](LESSONS_LEARNED.md) holds field notes from applying these skills on real jobs: what broke, what the skills caught, and what only a human pass caught.
 
 ## Install on a new machine
