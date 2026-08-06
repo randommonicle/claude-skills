@@ -247,6 +247,15 @@ walks the artefact's members against the tree and fails naming each stale,
 missing or extra member. All three archives were regenerated (f16cecc, 0e2cac7);
 the gate itself is in flight as a separately commissioned task, and until it
 lands a `.skill` file is unverified by default.
+
+**Postscript, same day.** The commissioned gate landed (`hooks/check-archives.mjs`,
+merged 6a1244e) and its first sweep found the library's other two archives —
+`skill-library-builder.skill` and `verified-citations.skill` — stale as well:
+five of five. The hand check above stopped at the three archives it knew about,
+which is the difference between a check and a gate in miniature. Run against the
+pre-fix tree, the gate reproduced the manual findings member for member before
+naming the two the hand check missed; it now runs on every push and PR, and
+`node hooks/pack-skill.mjs <skill-dir>` makes the fix one command.
 skill that should have prevented this: enforce-invariants-in-build — "archive
 mirrors directory" was an invariant nothing asserted; blast-radius-grep names
 the fix, backing a value copied into a second store with a drift check.
