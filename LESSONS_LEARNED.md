@@ -216,3 +216,42 @@ remote, absent from the stale checkout that needed it.
 class: distribution-channel staleness, where the enforcement layer is itself
 versioned state and a machine's copy of the guardrails goes stale in exactly
 the way the guardrails warn about. First instance.
+
+## 9. The packaged copies of the skills shipped the bug their own patch log said was fixed
+
+**What happened.** An integration touching unslop-ui checked whether its bundled
+`.skill` archive was current before regenerating it, and then checked the other
+two. All three were stale against their source directories. `unslop-ui.skill`
+still carried the pre-patch `devibe_scan.py`, so the packaged copy shipped the
+exact Windows `UnicodeEncodeError` crash that `unslop-ui/UPSTREAM.md` records as
+locally fixed; both other archives carried stale scanners, and
+`unslop-text.skill` a stale SKILL.md. Nothing regenerates an archive on edit and
+nothing diffs archives against the tree, so the drift had no symptom on any
+machine reading the directories — a stale package has no reader at all until the
+day something installs it, and then it installs the past, patches reversed. The
+same review also found the machine's own `~/.claude/skills` checkout two skills
+behind the remote: the second instance of entry 8's distribution-channel
+staleness class, caught this time by a deliberate repo-versus-install diff
+rather than by a bounced push.
+
+**The lesson.** An archive built from a directory is a derived store, and a
+derived store without a gate drifts exactly like entry 6's duplicated count.
+"Regenerate on edit" is a discipline, not a control. Entry 6 already established
+that an invariant broken by absence needs a gate that runs on the whole tree; an
+archive member is invisible to write-triggered warns for the same reason a
+deleted directory is.
+
+**How to apply.** Every packaged or derived artefact committed alongside its
+source — archives, bundles, vendored copies — gets a deterministic check that
+walks the artefact's members against the tree and fails naming each stale,
+missing or extra member. All three archives were regenerated (f16cecc, 0e2cac7);
+the gate itself is in flight as a separately commissioned task, and until it
+lands a `.skill` file is unverified by default.
+skill that should have prevented this: enforce-invariants-in-build — "archive
+mirrors directory" was an invariant nothing asserted; blast-radius-grep names
+the fix, backing a value copied into a second store with a drift check.
+class: derived-artefact staleness, a committed copy built from source with no
+gate diffing it against that source. Sibling of entry 8's distribution-channel
+staleness (the copy a machine installs) and entry 6's duplicated fact (the copy
+a reader trusts). First instance as a package; entry 8's class recurred in the
+same review.
