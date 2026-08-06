@@ -65,9 +65,10 @@ proceed. Do not silently fall back to defaults.
 Establish, concretely:
 - **A reference.** One real site, screenshot, brand, or product whose design language to
   follow. This single input does more than every other rule combined. If the user has
-  one, anchor to it. If not, ask for or pick a specific named direction (editorial,
-  brutalist, utilitarian-dense, warm-consumer, technical-mono, and so on), not "modern
-  and clean," which means nothing.
+  one, anchor to it. If not, ask for one, or pick a real one from the collection indexed
+  in [references/picking-a-reference.md](references/picking-a-reference.md) — a specific
+  named direction (editorial, brutalist, utilitarian-dense, warm-consumer,
+  technical-mono, and so on) is the last resort, and "modern and clean" means nothing.
 - **A color decision.** A real brand color or a deliberately chosen one, stated. Not the
   framework default, and not the cream/sage default either.
 - **A type decision.** A specific typeface or pairing chosen for this project, with a
@@ -86,7 +87,10 @@ center on purpose.
 Then, while building, avoid the specific tells in [references/tells.md](references/tells.md).
 [references/choosing-a-look.md](references/choosing-a-look.md) is a process for making the
 color/type/layout choices deliberately, written as a method rather than a prescription,
-precisely so it does not become the next default.
+precisely so it does not become the next default. When the user cannot name a reference,
+[references/picking-a-reference.md](references/picking-a-reference.md) is how to pick a
+real one from an indexed collection of captured-site guides instead of settling for a
+genre adjective.
 
 ## Mode 2: Audit (the guardrail)
 
