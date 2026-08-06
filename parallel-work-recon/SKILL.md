@@ -1,6 +1,6 @@
 ---
 name: parallel-work-recon
-description: On any repo worked from multiple machines, sessions, or agents, your knowledge of its state is a snapshot with a short half-life. Run git fetch, gh pr list, and git log --all at session start AND again immediately before committing; claim sequential identifiers (migration numbers, versions) by scanning all refs including remote; keep one session per working copy; and whenever operating in a git worktree — including in any prompt handed to a subagent — use git -C exclusively and verify which checkout an edit actually landed in. Does not fire on single-machine single-session repos with no open branches, and not for probing non-repo state (live-state-first owns catalogs and deployed surfaces).
+description: On any repo worked from multiple machines, sessions, or agents, your knowledge of its state is a snapshot with a short half-life. Run git fetch, gh pr list, and git log --all at session start AND again immediately before committing; claim sequential identifiers (migration numbers, versions) by scanning all refs including remote; keep one session per working copy; and whenever operating in a git worktree — including in any prompt handed to a subagent — use git -C exclusively and verify which checkout an edit actually landed in. Every chip or background session spun off from a live session is TOLD it is one: its prompt declares the parallelism, names in-flight branches and PRs, carries the recon duties, and forbids protected-branch merges from the chip. Does not fire on single-machine single-session repos with no open branches, and not for probing non-repo state (live-state-first owns catalogs and deployed surfaces).
 ---
 
 # Parallel-work recon
@@ -44,6 +44,23 @@ created. A `009*`-style glob can misread the ceiling; list and sort, don't patte
   actually edited (a subagent once edited seven files on main).
 - A stale dev server serves the old tree; restart it after switching checkouts.
 - Staging is per absolute path: `git add app/src` in the wrong checkout stages nothing you meant.
+
+## Chips and spawned sessions
+
+A chip — any background task or session spun off from a live one — starts life mid-parallel-work
+by construction: the spawning session is still pushing, rebasing and merging while the chip runs.
+Every chip prompt therefore states these as verbatim duties, never as context the chip must infer:
+
+- "You are a background chip running in parallel with an active main session (and possibly other
+  chips)." Name the branches and PRs known to be in flight at spawn time.
+- The recon above applies unreduced: fetch + pr list at start AND immediately before any commit
+  or push; sequential identifiers claimed across ALL refs.
+- The chip works on its own branch or worktree and never merges to a protected branch; it opens a
+  PR and leaves the merge to the operator's per-action confirm.
+
+Ratified 2026-08-06 (PropOS, Ben): a chip was spawned to investigate a smoke-teardown leak while
+the spawning session was mid-rebase on an open PR; its prompt scoped files and live-data rules but
+never declared the parallelism. No collision that day; the rule closes the class, not the instance.
 
 ## What this skill does not do
 
