@@ -264,3 +264,38 @@ gate diffing it against that source. Sibling of entry 8's distribution-channel
 staleness (the copy a machine installs) and entry 6's duplicated fact (the copy
 a reader trusts). First instance as a package; entry 8's class recurred in the
 same review.
+
+## 10. The restore step of a kill-test reverted the fix under test
+
+**What happened.** Proving that a new gate assertion could actually fail
+(2026-08-10, the VENDOR exclusion work, 632062a), a session mutated
+`hooks/check-index.mjs` in place with sed, removing one name from the new set,
+and watched both new checks go red for the right named reasons. It then
+"restored" the file with `git checkout -- hooks/check-index.mjs`. The VENDOR
+change itself was still uncommitted, so the checkout restored HEAD and
+discarded the fix along with the sabotage. The rerun stayed red with the same
+"2 cases failed" count, and only reading the file rather than the count
+revealed that the cause had changed: the set was no longer one name short, it
+was gone entirely. The edit was re-applied and the committed result verified.
+
+**The lesson.** `git checkout --` does not mean "undo my last change". It means
+"restore the committed state", and on a file carrying uncommitted work those
+are different operations with different blast radii. A kill-test that mutates
+the real file puts the fix and the sabotage in the same working copy, which
+makes the restore step destructive by construction. And two red runs printing
+the same summary count are not the same failure; the count matched, the cause
+did not.
+
+**How to apply.** Kill-test on a copy, or reverse the mutation by hand, or
+commit the fix first and sabotage after. Never `git checkout --` a file whose
+current state is not yet committed. When a suite reds on both sides of a
+restore step, compare the failure reasons, not the counts. The recovery here
+was the new guard doing its job on day one: the rerun stayed red instead of
+passing quietly with the fix gone.
+
+skill that should have prevented this: rerun-before-verdict (the second red
+reads as the first's echo until the reasons are compared) / none - new
+candidate (kill-test-on-a-copy: prove-it-can-fail demands the demonstration
+but says nothing about doing it safely on a live working copy).
+class: destructive restore of uncommitted work, an undo whose scope is wider
+than the change it meant to undo.
