@@ -34,6 +34,7 @@ writeFileSync(
     fire('2026-07-22T11:30:00.000Z', 'safe-smokes', 'C:/r/site'),
     fire('2026-07-22T11:45:00.000Z', 'db-migration-verification', 'C:/r/site'),
     fire('2026-07-22T12:00:00.000Z', 'pdf', 'C:/r/site'),
+    fire('2026-07-22T12:05:00.000Z', 'wrangler', 'C:/r/site'),
     JSON.stringify({ ts: '2026-07-22T12:10:00.000Z', cwd: 'C:/r/site' }),
     '',
   ].join('\n') + '\n',
@@ -124,9 +125,12 @@ check(
   main.out.includes('malformed lines skipped: 2'),
   main.out.split('\n').find((l) => l.includes('malformed lines skipped')),
 );
+// The vendor half can only red on a machine where the pack is installed: in CI
+// no wrangler/ directory exists, so it is a stranger with or without the VENDOR
+// set. check-index.test.mjs carries the fixture-built half that reds anywhere.
 check(
-  'a fired built-in is flagged as outside the inventory',
-  /outside the inventory \(built-in or retired\): pdf/.test(main.out),
+  'a fired built-in and a fired vendor skill are flagged as outside the inventory',
+  /outside the inventory \(built-in, vendor, or retired\): pdf, wrangler/.test(main.out),
 );
 
 // Section 2: a zero must arrive with the reason it may be expected.
@@ -180,10 +184,10 @@ check('no miss value failed to parse', !main.out.includes('did not parse'));
 
 // Section 4: totals, the session proxy stated as a proxy, and the cross-reference.
 const s4 = '4. SUMMARY';
-// Seven valid lines: the rubbish line and the line naming no skill are both skipped.
+// Eight valid lines: the rubbish line and the line naming no skill are both skipped.
 check(
   'total fires counts every valid line',
-  /^total fires 7$/.test(row(main.out, s4, 'total fires')),
+  /^total fires 8$/.test(row(main.out, s4, 'total fires')),
   row(main.out, s4, 'total fires'),
 );
 check(
@@ -193,7 +197,7 @@ check(
 );
 check(
   'fires per session derived from the proxy',
-  /^fires per session 1\.8$/.test(row(main.out, s4, 'fires per session')),
+  /^fires per session 2\.0$/.test(row(main.out, s4, 'fires per session')),
   row(main.out, s4, 'fires per session'),
 );
 check('total misses counts named plus new candidates', /^total misses 6$/.test(row(main.out, s4, 'total misses')));
@@ -219,7 +223,7 @@ check(
 );
 check(
   'fires still reported when the misses log is absent',
-  /^total fires 7$/.test(row(noLessons.out, s4, 'total fires')),
+  /^total fires 8$/.test(row(noLessons.out, s4, 'total fires')),
   row(noLessons.out, s4, 'total fires'),
 );
 

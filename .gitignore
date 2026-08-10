@@ -4,3 +4,21 @@ __pycache__/
 FIRE_LOG.jsonl
 SURGERY_LOG.jsonl
 audit-output.txt
+
+# Vendor skill packs: machine-local, reinstalled per machine, never committed
+# (DECISIONS.md, 2026-08-10). Kept in step with the VENDOR sets in
+# hooks/check-index.mjs and hooks/audit-fires.mjs; check-index.test.mjs
+# asserts all three sites agree.
+agents-sdk/
+cloudflare/
+cloudflare-email-service/
+cloudflare-one/
+cloudflare-one-migrations/
+durable-objects/
+sandbox-migrate-to-next/
+sandbox-next/
+sandbox-stable/
+turnstile-spin/
+web-perf/
+workers-best-practices/
+wrangler/

@@ -25,6 +25,17 @@ const USAGE = 'usage: node hooks/audit-fires.mjs [--fire-log <path>] [--repo <pa
 // inventory and out of the never-fired list.
 const BUILTINS = new Set(['docx', 'pdf', 'pptx', 'xlsx', 'morning', 'skill-creator', 'session-start-hook']);
 
+// Vendor skill packs, same reasoning: machine-local installs, not the
+// maintainer's, so a zero from one is not dormancy and a fire from one is a
+// stranger. Canonical statement and rationale in check-index.mjs (DECISIONS.md,
+// 2026-08-10); check-index.test.mjs asserts the two sets stay identical.
+const VENDOR = new Set([
+  'agents-sdk', 'cloudflare', 'cloudflare-email-service', 'cloudflare-one',
+  'cloudflare-one-migrations', 'durable-objects', 'sandbox-migrate-to-next',
+  'sandbox-next', 'sandbox-stable', 'turnstile-spin', 'web-perf',
+  'workers-best-practices', 'wrangler',
+]);
+
 // The layers this log cannot see, hardcoded because that is what makes a zero readable.
 const NORMS = new Set([
   'verify-the-effect',
@@ -89,7 +100,7 @@ function inventory(root) {
     return [];
   }
   return entries
-    .filter((e) => e.isDirectory() && !e.name.startsWith('.') && !BUILTINS.has(e.name))
+    .filter((e) => e.isDirectory() && !e.name.startsWith('.') && !BUILTINS.has(e.name) && !VENDOR.has(e.name))
     .map((e) => e.name)
     .filter((name) => existsSync(join(root, name, 'SKILL.md')))
     .sort();
@@ -232,7 +243,7 @@ const skills = inventory(libraryRoot);
 
 console.log('audit-fires: the rating system scorecard, fires against misses.');
 console.log(`fire log: ${opts.fireLog}`);
-console.log(`library:  ${libraryRoot} (${skills.length} skills in inventory, built-ins excluded)`);
+console.log(`library:  ${libraryRoot} (${skills.length} skills in inventory, built-ins and vendor packs excluded)`);
 console.log('This log cannot see three layers, so a zero is not dormancy: the six always-on');
 console.log('norms are CLAUDE.md text and never a Skill call, the hooks enforce without one,');
 console.log('and knowledge applied without loading a skill leaves no line.');
@@ -256,7 +267,7 @@ if (fireRows.length) {
 }
 console.log(`  malformed lines skipped: ${fires.skipped}`);
 const strangers = fireRows.map((r) => r.skill).filter((s) => !skills.includes(s));
-if (strangers.length) console.log(`  fired but outside the inventory (built-in or retired): ${strangers.join(', ')}`);
+if (strangers.length) console.log(`  fired but outside the inventory (built-in, vendor, or retired): ${strangers.join(', ')}`);
 
 // 2. Never fired, each with its layer tag.
 section('2. NEVER FIRED (zero lines in the fire log)');

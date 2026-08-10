@@ -117,6 +117,21 @@ check(
   { contains: ['delta-skill has a SKILL.md but no README table row'] },
 );
 
+// The exclusion sets: a vendor pack or an Anthropic built-in lands beside the
+// library with a SKILL.md of its own, but is not the maintainer's, so it is
+// neither indexed nor counted and the fixture passes with both present.
+// delta-skill above is the discriminator: a directory in neither set still reds.
+check(
+  'a vendor pack and a built-in beside the library are excluded, not required in the index',
+  (root) => {
+    for (const name of ['wrangler', 'pdf']) {
+      mkdirSync(join(root, name));
+      writeFileSync(join(root, name, 'SKILL.md'), skillFile(name));
+    }
+  },
+  'ok',
+);
+
 check(
   'a table row naming a skill that is not on disk is caught',
   (root) => patch(join(root, 'README.md'), '| **alpha-skill** | norm | Alpha. |', '| **alpha-skill** | norm | Alpha. |\n| **ghost-skill** | leaf | Never existed. |'),
@@ -205,6 +220,39 @@ check(
   (root) => rmSync(join(root, '.claude-plugin', 'plugin.json'), { force: true }),
   { code: 2, contains: ['plugin.json not found'] },
 );
+
+// Guard the kept-in-step comments: BUILTINS and VENDOR are each stated in two
+// scripts, and VENDOR a third time as the vendor block in .gitignore. A comment
+// is not a check (enforce-invariants-in-build), so read the sources and diff
+// the sets themselves.
+{
+  const HOOKS_DIR = dirname(CHECK);
+  const names = (src, setName) => {
+    const m = src.match(new RegExp(`const ${setName} = new Set\\(\\[([\\s\\S]*?)\\]\\)`));
+    return m ? [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]).sort() : null;
+  };
+  const indexSrc = readFileSync(join(HOOKS_DIR, 'check-index.mjs'), 'utf8');
+  const auditSrc = readFileSync(join(HOOKS_DIR, 'audit-fires.mjs'), 'utf8');
+  const gitignore = readFileSync(join(HOOKS_DIR, '..', '.gitignore'), 'utf8');
+  const problems = [];
+  for (const setName of ['BUILTINS', 'VENDOR']) {
+    const a = names(indexSrc, setName);
+    const b = names(auditSrc, setName);
+    if (!a || !b) problems.push(`${setName} set not found in ${!a ? 'check-index.mjs' : 'audit-fires.mjs'}`);
+    else if (a.join(',') !== b.join(',')) problems.push(`${setName} differs: check-index [${a}] vs audit-fires [${b}]`);
+  }
+  for (const name of names(indexSrc, 'VENDOR') ?? []) {
+    if (!gitignore.split(/\r?\n/).includes(`${name}/`)) problems.push(`.gitignore has no ${name}/ line for VENDOR member ${name}`);
+  }
+  const label = 'kept-in-step: BUILTINS and VENDOR agree across check-index.mjs, audit-fires.mjs, .gitignore';
+  if (problems.length === 0) {
+    console.log(`PASS  ${label}`);
+  } else {
+    failed++;
+    console.log(`FAIL  ${label}`);
+    for (const problem of problems) console.log(`        ${problem}`);
+  }
+}
 
 if (failed > 0) {
   console.log(`\n${failed} case${failed === 1 ? '' : 's'} failed`);

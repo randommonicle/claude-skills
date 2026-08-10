@@ -31,6 +31,18 @@ const USAGE = 'usage: node hooks/check-index.mjs [--root <dir>]';
 // must not be counted. Kept in step with the same set in audit-fires.mjs.
 const BUILTINS = new Set(['docx', 'pdf', 'pptx', 'xlsx', 'morning', 'skill-creator', 'session-start-hook']);
 
+// Vendor skill packs land beside the library the same way (the Cloudflare pack,
+// installed 2026-08-07). Machine-local by decision: never committed, indexed or
+// counted, reinstalled per machine from their own source (DECISIONS.md,
+// 2026-08-10). Kept in step with the same set in audit-fires.mjs and with the
+// vendor block in .gitignore; check-index.test.mjs asserts all three agree.
+const VENDOR = new Set([
+  'agents-sdk', 'cloudflare', 'cloudflare-email-service', 'cloudflare-one',
+  'cloudflare-one-migrations', 'durable-objects', 'sandbox-migrate-to-next',
+  'sandbox-next', 'sandbox-stable', 'turnstile-spin', 'web-perf',
+  'workers-best-practices', 'wrangler',
+]);
+
 // One fact, four sites. Each entry says where a stated count lives and how to read it.
 const COUNT_SITES = [
   { file: 'README.md', label: 'README prose', pattern: /so (\d+) skills coexist/ },
@@ -78,7 +90,7 @@ function parseArgs(argv) {
 // docs/ and hooks/ directories not skills, without naming them here.
 function skillsOnDisk(root) {
   return readdirSync(root, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && !BUILTINS.has(entry.name))
+    .filter((entry) => entry.isDirectory() && !BUILTINS.has(entry.name) && !VENDOR.has(entry.name))
     .map((entry) => entry.name)
     .filter((name) => existsSync(join(root, name, 'SKILL.md')))
     .sort();
