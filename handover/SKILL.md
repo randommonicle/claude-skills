@@ -1,6 +1,6 @@
 ---
 name: handover
-description: Produce a structured handover note when the context window fills or the user asks to wrap up. Always run /context first to read the real percentage; never estimate. Triggers when the context band reaches amber or red, when the user says "wrap up", "handover", or "hand off", or before deliberately ending a long working session.
+description: Produce a structured handover note when the context window fills or the user asks to wrap up. Run /context first to read the real percentage; never estimate — and where the harness cannot invoke /context, record the gap verbatim rather than inventing a figure. Triggers when the context band reaches amber or red, when the user says "wrap up", "handover", or "hand off", or before deliberately ending a long working session.
 ---
 
 # Handover note
@@ -16,6 +16,14 @@ The global operating rules define context bands: green below 50%, yellow 50 to 6
 ## Step 1: measure, never estimate
 
 Run `/context` first and use the real figure. Do not guess or estimate the percentage. Run `/context` and use the figure it returns. The whole point of the bands is that the decision to wrap is made on a real reading, not a feeling.
+
+Where the harness cannot invoke `/context` — a non-interactive orchestrator or headless
+session — an honest gap is the reading. Write "no reading — /context unavailable in this
+harness" verbatim into the note's wrap-up context, never an invented or estimated
+percentage, and make the band decision from the harness's own signals (context-compaction
+warnings, summarisation system reminders). Five consecutive sessions on one project
+(2026-07-31 to 2026-08-12) wrote that gap into prose and re-declared this rule change due
+before the rule caught up with the harness it actually runs in.
 
 ## Step 2: the handover note
 

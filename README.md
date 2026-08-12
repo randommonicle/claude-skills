@@ -52,7 +52,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **confirm-before-push** | policy behind the push-gate hook | Per-action authorisation for pushes, merges, and remote branch deletion, with the deletion preflight. |
 | **flag-deferred-items** | leaf | Grep-able anchors at the deferred work's landing site; .fixme() carries the anchor; dormant controls say so. |
 | **checkpoint-log** | leaf | Per-commit checkpoint notes in a committed WORKLOG.md for multi-commit units; close with an explicit checklist walk, wiring steps included. |
-| **handover** | leaf | Structured handover from a real /context reading; supersession stamps; carry-forwards cite live state. |
+| **handover** | leaf | Structured handover from a real /context reading, or an honestly recorded gap where the harness cannot take one; supersession stamps; carry-forwards cite live state. |
 | **committee-review** | process | Three-lens review with shared evidence, attribution-stripped consolidation, and voting. |
 | **cross-agent-review** | process | Adversarially review a scoped change/design/finding by debating a second independent AI agent (e.g. Gemini Antigravity) over a shared file relay, grounded in live read-only evidence; converge or two positions. |
 | **skill-library-builder** | process | Turn a repo into a project-specific skill library; skills encode mechanical steps, not awareness. |
