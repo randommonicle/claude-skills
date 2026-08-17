@@ -276,7 +276,9 @@ to write a lot of KISS YAGNI, etc. statements in a md file."
 **Why it reads as AI.** Needless layers and abstractions for a simple task, because the
 training data is full of enterprise patterns.
 
-**Fix.** Ask whether a simple if/else would do. Delete the abstraction that has one caller.
+**Fix.** Ask whether a simple if/else would do. Delete the abstraction that has one
+caller. The write-time discipline — entry tests, the deletion mirror, both
+over-correction fences — is the in-house earn-every-line skill.
 
 ### 11. "You can just tell" (the umbrella)
 

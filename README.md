@@ -4,7 +4,7 @@ Personal, version-controlled [Claude Code](https://claude.com/claude-code) skill
 
 **If you have arrived here from outside:** these are engineering guardrails, not prompts or personas. Each skill is a short playbook that loads when Claude is about to do the specific thing it guards, and almost every one exists because a real defect shipped without it. They were distilled from the lessons-learned corpora of four production repos, one of them a regulated UK property-management platform, so the examples are concrete and some are domain-specific. You are welcome to install the lot, fork it, or read a few and steal the ideas. Start with [`verify-the-effect`](verify-the-effect/SKILL.md) and [`prove-it-can-fail`](prove-it-can-fail/SKILL.md), which are the two that change the most behaviour for the least reading. **No licence file is present yet**, so formally all rights are reserved; open an issue if you want explicit terms. The three `unslop-*` skills are forks and carry their upstream's terms, recorded in their own `UPSTREAM.md`.
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 42 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 43 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
@@ -35,6 +35,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **lock-at-the-chokepoint** | leaf | Serialise shared ops at the module-level chokepoint; check-then-act is not a lock; bounded resumable retry loops. |
 | **mass-red-triage** | leaf | Classify a broadly-red suite before debugging: root failure, rate-limit walls, truncated runs, environment defects. |
 | **rerun-before-verdict** | leaf | No verdict from one uncontrolled run: fixes re-run the failing case, deadness needs with/without, good news needs three datapoints or a controlled diff. |
+| **earn-every-line** | leaf | Nothing enters a file without a present need: code needs a present caller, comments carry what code cannot, flexibility needs a stated requirement; both over-correction ditches fenced. |
 | **live-data-surgery** | leaf | Fixed protocol for ad-hoc destructive operations on shared data outside tests. |
 | **email-delivery-verification** | leaf | 2xx means accepted, not delivered; suppression lists, every recipient leg, attachment-class blocks. |
 | **guard-the-spend-paths** | leaf | Per-IP caps on every money/shared-state endpoint from day one; a fail-open guardrail is inert until closed. |
