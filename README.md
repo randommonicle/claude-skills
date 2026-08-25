@@ -55,7 +55,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **checkpoint-log** | leaf | Per-commit checkpoint notes in a committed WORKLOG.md for multi-commit units; close with an explicit checklist walk, wiring steps included. |
 | **handover** | leaf | Structured handover from a real /context reading, or an honestly recorded gap where the harness cannot take one; supersession stamps; carry-forwards cite live state. |
 | **committee-review** | process | Three-lens review with shared evidence, attribution-stripped consolidation, and voting. |
-| **cross-agent-review** | process | Adversarially review a scoped change/design/finding by debating a second independent AI agent (e.g. Gemini Antigravity) over a shared file relay, grounded in live read-only evidence; converge or two positions. |
+| **cross-agent-review** | process | Adversarially review a scoped change/design/finding by debating one or more independent AI agents (Gemini or GPT, several seats at once) over a shared file relay, grounded in live read-only evidence; converge or two positions. |
 | **skill-library-builder** | process | Turn a repo into a project-specific skill library; skills encode mechanical steps, not awareness. |
 | **ai-surface-discipline / unslop-ui / unslop-text / unslop-code** | see rows above / forks | The three **unslop-\*** skills are forks of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches — see each skill's `UPSTREAM.md`. |
 
