@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 .DS_Store
 FIRE_LOG.jsonl
+FIRE_LOG_DEBUG.jsonl
+FIRE_LOG_RECONSTRUCTED.jsonl
 SURGERY_LOG.jsonl
 audit-output.txt
 
