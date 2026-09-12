@@ -299,3 +299,45 @@ candidate (kill-test-on-a-copy: prove-it-can-fail demands the demonstration
 but says nothing about doing it safely on a live working copy).
 class: destructive restore of uncommitted work, an undo whose scope is wider
 than the change it meant to undo.
+
+## 11. The fire log recorded 'unknown' for a month and nothing could tell
+
+**What happened.** `skill-fire-log.mjs` read the skill name from
+`evt.tool_input.skill` and, when that was empty, wrote the sentinel `'unknown'`.
+From 2026-08-10 to 09-09 every one of 503 lines was `'unknown'`, with `args`
+null and all carrying a single project's cwd, so `audit-fires.mjs` scored every
+skill as never-fired. The hook is fail-open and had no test, so a payload it
+could not read looked identical to a healthy one, and the rating system the
+tiering ladder rests on was blind for a month. Found 2026-09-12 only because a
+review read the log rather than trusting that it worked. The names were not lost
+everywhere: the session transcripts under `~/.claude/projects` still carried
+about 199 explicit `Skill` tool_uses with their names, enough to reconstruct a
+partial history from a different source. The 503-versus-199 gap is
+auto-activations and transcript compaction, and it is not recoverable.
+
+**The lesson.** A fail-open instrument whose default sentinel is
+indistinguishable from a valid reading cannot report its own failure, so it
+fails in the one way nobody looks at. `'unknown'` is a value, and a stream of it
+reads as data, not as breakage. A second defect compounded the first: the hook
+was wired in `settings.json` for one project's sessions and later removed, so it
+never measured the rest of the library, and no gate asserted that the
+measurement arm was itself running.
+
+**How to apply.** When a check cannot read what it needs, make it capture the
+shape of what it got, keys only and never the payload body (here the loaded
+skill text), so an unreadable input becomes a recorded question rather than a
+silent default. Give every fail-open instrument a test that feeds it a shape it
+cannot read and asserts the loud path fires, not the sentinel. And treat "is the
+instrument wired and firing where it claims to measure" as its own gate: a
+measurement that runs in one project and nowhere else is not measuring the
+library.
+
+skill that should have prevented this: prove-it-can-fail (ask what the log
+prints when the name cannot be read; the answer "unknown, silently, forever" is
+the tell) / none - new candidate (instrument-liveness: prove-it-can-fail demands
+a check be able to go red, but says nothing about asserting the check is wired
+and running where it claims to measure).
+class: a fail-open instrument whose default sentinel is indistinguishable from a
+valid reading, so its own failure is invisible to whatever consumes it. Sibling
+of entry 10's count-not-cause, a summary that reads the same whether or not the
+underlying state moved.
