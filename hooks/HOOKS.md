@@ -11,7 +11,7 @@ on 2026-07-23 (see the proposal doc's mechanics table).
 | Script | Event / matcher | Behaviour | Failure mode |
 |---|---|---|---|
 | `push-gate.mjs` | PreToolUse / Bash | `git push`, `gh pr merge`, remote ref deletion → `permissionDecision: "ask"` (forces the per-action prompt; mechanises confirm-before-push), with a best-effort `git fetch` + `status -sb` freshness block appended to the reason, so the prompt carries live remote state rather than the session-start snapshot (parallel-work-recon's pre-push half) | fail-closed for matched commands; exits 0 on script error (skill is the backstop); freshness degrades to the original reason on non-repo cwd, missing git or timeout, and the fetch runs only on matched commands |
-| `skill-fire-log.mjs` | PostToolUse / Skill | appends one JSONL line per skill invocation to `~/.claude/skills/FIRE_LOG.jsonl` (the rating system's measurement arm) | fail-open |
+| `skill-fire-log.mjs` | PostToolUse / Skill | appends one JSONL line per `Skill` tool invocation to `~/.claude/skills/FIRE_LOG.jsonl` (the rating system's measurement arm); any other event shape (a loosened matcher, a foreign harness's wrapper) or a Skill event carrying no name is captured once per shape to `FIRE_LOG_DEBUG.jsonl`, keys only, never the loaded skill text | fail-open; an unreadable input is recorded, never a silent `'unknown'` (LESSONS_LEARNED 11) |
 | `sql-surgery-warn.mjs` | PreToolUse / Bash | destructive SQL in an EXECUTION context (`psql -c`/`-f`, `supabase db ...`, `sh -c`, heredoc, SQL as a quoted flag value) → logs to `~/.claude/skills/SURGERY_LOG.jsonl`, then `permissionDecision: "ask"` carrying the matched statement, the live-data-surgery protocol in one line, and the named `.sql` script's own header comments. A leading-binary denylist (grep, rg, cat, echo, sed, awk, head, tail, less, git) runs first, so searching the repo or committing a message that mentions the words stays silent and unlogged; a denylisted binary piping or chaining into a SQL client is execution after all | fail-closed for matched commands; exits 0 on script error; `node scripts/cleanup.mjs` carries no SQL in the command string and stays invisible (skill is the backstop). Promoted from warn-and-log on the evidence this row's promotion clause always reserved (2026-07: a destructive delete pre-authorised without the script's own constraints being read) |
 | `session-recon.mjs` | SessionStart | in a git repo: fetch, `status -sb`, all-refs log, open PRs → injected as `additionalContext` (parallel-work-recon's session-start half) | fail-open, silent on timeout/offline |
 | `schedule-cost-warn.mjs` | PreToolUse / Write\|Edit | a payload landing a schedule (`.github/workflows/*.yml` carrying `schedule:`/`cron:`, or `vercel.json`/`wrangler.toml`/`netlify.toml`/crontab carrying `cron`) → pricing reminder as `systemMessage` + `additionalContext` (mechanises price-the-spend, whose description cannot match "add a cron job") | fail-open, warn-only, never blocks |
@@ -20,7 +20,7 @@ on 2026-07-23 (see the proposal doc's mechanics table).
 | `lint-after-edit.mjs` | PostToolUse / Write\|Edit | an edited `.js/.jsx/.ts/.tsx/.mjs/.cjs` file outside `node_modules`/`dist`/`build`/`.git`: walks up to the nearest `package.json`, picks Biome (`biome.json`/`biome.jsonc`) else ESLint (`eslint.config.*`, `.eslintrc*`, or an `eslintConfig` key), resolves the binary strictly from that project's `node_modules/.bin` (never npx, never an install), lints the single edited file and reports up to 30 lines as `systemMessage` + `additionalContext` (retires the lint-after-edit skill, whose moment is the edit itself and which no prompt names) | fail-open, warn-only, never blocks; silent on no config, no binary, crash or the 15s internal timeout |
 | `audit-fires.mjs` | none: CLI, run by hand (`node hooks/audit-fires.mjs --repo <path>...`) | scores the rating system on this machine's data: fires per skill (count, first and last ts, distinct cwds), never-fired skills each tagged with the layer that explains the zero (norms and hook-backed skills are invisible to the fire log by construction), misses per skill from each repo's `docs/LESSONS_LEARNED.md`, and a loads-vs-misses cross-reference, the promotion and prune signal | fail-open per line, fail-loud per file: a malformed JSONL line is skipped and counted, a missing log prints a notice and the run continues; never registered as a hook, so it cannot affect a session |
 
-Both `.jsonl` logs are machine-local and gitignored. The `Write|Edit` matcher is an unanchored
+All three `.jsonl` logs (fire, fire-debug, surgery) are machine-local and gitignored. The `Write|Edit` matcher is an unanchored
 regex, so it also covers `MultiEdit` and `NotebookEdit`; `schedule-cost-warn.mjs`,
 `migration-write-warn.mjs` and `test-write-warn.mjs` read `content`, `new_string` and
 `edits[].new_string` for that reason. Every hook with fire-and-quiet behaviour ships its
@@ -30,41 +30,47 @@ block is proven against a genuinely stale clone, offline.
 
 ## Install (per machine)
 
-Merge into `~/.claude/settings.json` (create the `hooks` key if absent). Windows shown;
-on macOS/Linux replace `%USERPROFILE%` with `$HOME`.
+Merge into `~/.claude/settings.json` (create the `hooks` key if absent; if a matcher
+already has entries, append to its `hooks` array rather than replacing it). Hook commands
+run in Git Bash by default on Windows (PowerShell only where Git Bash is absent), so the
+block uses `$USERPROFILE` with forward slashes, which bash expands and node accepts, and
+states `"shell": "bash"` on each entry so the assumption lives in the config. The earlier
+form of this block used `%USERPROFILE%`, which is cmd.exe syntax and expands in neither
+shell, so it silently ran nothing. On macOS/Linux replace `$USERPROFILE` with `$HOME`.
 
 ```json
 {
   "hooks": {
     "SessionStart": [
-      { "hooks": [ { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\session-recon.mjs\"", "timeout": 20 } ] }
+      { "hooks": [ { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/session-recon.mjs\"", "shell": "bash", "timeout": 20 } ] }
     ],
     "PreToolUse": [
       { "matcher": "Bash", "hooks": [
-        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\push-gate.mjs\"" },
-        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\sql-surgery-warn.mjs\"" }
+        { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/push-gate.mjs\"", "shell": "bash" },
+        { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/sql-surgery-warn.mjs\"", "shell": "bash" }
       ] },
       { "matcher": "Write|Edit", "hooks": [
-        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\schedule-cost-warn.mjs\"" },
-        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\migration-write-warn.mjs\"" },
-        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\test-write-warn.mjs\"" }
+        { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/schedule-cost-warn.mjs\"", "shell": "bash" },
+        { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/migration-write-warn.mjs\"", "shell": "bash" },
+        { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/test-write-warn.mjs\"", "shell": "bash" }
       ] }
     ],
     "PostToolUse": [
       { "matcher": "Skill", "hooks": [
-        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\skill-fire-log.mjs\"" }
+        { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/skill-fire-log.mjs\"", "shell": "bash" }
       ] },
       { "matcher": "Write|Edit", "hooks": [
-        { "type": "command", "command": "node \"%USERPROFILE%\\.claude\\skills\\hooks\\lint-after-edit.mjs\"", "timeout": 20 }
+        { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/lint-after-edit.mjs\"", "shell": "bash", "timeout": 20 }
       ] }
     ]
   }
 }
 ```
 
-Requires `node` on PATH (true on both dev machines). Verify after install: run any skill
-and check `FIRE_LOG.jsonl` gained a line; attempt a `git push` and confirm the prompt
-carries the confirm-before-push reason.
+Requires `node` on PATH (true on both dev machines). Verify after install: invoke any skill
+and check `FIRE_LOG.jsonl` gained a line naming it and no `FIRE_LOG_DEBUG.jsonl` appeared;
+attempt a `git push` and confirm the prompt carries the confirm-before-push reason. Settings
+edits are picked up by a file watcher, so the check can run in the same session.
 
 ## Deferred hook rows
 
@@ -85,3 +91,11 @@ in this directory automatically via `hooks/hooks.json`, plus `norms-inject.mjs` 
 injects the NORMS.md block at session start — plugin machines skip the manual CLAUDE.md
 copy too). The manual settings.json install above is ONLY for the direct-clone dev machine.
 Never do both on one machine: the hooks would fire twice per event.
+
+One project also carries a hand-made **Antigravity** port of the plugin
+(`<project>/.agents/plugins/ash/`, 2026-08-10, not tracked here), which maps Antigravity's
+tool names onto snapshot copies of these scripts through a wrapper. Antigravity has no
+`Skill` tool, so `skill-fire-log.mjs` has nothing to measure there and must not be wired:
+its wiring to `view_file` wrote 508 `'unknown'` lines over a month (LESSONS_LEARNED 11).
+The port's copies do not follow this directory; re-copy after any hook change you want it
+to carry.

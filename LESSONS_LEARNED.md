@@ -304,7 +304,7 @@ than the change it meant to undo.
 
 **What happened.** `skill-fire-log.mjs` read the skill name from
 `evt.tool_input.skill` and, when that was empty, wrote the sentinel `'unknown'`.
-From 2026-08-10 to 09-09 every one of 503 lines was `'unknown'`, with `args`
+From 2026-08-10 to 09-13 every one of 508 lines was `'unknown'`, with `args`
 null and all carrying a single project's cwd, so `audit-fires.mjs` scored every
 skill as never-fired. The hook is fail-open and had no test, so a payload it
 could not read looked identical to a healthy one, and the rating system the
@@ -312,16 +312,17 @@ tiering ladder rests on was blind for a month. Found 2026-09-12 only because a
 review read the log rather than trusting that it worked. The names were not lost
 everywhere: the session transcripts under `~/.claude/projects` still carried
 about 199 explicit `Skill` tool_uses with their names, enough to reconstruct a
-partial history from a different source. The 503-versus-199 gap is
-auto-activations and transcript compaction, and it is not recoverable.
+partial history from a different source. The 508 lines themselves were never
+skill fires at all (see the postscript): they are Antigravity `view_file`
+events, and the 199 is the whole recoverable Claude Code history.
 
 **The lesson.** A fail-open instrument whose default sentinel is
 indistinguishable from a valid reading cannot report its own failure, so it
 fails in the one way nobody looks at. `'unknown'` is a value, and a stream of it
-reads as data, not as breakage. A second defect compounded the first: the hook
-was wired in `settings.json` for one project's sessions and later removed, so it
-never measured the rest of the library, and no gate asserted that the
-measurement arm was itself running.
+reads as data, not as breakage. A second defect compounded the first: on the
+Claude Code side the hook was never wired on this machine at all, so the 74-odd
+real `Skill` calls in that window produced nothing, and no gate asserted that
+the measurement arm was itself running.
 
 **How to apply.** When a check cannot read what it needs, make it capture the
 shape of what it got, keys only and never the payload body (here the loaded
@@ -341,3 +342,23 @@ class: a fail-open instrument whose default sentinel is indistinguishable from a
 valid reading, so its own failure is invisible to whatever consumes it. Sibling
 of entry 10's count-not-cause, a summary that reads the same whether or not the
 underlying state moved.
+
+**Postscript, 2026-09-14.** The first diagnosis was wrong, and it went into the
+fix's own comments and into this entry. It read the 503 nameless lines as an
+unknown "auto-activation" event class whose payload key could only be learned
+by wiring the hook and waiting. Two days later the log had grown by five while
+nothing was wired on the Claude Code side, which forced a search of the one
+project's tree rather than `~/.claude`: `.agents/plugins/ash/hooks.json`, a
+hand-made Antigravity port of the plugin from 10 August, wires
+`skill-fire-log.mjs` to Antigravity's `view_file` tool through a wrapper that
+passes `{cwd, tool_input: {}}`. Every file view in that project was one
+`'unknown'` line; piping that exact shape into the original hook reproduces a
+log line field for field, all 508 lines carry the wrapper's lowercase `c:/`
+drive prefix and none carry Claude Code's uppercase one, and the log begins
+eighteen minutes after the port was written. There was no key to discover. The
+hook now writes a fire line only for a `Skill` tool event and captures any other
+shape, and the test's red case is the wrapper payload rather than a synthetic
+one. The miss is findings-are-evidence again: the primary source was on disk
+the whole time, in `.agents/` beside the `.claude/` that was searched, and a
+diagnosis with an unfalsifiable step ("wire it and wait for the shape") should
+have been the tell that the evidence had not been found yet.
