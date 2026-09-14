@@ -44,7 +44,7 @@ const quiet = () => {};
 try {
   // --- fixture upstream -----------------------------------------------------
   mkdirSync(upstream, { recursive: true });
-  writeFileSync(join(upstream, 'LICENSE'), 'MIT License\n\nCopyright (c) fixture\n');
+  writeFileSync(join(upstream, 'LICENSE'), 'MIT License\r\n\r\nCopyright (c) fixture\r\n');
   // alpha: tools section in the middle, list rows with both separators.
   write(
     join(upstream, 'skills', 'alpha', 'SKILL.md'),
@@ -109,9 +109,11 @@ try {
     ].join('\n'),
   );
   // gamma: nothing to cut. A "Tools Referenced" prose section must survive.
+  // Written with CRLF, as a Windows autocrlf clone of upstream reads: the
+  // installer's output must not depend on the source clone's line endings.
   write(
     join(upstream, 'skills', 'gamma', 'SKILL.md'),
-    ['---', 'name: gamma', 'description: "gamma"', '---', '', '# Gamma', '', '## Tools Referenced', '', '- Search Console', ''].join('\n'),
+    ['---', 'name: gamma', 'description: "gamma"', '---', '', '# Gamma', '', '## Tools Referenced', '', '- Search Console', ''].join('\r\n'),
   );
   write(join(upstream, 'skills', 'dropped-one', 'SKILL.md'), '---\nname: dropped-one\n---\n');
   git(['init', '--quiet', '-b', 'main'], upstream);
@@ -179,6 +181,7 @@ try {
   check(!/dropped-one/.test(alpha) && !/dropped-two/.test(alpha), 'dropped list rows gone, both separators');
   check(/\| kept \| `alpha` \|/.test(beta) && !/dropped-one/.test(beta), 'table rows: kept retained, dropped gone');
   check(/## Tools Referenced\n\n- Search Console/.test(gamma), 'Tools Referenced prose section survives');
+  check(!gamma.includes('\r') && !readFileSync(join(dest, 'LICENSE.marketingskills'), 'utf8').includes('\r'), 'CRLF source is written as LF (output independent of the clone\'s autocrlf)');
   check(!/tools\/integrations/.test(guide) && /Keep this line\./.test(guide) && /^Guide\./.test(guide), 'registry link line cut from references/, neighbours kept');
   check(existsSync(join(dest, 'LICENSE.marketingskills')), 'licence copied');
   const up = readFileSync(join(dest, 'UPSTREAM.md'), 'utf8');

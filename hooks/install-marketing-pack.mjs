@@ -28,7 +28,6 @@
 //   --dry-run print every action and cut, write nothing.
 import { spawnSync } from 'node:child_process';
 import {
-  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -83,6 +82,9 @@ function git(args, cwd) {
 // text and a list of {line, why, text} for UPSTREAM.md. Line numbers are the
 // upstream file's, so a reader can check each cut against the pinned commit.
 export function stripSkill(text, keepSet, { isSkillMd }) {
+  // LF in, LF out, whatever the source clone's autocrlf did: the output is a
+  // function of the pin and the keep list, not of the machine that ran this.
+  text = text.replace(/\r\n/g, '\n');
   const src = text.split('\n');
   const cuts = [];
   const out = [];
@@ -240,7 +242,9 @@ export function installPack({ source, target, keep = KEEP, pin = PIN, dryRun = f
       report.push(entry);
     }
 
-    act(`write ${relative(target, join(dest, LICENSE_FILE))}`, () => cpSync(licenseSrc, join(dest, LICENSE_FILE)));
+    act(`write ${relative(target, join(dest, LICENSE_FILE))}`, () =>
+      writeFileSync(join(dest, LICENSE_FILE), readFileSync(licenseSrc, 'utf8').replace(/\r\n/g, '\n')),
+    );
     act(`write ${relative(target, upstreamPath)}`, () => writeFileSync(upstreamPath, renderUpstream({ srcHead, pinDate, keep, report })));
 
     const totalCuts = report.reduce((n, e) => n + e.cuts.length, 0);
