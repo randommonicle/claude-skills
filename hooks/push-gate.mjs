@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PreToolUse hook, matcher: Bash. Mechanical enforcement of confirm-before-push:
+// PreToolUse hook, matcher: Bash|PowerShell. Mechanical enforcement of confirm-before-push:
 // any push, PR merge, or remote branch deletion gets permissionDecision "ask",
 // forcing the per-action prompt regardless of session permission mode.
 // One of the library's two fail-closed-by-intent gates (proposal doc, Layer 0;

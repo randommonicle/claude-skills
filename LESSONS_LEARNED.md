@@ -362,3 +362,51 @@ one. The miss is findings-are-evidence again: the primary source was on disk
 the whole time, in `.agents/` beside the `.claude/` that was searched, and a
 diagnosis with an unfalsifiable step ("wire it and wait for the shape") should
 have been the tell that the evidence had not been found yet.
+
+## 12. The push gate did not match the push command the library tells you to use
+
+**What happened.** `push-gate.mjs` gated on `/\bgit\s+push\b/`. Any git global
+option between the two words walked past it: `git -C <path> push`,
+`git --git-dir=<p> push`, `git -c k=v push`. `parallel-work-recon`, in the same
+library, tells every session in a worktree to use `git -C` exclusively, and the
+fire-log handover's own commands used it. The gate had a test suite, green, that
+fed it only the bare form. Found 2026-09-14 within an hour of the hook being
+wired for the first time on this machine, and only because the verification
+ride happened to run `git -C ... push --dry-run` through the PowerShell tool:
+the plain-form Bash call minutes earlier had left a `hook_success` record in
+the session transcript, the `-C` form left nothing. In a bypass-permissions
+session the gate's "ask" is auto-approved and never shown, so that transcript
+record was the only place the difference could be seen. A second, smaller
+miss on the way to the fix: the first new test case, `--git-dir=<unquoted
+path>/.git push`, passed on the old pattern too, because the path ended in
+`.git` and `.git push` matched `\bgit\s+push\b` by accident. Quoting the path
+made the case honest.
+
+**The lesson.** A control is only as wide as the forms it was tested against,
+and its author tests the form they picture. When another rule in the same
+library steers everyone to a different form, the control's green suite proves
+it works on the command nobody is told to run. The two skills were written
+weeks apart, each correct alone, and nothing joined them. The proof surface
+matters too: where a permission mode swallows the prompt, "I pushed and nothing
+asked" is not evidence the gate is absent, and "it asked" is not available at
+all; only the harness's own record of the hook running is.
+
+**How to apply.** When a skill mandates an idiom, grep the gates for the verb
+that idiom carries and add the mandated form to each gate's test suite, in the
+same commit as the mandate. When proving a gate, prove it with the form the
+library recommends, not the simplest form, and read the result where the
+harness records it, not where the UI shows it. When adding a positive test
+case to a pattern, run it against the old pattern first; a case that passes
+before the fix is a decoration, and a path that happens to end in the very
+token the pattern wants is the kind of accident that makes one.
+
+skill that should have prevented this: prove-it-can-fail (each new positive
+case was run against the committed original before the fix landed, which is
+what caught the `.git push` accident; the same discipline applied when
+`parallel-work-recon` was written would have asked what the gate prints for
+`git -C x push`) / none - new candidate (cross-rule consistency: when one skill
+mandates a form, the gates other skills rely on are tested with that form).
+class: a control tested only against the form its author pictured, while a
+sibling rule in the same library steers everyone to a different one. Sibling of
+entry 11's unwired instrument: there the measurement never ran where it claimed
+to; here the gate ran, on the wrong shape.
