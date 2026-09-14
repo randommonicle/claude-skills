@@ -16,6 +16,11 @@
 // existsSync calls in preference order, and a wrong answer there fails open to a
 // silent skip, which is the same outcome as no linter installed.
 //
+// FORWARD: on Windows that same fact reds the six "fires" cases (2026-09-14, identical
+// on origin/main): spawnSync cannot execute the sh stubs, so the hook skips silently
+// and nothing fires. Write a .cmd stub beside each sh stub when process.platform is
+// win32 so the suite proves the branch instead of failing around it.
+//
 // Run: node hooks/lint-after-edit.test.mjs
 import { spawn } from 'node:child_process';
 import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
