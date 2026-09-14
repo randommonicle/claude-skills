@@ -10,7 +10,7 @@ on 2026-07-23 (see the proposal doc's mechanics table).
 
 | Script | Event / matcher | Behaviour | Failure mode |
 |---|---|---|---|
-| `push-gate.mjs` | PreToolUse / Bash | `git push`, `gh pr merge`, remote ref deletion → `permissionDecision: "ask"` (forces the per-action prompt; mechanises confirm-before-push), with a best-effort `git fetch` + `status -sb` freshness block appended to the reason, so the prompt carries live remote state rather than the session-start snapshot (parallel-work-recon's pre-push half) | fail-closed for matched commands; exits 0 on script error (skill is the backstop); freshness degrades to the original reason on non-repo cwd, missing git or timeout, and the fetch runs only on matched commands |
+| `push-gate.mjs` | PreToolUse / Bash | `git push` (with any global options between the words: `git -C <path> push`, `--git-dir=`, `-c k=v`), `gh pr merge`, remote ref deletion → `permissionDecision: "ask"` (forces the per-action prompt; mechanises confirm-before-push), with a best-effort `git fetch` + `status -sb` freshness block appended to the reason, so the prompt carries live remote state rather than the session-start snapshot (parallel-work-recon's pre-push half) | fail-closed for matched commands; exits 0 on script error (skill is the backstop); freshness degrades to the original reason on non-repo cwd, missing git or timeout, and the fetch runs only on matched commands |
 | `skill-fire-log.mjs` | PostToolUse / Skill | appends one JSONL line per `Skill` tool invocation to `~/.claude/skills/FIRE_LOG.jsonl` (the rating system's measurement arm); any other event shape (a loosened matcher, a foreign harness's wrapper) or a Skill event carrying no name is captured once per shape to `FIRE_LOG_DEBUG.jsonl`, keys only, never the loaded skill text | fail-open; an unreadable input is recorded, never a silent `'unknown'` (LESSONS_LEARNED 11) |
 | `sql-surgery-warn.mjs` | PreToolUse / Bash | destructive SQL in an EXECUTION context (`psql -c`/`-f`, `supabase db ...`, `sh -c`, heredoc, SQL as a quoted flag value) → logs to `~/.claude/skills/SURGERY_LOG.jsonl`, then `permissionDecision: "ask"` carrying the matched statement, the live-data-surgery protocol in one line, and the named `.sql` script's own header comments. A leading-binary denylist (grep, rg, cat, echo, sed, awk, head, tail, less, git) runs first, so searching the repo or committing a message that mentions the words stays silent and unlogged; a denylisted binary piping or chaining into a SQL client is execution after all | fail-closed for matched commands; exits 0 on script error; `node scripts/cleanup.mjs` carries no SQL in the command string and stays invisible (skill is the backstop). Promoted from warn-and-log on the evidence this row's promotion clause always reserved (2026-07: a destructive delete pre-authorised without the script's own constraints being read) |
 | `session-recon.mjs` | SessionStart | in a git repo: fetch, `status -sb`, all-refs log, open PRs → injected as `additionalContext` (parallel-work-recon's session-start half) | fail-open, silent on timeout/offline |
@@ -72,8 +72,11 @@ a `PowerShell` tool carrying the same `tool_input.command`; a `Bash`-only matche
 
 Requires `node` on PATH (true on both dev machines). Verify after install: invoke any skill
 and check `FIRE_LOG.jsonl` gained a line naming it and no `FIRE_LOG_DEBUG.jsonl` appeared;
-attempt a `git push` and confirm the prompt carries the confirm-before-push reason. Settings
-edits are picked up by a file watcher, so the check can run in the same session.
+run `git push --dry-run` (sends nothing) and confirm the prompt carries the confirm-before-push
+reason. In a bypass-permissions session the "ask" is auto-approved and never shown; the
+proof there is a `hook_success PreToolUse:Bash` record in the session transcript
+(`~/.claude/projects/<project>/<session>.jsonl`). Settings edits are picked up by a file
+watcher, so the check can run in the same session.
 
 ## Deferred hook rows
 

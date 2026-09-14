@@ -21,8 +21,17 @@
 // must never be the reason this gate does not ask.
 import { spawnSync } from 'node:child_process';
 
+// A value-taking git global option (-C <path>, -c <k>=<v>, --git-dir[=]<p>,
+// --work-tree[=]<p>, --namespace, --exec-path, --super-prefix, --config-env),
+// or any bare flag (--no-pager, -p, --bare ...). Subcommands never start with
+// `-`, so `git log --grep push` and `git commit -m "push it"` stay unmatched.
+const GIT_GLOBAL_OPT =
+  String.raw`(?:-[Cc]\s+(?:"[^"]*"|'[^']*'|\S+)|--(?:git-dir|work-tree|namespace|exec-path|super-prefix|config-env)(?:=|\s+)(?:"[^"]*"|'[^']*'|\S+)|--?[A-Za-z][\w-]*)`;
+
 const GATED = [
-  /\bgit\s+push\b/, // includes --force and push-based remote branch deletion
+  // includes --force and push-based remote branch deletion; `git -C <path> push`
+  // (the parallel-work-recon idiom) walked past the bare `git\s+push` on 2026-09-14
+  new RegExp(String.raw`\bgit(?:\s+${GIT_GLOBAL_OPT})*\s+push\b`),
   /\bgh\s+pr\s+merge\b/,
   /\bgh\s+api\b.*-X\s+DELETE.*\/git\/refs\//,
 ];

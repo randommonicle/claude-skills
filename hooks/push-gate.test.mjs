@@ -105,6 +105,37 @@ try {
       'git push origin main',
       (r) => r === ORIGINAL_REASON,
     ],
+    // Global options between `git` and `push` are still a push. `git -C` is the
+    // idiom parallel-work-recon mandates in worktrees; on 2026-09-14 it walked
+    // past the gate unasked.
+    [
+      'git -C <quoted path> push: asks',
+      fresh,
+      `git -C "${fresh}" push origin main`,
+      (r) => r.includes(ORIGINAL_REASON),
+    ],
+    [
+      // Quoted on purpose: an unquoted path ending in `.git` followed by ` push`
+      // matched the old pattern by accident and proved nothing.
+      'git --git-dir="<path>" push: asks',
+      fresh,
+      `git --git-dir="${join(fresh, '.git')}" push`,
+      (r) => r.includes(ORIGINAL_REASON),
+    ],
+    [
+      'git -c key=value push: asks',
+      fresh,
+      'git -c core.autocrlf=false push origin main',
+      (r) => r.includes(ORIGINAL_REASON),
+    ],
+    [
+      // The fixture tmpdir has no spaces, so this one is synthetic: non-git cwd,
+      // quoted paths with spaces after both `=` and a bare space.
+      'stacked options, quoted paths with spaces: asks',
+      plain,
+      'git -C "C:/a b/c" --git-dir="C:/a b/c/.git" --work-tree "C:/a b/c" push --force',
+      (r) => r === ORIGINAL_REASON,
+    ],
   ];
 
   for (const [name, cwd, command, check] of CASES) {
@@ -119,11 +150,21 @@ try {
     console.log(`${ok ? 'PASS' : 'FAIL'}  asks  | ${name}${ok ? '' : `\n        exit=${code} out=${out}`}`);
   }
 
-  // Negative control: an ordinary Bash call must produce no output at all.
-  const q = await runHook(JSON.stringify({ tool_name: 'Bash', cwd: stale, tool_input: { command: 'ls -la' } }));
-  const qok = q.code === 0 && q.out === '';
-  if (!qok) fails++;
-  console.log(`${qok ? 'PASS' : 'FAIL'}  quiet | non-gated command (plain ls) says nothing${qok ? '' : ` (exit=${q.code}, out=${q.out})`}`);
+  // Negative controls: non-gated commands must produce no output at all. The
+  // last three fence the global-options widening: a subcommand never starts
+  // with `-`, so `push` appearing after one is not a push.
+  const QUIET = [
+    ['plain ls', 'ls -la'],
+    ['git -C <path> fetch', `git -C "${fresh}" fetch`],
+    ['git commit -m "push it"', 'git commit -m "push it"'],
+    ['git log --grep=push', 'git log --grep=push'],
+  ];
+  for (const [name, command] of QUIET) {
+    const q = await runHook(JSON.stringify({ tool_name: 'Bash', cwd: stale, tool_input: { command } }));
+    const qok = q.code === 0 && q.out === '';
+    if (!qok) fails++;
+    console.log(`${qok ? 'PASS' : 'FAIL'}  quiet | non-gated command (${name}) says nothing${qok ? '' : ` (exit=${q.code}, out=${q.out})`}`);
+  }
 
   // Fail-open: garbage on stdin must exit 0 and say nothing.
   const g = await runHook('not json at all');
