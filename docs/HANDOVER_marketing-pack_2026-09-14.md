@@ -14,7 +14,15 @@ place, and the icc-site sessions were launched in a stub folder, not "already op
 pack was installed". Section 9b has the evidence and the citations; the junction is back;
 DECISIONS, LESSONS 13 (correction stamp) and 14, `society/CLAUDE.md`, icc-site L-039 and
 the 1f916 folder's CLAUDE.md and L-058 are re-corrected. Section 0's check 1 is closed
-below; checks 2 and 3 stand as written and are still to run.
+below. Checks 2 and 3 ran at 21:22Z in two auto-spawned icc-site task worktrees
+(`seo-audit-localbusiness-schema-0451a5`, `booking-page-copy-review-2a2795`, both at
+`3f8da11`, which carries the pack): the fire log holds `seo-audit` 21:22:38Z, `schema`
+21:22:40Z, `copy-editing` 21:23:13Z, `cro` 21:23:14Z, `copywriting` 21:23:16Z, all with the
+worktree cwd, so the icc-site loading path is proven through the Skill tool. Both `_v2`
+files exist in the worktrees' `docs/`, not in the main checkout's. The v1 files they were
+told to compare against are untracked in the main checkout's `docs/` and absent from the
+worktrees, so the "differences" sections were written against the main checkout by absolute
+path or not at all; Ben's pasted reports settle which. Outcome stamp to follow.
 
 ## 0. Start here, first thing next session
 
