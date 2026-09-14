@@ -85,6 +85,8 @@ node hooks/check-archives.mjs
 
 It reads each archive's members with a stdlib-only zip reader (no dependencies) and asserts the **set** against the directory in both directions — every bundled file present in the archive, every archive member still on disk — plus each shared file's content, normalising CRLF so a checkout's line endings are never mistaken for drift. It reds naming every stale, missing or orphaned member. Like the index gate it is a whole-tree gate, not a Write/Edit hook, because an archive going stale is a non-edit to a second file the edit never touched. `hooks/check-archives.test.mjs` proves it can go red: ten cases each mutating one thing and pinning its own substring, including one in the shape of entry 9's incident (a script patched on disk but not repacked). When it reds, `node hooks/pack-skill.mjs <skill-dir>` (or `--all`) rebuilds the archive deterministically, so the fix is one command.
 
+Domain skill packs do not live here (DECISIONS.md, 2026-09-14). `hooks/install-marketing-pack.mjs <target-repo>` installs a stripped, pinned subset of `coreyhaines31/marketingskills` into a repo's own `.claude/skills/` with an `UPSTREAM.md` listing every cut, and refuses to overwrite a same-named skill it did not install; `hooks/install-marketing-pack.test.mjs` proves each cut and each refusal against a fixture pack.
+
 [LESSONS_LEARNED.md](LESSONS_LEARNED.md) holds field notes from applying these skills on real jobs: what broke, what the skills caught, and what only a human pass caught.
 
 ## Install on a new machine
