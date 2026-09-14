@@ -27,6 +27,13 @@ it is. Two library skills stand in front of the pack in every target repo's
 CLAUDE.md: `unslop-text` as the final pass on its copy, and
 `substantiate-outward-claims` on any customer-facing claim.
 
+Project skills load from the directory a session launches in and its
+ancestors, never from a subdirectory. Where sessions launch from outside
+the repo (1f916: the non-git parent folder), the pack still installs into
+the repo for provenance, and each machine adds a directory junction from the
+launch directory's `.claude/skills` to the repo's; the repo's CLAUDE.md
+carries the command. Check the launch directory before installing, not after.
+
 ## 2026-08-10 Vendor skill packs are machine-local
 
 Third-party skill packs installed beside the library in `~/.claude/skills`

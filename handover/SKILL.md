@@ -57,6 +57,12 @@ from proven until a smoke forced the correction.
 
 Write the note to the project's handover location, or to `DECISIONS.md` / `LESSONS_LEARNED.md` where an item qualifies for those. If no handover location is established, write to `HANDOVER.md` in the project root. Append; do not overwrite. The history of handovers is itself useful, and an overwrite loses the trail. If something this session qualifies as a documented decision or a lesson learned, prompt to record it.
 
+Then get the note committed before the session ends, with the user's per-action yes. A
+note left untracked reaches neither the other machine nor the next reader's `git log`,
+and it is invisible to the session that resumes from a different checkout. On 2026-09-14
+four handover and review notes from three sessions were found untracked in this
+library's `docs/`, one of them already superseded.
+
 ## Step 4: promote before closing
 
 Sweep the note's traps and working agreements before finishing. Anything that would change

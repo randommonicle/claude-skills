@@ -1,5 +1,9 @@
 # Handover: fire-log fix (diagnosis corrected) and marketingskills review (2026-09-14)
 
+> **Superseded for next actions** by `docs/HANDOVER_marketing-pack_2026-09-14.md` (same
+> evening, after the pushes). Sections 4 to 8 below are fully executed; section 3's
+> diagnosis and section 9's traps stand.
+>
 > **Closed out 2026-09-14, evening session** (Claude desktop, Code tab; `/context` unavailable,
 > no percentage). Ben answered all six section-7 decisions: 1 yes, 2 full Layer 0, 3 yes, 4 yes,
 > 5 and 6 proceed this session (their outcome goes in the marketing review doc, not here).
