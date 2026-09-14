@@ -448,7 +448,8 @@ hides the fault at the same time as it does the work.
 
 **How to apply.** Launch the session in the directory whose `.claude/skills/`
 you need; the opening listing is built from the launch directory, and
-`change_directory` does not rebuild it (the first sentence of this paragraph
+`change_directory` did not rebuild it in either observed case (the first
+sentence of this paragraph
 read "install skills, then start a new session; never install into a repo whose
 session is already open", which the correction above withdraws as a rule and
 keeps as practice). When a skill is newly installed, the check is a Skill call
@@ -505,7 +506,8 @@ Each conclusion was drawn from a line that said exactly what was claimed of it.
 Neither was checked against the state the line was captured in: the session's
 `environment` attachment (working directory, git or not), the timestamp
 relative to the junction's creation and removal, the event immediately before
-it. The environment attachment is line 4 of every transcript; the junction
+it. The environment attachment sits near the top of the transcript (line 4 in
+every transcript read that night; older ones put it later); the junction
 times were in the correcting session's own history.
 
 **The lesson.** A transcript line is evidence of what the line says. A claim

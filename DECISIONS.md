@@ -56,7 +56,7 @@ Two further observations, recorded as observations. A skill directory that
 appears at the launch directory mid-session can be picked up: after the
 junction was recreated, the stale session `57894514` loaded bare
 `seo-audit` (21:34Z) although its opening listing had none of the pack.
-And `change_directory` does not rebuild the listing: the two icc-site test
+And `change_directory` did not rebuild the listing, twice: the two icc-site test
 sessions launched in a stub folder with no `.claude/skills/`, switched to
 the real repo mid-session, and were refused before and after the switch;
 the "installed mid-session" account of those refusals in `40fc7e4` was
