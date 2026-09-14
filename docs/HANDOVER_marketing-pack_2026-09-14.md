@@ -7,6 +7,71 @@ signals: no compaction or summarisation reminders seen; the session ended at Ben
 Supersedes the next-actions sections of `docs/HANDOVER_fire-log_2026-09-14.md` (stamped at
 its head); that note's diagnosis and traps stand.
 
+## 0. Start here, first thing next session
+
+Three checks, in this order. They exist because the 2026-09-14 test run proved the pack's
+content and not its loading path (section 9a): two icc-site sessions were already open when
+the pack was installed, were refused by the Skill tool, and produced their documents by
+reading the SKILL.md files directly. Run these from **fresh** sessions, after the restart.
+
+**Check 1, 1f916, thirty seconds.** Launch a session in
+`C:\Users\bengr\Projects\AI domain and social network` (the parent folder, not the repo) and
+paste:
+
+> List the project skills available to you, names exactly as you see them, and say which
+> directory each group came from. Then call the `society:seo-audit` skill and tell me
+> whether it loaded or was refused. Do nothing else.
+
+Pass is the fourteen pack skills appearing as `society:*` and the call loading. That settles
+the junction removal and the corrected DECISIONS entry. A refusal means the scoped names do
+not work without the junction, in which case restore it with the `mklink /J` line in
+`society/CLAUDE.md` and tell me, because the correction in `40fc7e4` would then be wrong in
+the other direction.
+
+**Checks 2 and 3, icc-site.** Launch a fresh session in
+`C:\Users\bengr\Projects\ICC\icc-site` for each. These deliberately write `_v2` files rather
+than overwriting the originals, so the two versions can be compared: same prompt, one run
+without the skills loaded and one with. That comparison is itself worth having, because it
+says whether invoking a skill properly produces materially different work from reading its
+SKILL.md by hand.
+
+Prompt 2, seo-audit and schema:
+
+> First, list the project skills available to you from this repo's `.claude/skills/` (names
+> only). Then call the `seo-audit` skill and tell me in one line whether it loaded or was
+> refused with "Unknown skill"; do the same for `schema`. If either is refused, stop and
+> report that, because it is the whole point of this run. If both load, carry on: use them,
+> read-only on the code, to audit the site's technical and on-page SEO from the source under
+> `site/` and to draft `LocalBusiness` JSON-LD from facts that exist in the code's
+> business-facts source, writing "available on request" for any missing fact and inventing
+> none. Write `docs/SEO_AUDIT_2026-09-14_v2.md`. Do not touch the existing
+> `docs/SEO_AUDIT_2026-09-14.md`; when you have finished, read it and add a closing section
+> naming the substantive differences between the two, if any. British English, no em dashes.
+> Final pass `unslop-text`; `substantiate-outward-claims` over any claim. Do not commit or
+> push. End with: the skill list, whether each Skill call loaded or was refused, files
+> written, any hook `systemMessage` quoted, and the last five lines of
+> `C:\Users\bengr\.claude\skills\FIRE_LOG.jsonl`.
+
+Prompt 3, copy-editing and cro:
+
+> First, list the project skills available to you from this repo's `.claude/skills/` (names
+> only). Then call the `copy-editing` skill and tell me in one line whether it loaded or was
+> refused with "Unknown skill"; do the same for `cro` and `copywriting`. If any is refused,
+> stop and report that. If they load, carry on: review the customer-facing copy of the
+> booking page (`site/src/pages/book.astro` and the chat flow strings it renders), using
+> copy-editing for the prose and cro for the structure and conversion path. Write
+> `docs/BOOKING_PAGE_COPY_REVIEW_2026-09-14_v2.md` with, per element, current text, proposed
+> text, and one line of why. Do not touch the existing
+> `docs/BOOKING_PAGE_COPY_REVIEW_2026-09-14.md`; when finished, read it and add a closing
+> section naming the substantive differences. No new claims about the business, no
+> statistics, no testimonials; anything that reads as a claim goes through
+> `substantiate-outward-claims` and is cut if the repo cannot substantiate it. British
+> English, no em dashes, no placeholder contact details. Final pass `unslop-text`. Do not
+> edit the page, do not commit or push. End with the same report as prompt 2.
+
+Paste the three reports back. If all three pass, the only things left from this session are
+PR #313 and the second machine.
+
 ## 1. Session goal
 
 Close the fire-log thread from the 09-14 morning handover (six decisions), then decide and
@@ -101,11 +166,11 @@ matching the two worktrees already under `PropOS/.claude/worktrees/`.
 
 ## 6. Verification still outstanding
 
-- **The two real rides, Ben's to run** (section 10 has the prompts): a session in icc-site
-  invoking a pack skill (proves the pack loads from a repo's `.claude/skills/`, and gives the
-  fire log a line with a different cwd); a session from the 1f916 parent folder (proves the
-  junction loads). PropOS can be ridden from the worktree now, or from the main checkout
-  after #313 merges and `main` is pulled.
+- **The ride is half done.** 1f916 and PropOS rode clean on 2026-09-14 (four fresh sessions,
+  six pack skills invoked through the Skill tool, fire-log lines with four distinct cwds).
+  icc-site did not: both its sessions predated the install and were refused, so the pack has
+  never been invoked from that repo. That is check 2 and check 3 in **section 0**, together
+  with re-proving 1f916 now the junction is gone (check 1).
 - PR #313 CI outcome (3 pending at open). The change is 60 markdown files and one
   CLAUDE.md bullet, so a red would be a workflow that lints or counts skills, not the pack.
 - First `node hooks/audit-fires.mjs --repo <path>...` run with real data, after a few
@@ -124,15 +189,18 @@ matching the two worktrees already under `PropOS/.claude/worktrees/`.
 
 ## 8. Next actions (ordered)
 
-1. Ben runs the six prompts in section 10 (or a subset) and pastes each session's closing
-   report plus the tail of `~/.claude/skills/FIRE_LOG.jsonl` back into a session here.
-2. On a red or a missing skill in any ride: the installer's output is deterministic, so
-   diff the target's `.claude/skills/<skill>/SKILL.md` frontmatter against the pinned
-   upstream first, then check the launch directory (DECISIONS 2026-09-14, last paragraph).
+1. **Section 0, the three checks.** They are the first thing; everything below can wait.
+2. On a refusal in any of them: a session's listing is fixed at start, so confirm the session
+   really is fresh before anything else. Then, because the installer's output is
+   deterministic, diff the target's `.claude/skills/<skill>/SKILL.md` against the pinned
+   upstream, and check the launch directory against DECISIONS 2026-09-14.
 3. Merge #313 on Ben's yes; then in the PropOS main checkout `git pull --ff-only` (0 ahead,
    **verified** at write time) and `git worktree remove .claude/worktrees/marketing-pack`.
-4. On the other machine: `git pull` all three repos and the library; create the 1f916
-   junction; wire `~/.claude/settings.json` from `hooks/HOOKS.md` "Install (per machine)".
+4. On the other machine: `git pull` all three repos and the library, then wire
+   `~/.claude/settings.json` from `hooks/HOOKS.md` "Install (per machine)". No junction:
+   that was removed on 2026-09-14 and the scoped names replace it (section 9a). The 1f916
+   parent folder's `CLAUDE.md` and `LESSONS_LEARNED.md` sit outside git, so that machine's
+   copies do not carry L-058 or the pack paragraph; copy them across by hand if wanted.
 5. Legal fork, fresh session: `git checkout feat/legal-fork`, resume from its handover.
 6. Decide the em-dash sweep scope and the lint-after-edit approach (section 7).
 
@@ -201,7 +269,12 @@ committed ones). Those copies were deleted; both worktrees are back to 16 tracke
 so the pack is exercised through the Skill tool rather than read off disk; and confirm the
 scoped names load in 1f916 with no junction. The six output documents stand either way.
 
-## 10. Test prompts, two per project
+## 10. Test prompts, two per project (the original set, all six run on 2026-09-14)
+
+Kept as written, as the record of what was asked and because D, E and F are reusable. **To
+run something next session, use section 0, not this section**: prompts A and B here are
+superseded by section 0's checks 2 and 3, which additionally report whether the Skill call
+loaded or was refused, and write `_v2` files so the two runs can be compared.
 
 Each prompt is self-contained, paste it as the first message of a fresh session launched
 from the directory named. Each writes a file rather than chat output, keeps the house
