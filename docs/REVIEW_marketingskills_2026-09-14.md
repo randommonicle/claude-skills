@@ -1,5 +1,32 @@
 # Review: coreyhaines31/marketingskills, strip-and-use assessment (2026-09-14)
 
+> **Outcome, 2026-09-14 evening.** Ben's answers to the four open decisions: keep list is the 12
+> plus both optionals (14); targets icc-site, 1f916, and PropOS (PropOS on his call against the
+> recommendation; the cost is 10,096 characters of descriptions, about 2.5k tokens, in every
+> session's skill listing); install by script; DECISIONS third door written. What landed:
+>
+> - `hooks/install-marketing-pack.mjs` (in `hooks/`, not `scripts/`: that is where this repo keeps
+>   tooling and where CI runs `*.test.mjs`) with `install-marketing-pack.test.mjs`, 27 cases, each
+>   cut and refusal proven red under mutation. Commits `7703777`, `1ba24e5` (LF regardless of the
+>   source clone's autocrlf). DECISIONS entry `b7c264d`. Measured on the real pack: 14 skills, 71
+>   lines cut, 59 files, raw-byte identical across the three targets.
+> - icc-site: `7976d1c` on `chore/marketing-skills-pack`, fast-forwarded into local `main` (its
+>   CLAUDE.md rule: branch, merge on go-ahead). Pack live in the checkout. Not pushed; local main
+>   was already 34 ahead of origin before this.
+> - 1f916 (`society`): `780b2a13` on `chore/marketing-skills-pack`, fast-forwarded into local
+>   `main`. Sessions launch from the non-git parent folder, so a directory junction
+>   `<parent>\.claude\skills -> society\.claude\skills` was created (mklink /J) and the parent's
+>   CLAUDE.md carries the rules; `society/CLAUDE.md` (new) records the junction command for the
+>   other machine. Not pushed.
+> - PropOS: `8b46fe9` on `chore/marketing-pack` in worktree `.claude/worktrees/marketing-pack`
+>   off `origin/main`; the main checkout (86 behind origin) untouched. Not pushed, no PR; both are
+>   Ben's per-action call.
+> - Step 5 (CLAUDE.md lines) done by hand in each target, as the recipe said.
+>
+> Not done, by design: prose mentions of dropped skills outside Related Skills rows stay as
+> written (UPSTREAM.md says so). The real ride, a session in one of the targets invoking a pack
+> skill, needs Ben to open one; frontmatter of all 14 passes the index gate's checks.
+
 Source: `https://github.com/coreyhaines31/marketingskills`, reviewed at commit
 `5b2c000` (2026-09-04, "feat: ai-seo 2.5.0"), MIT licence (`LICENSE`, copyright
 Corey Haines 2025). Clone read in full for structure; every skill's frontmatter, size and non-markdown
