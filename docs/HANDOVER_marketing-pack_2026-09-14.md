@@ -22,7 +22,13 @@ worktree cwd, so the icc-site loading path is proven through the Skill tool. Bot
 files exist in the worktrees' `docs/`, not in the main checkout's. The v1 files they were
 told to compare against are untracked in the main checkout's `docs/` and absent from the
 worktrees, so the "differences" sections were written against the main checkout by absolute
-path or not at all; Ben's pasted reports settle which. Outcome stamp to follow.
+path or not at all; Ben's pasted reports settle which. **Outcome, 22:20Z: both pass.** Zero
+refusals in either transcript (`3c32ee0a`: `seo-audit`, `schema`, `unslop-text`,
+`substantiate-outward-claims` all "Launching skill"; `9af9d2ce`: `copy-editing`, `cro`,
+`copywriting`, `substantiate-outward-claims`, `unslop-text`). Both `_v2` files exist (510 and
+410 lines), zero em dashes, both read the main checkout's v1 by absolute path, left it
+untouched, and wrote the differences section. Section 0 is closed; section 11 is the
+close-out handover for this session.
 
 ## 0. Start here, first thing next session
 
@@ -446,6 +452,117 @@ from where (the junction, for 1f916); the invoked list shows description-matchin
 the pack skills for a marketing task; the fire-log tail shows the user-level hook firing in
 three other projects with three other cwds; the hook messages show the em-dash gate and the
 write-warns are live outside this project.
+
+## 11. Close-out handover, 2026-09-14 late session (`401a03c5`, launched in `C:\Users\bengr\Projects\Unslop`)
+
+Diagnoses in this section are unverified unless marked. Context: no reading, /context
+unavailable in this harness (Claude desktop app, Code tab). Band decision from harness
+signals: no compaction or summarisation reminders seen; the session ends at Ben's request
+("nearly out of usage") with every checkout clean and level except this note's commit.
+
+**1. Session goal.** Run section 0's three checks after the restart; act on the results.
+Check 1's refusal turned into a re-derivation of the evening's loading evidence, which found
+both of section 9a's conclusions wrong, and a correction sweep across three repos.
+
+**2. Branch and worktree.** Four checkouts touched, all **verified** clean and level with
+origin after `git fetch` at write time except where noted:
+
+| Repo | Checkout | Branch | State |
+|---|---|---|---|
+| skills library | `C:\Users\bengr\.claude\skills` | `main` | level at `d83d61f` plus this note's commit (unpushed until Ben's yes) |
+| society (1f916) | `C:\Users\bengr\Projects\AI domain and social network\society` | `main` | level at `aa377284`; two untracked test outputs in `docs/` from the evening, left as they were |
+| icc-site | `C:\Users\bengr\Projects\ICC\icc-site` | `main` | level at `417aab3`; two untracked v1 documents in `docs/` |
+| icc-site task worktrees | `icc-site\.claude\worktrees\seo-audit-localbusiness-schema-0451a5` and `booking-page-copy-review-2a2795` | `claude/...` branches at `3f8da11` | one untracked `_v2` document each; auto-spawned by checks 2 and 3, not removed |
+| PropOS | worktree `PropOS\.claude\worktrees\marketing-pack` | `chore/marketing-pack` | untouched this session; PR #313 state not re-checked |
+
+**3. What landed** (all **verified** by `git log origin/main..main` empty after each push,
+one push per line on Ben's "push/commit everything"):
+
+- skills `40fc7e4..4747d92`: `e62010e` DECISIONS re-corrected, LESSONS 13 stamped, handover
+  9b + 26 citation rows; `4747d92` LESSONS 14.
+- skills `4747d92..d83d61f`: `25bfd7c` two generalisations softened to the observed cases;
+  `d83d61f` checks 2 and 3 stamp.
+- society `ec6ec1d8..aa377284`: `CLAUDE.md`, junction required, bare names, "already running"
+  sentence withdrawn as a rule.
+- icc-site `3f8da11..b27ee34` and `b27ee34..417aab3`: L-039 correction stamp, then its two
+  observations restated as observed. Both `[skip ci]`, docs only.
+- Outside git (**verified** by reading back): the 1f916 parent folder's `CLAUDE.md` pack
+  paragraph and `LESSONS_LEARNED.md` L-058 (heading marked corrected, correction paragraph
+  under the entry); directory junction `<parent>\.claude\skills` recreated at 21:31:46Z
+  (`mklink /J`, 16 entries through it); memory files `marketingskills-review.md` and
+  `MEMORY.md`.
+
+**4. In flight.** Nothing half-written. The two `_v2` documents are finished and untracked
+in their worktrees (`seo-audit-localbusiness-schema-0451a5/docs/SEO_AUDIT_2026-09-14_v2.md`,
+510 lines; `booking-page-copy-review-2a2795/docs/BOOKING_PAGE_COPY_REVIEW_2026-09-14_v2.md`,
+410 lines). Their fate is next action 2.
+
+**5. Deferred items.** Carried from section 5 unchanged (`lint-after-edit` win32 red, the
+em-dash sweep, dropped-skill prose mentions in the pack, the legal fork). New:
+- `verified-citations` does not ask for a transcript citation's timestamp and
+  preconditions; LESSONS 14 says so. Anchor: the phrase "which the skill does not yet ask
+  for" in `LESSONS_LEARNED.md` entry 14. Ben's decision whether to change the skill.
+- `SEO_AUDIT_2026-09-14_v2.md` section 12 restates L-039's withdrawn cause ("a skill
+  installed mid-session"). Anchor: grep `L-039` in that file. Fix if the document is
+  adopted; harmless while it is a draft.
+
+**6. Verification still outstanding.**
+- PR #313 CI and merge (unchanged from section 6; not re-checked this session).
+- First `node hooks/audit-fires.mjs --repo <path>...` run with real data; the fire log now
+  holds real fires from four projects.
+- Optional only: a cold-start 1f916 line for the record (fresh parent-folder session, first
+  message "list the project skills available to you, names exactly as you see them; do
+  nothing else", expecting fourteen bare pack names). The proof already exists in
+  `df64a87c` and `2ee45744` line 9; this would add a post-restore data point.
+
+**7. Blockers and open questions.**
+- `verified-citations` addition (item 5). Recommendation: one paragraph, "a transcript
+  citation carries its timestamp, the event immediately before it, and the launch directory
+  from the `environment` attachment; say whether it is an opening listing or mid-session".
+- The OneDrive stub `C:\Users\bengr\OneDrive\Desktop\icc-site` (a `.claude` dir from July,
+  nothing else) is what checks A and B launched in last night. If the app still offers it
+  as a recent directory it will bite again. Deleting it is Ben's call; nothing this session
+  touched it.
+- The `_v2` documents: keep in the worktrees, commit on their branches, or copy beside v1
+  in the main checkout's untracked `docs/`. Undecided.
+
+**8. Next actions (ordered).**
+1. Push this note: `git -C "C:/Users/bengr/.claude/skills" push origin main` (the push gate
+   will ask; the note is the only unpushed commit).
+2. Decide the `_v2` documents' home, then remove the two task worktrees:
+   `git -C "C:/Users/bengr/Projects/ICC/icc-site" worktree remove .claude/worktrees/<name>`
+   for each (add `--force` only if the untracked file is meant to be discarded; copy it out
+   first otherwise).
+3. Merge #313 on Ben's yes; then `git pull --ff-only` in the PropOS main checkout and
+   `git worktree remove .claude/worktrees/marketing-pack`.
+4. Other machine: `git pull` the library, society and icc-site; wire `~/.claude/settings.json`
+   from `hooks/HOOKS.md`; create the 1f916 junction with the `mklink /J` line in
+   `society/CLAUDE.md`; copy the corrected parent `CLAUDE.md` paragraph and L-058 by hand.
+5. Decide the `verified-citations` addition and the OneDrive stub (section 7).
+6. Carried: legal fork from `docs/HANDOVER_legal-fork_2026-09-11.md`; em-dash sweep scope;
+   `lint-after-edit` approach.
+
+**9. Traps and working agreements.**
+- **A transcript line proves what it says, not the state it was captured in.** Timestamp,
+  preceding event, and the `environment` attachment's working directory belong beside any
+  transcript citation about loading. Promoted to LESSONS 14; do not re-learn it here.
+- **Launch directory decides the opening skill listing.** Check `workingDirectory` in the
+  transcript's `environment` attachment (near the top; line 4 in every 2.1.270 transcript
+  read tonight) before reasoning about what a session could see. `change_directory` did not
+  rebuild the listing in either observed case.
+- **`grep -c` exits 1 on zero matches and stops an `&&` chain.** A commit in this session
+  silently did not run because it followed `grep -c ... && git add ... && git commit`.
+  Check `git log` after every commit command, not the command's silence.
+- **Bypass mode and the push gate.** Both pushes tonight went through with no visible ask;
+  the gate's evidence is the `hook_success` row, as LESSONS 12 says.
+- **One yes per push, itemised.** Ben's "push/commit everything" covered the scope agreed
+  in the same message; the follow-up softening commits were pushed under it and itemised
+  in the report. This note is not: it waits for next action 1.
+- **Heredoc backslash trap** (memory `windows-doc-toolchain`): still true; every file edit
+  carrying `\\` went through Edit or a Python raw string. A second heredoc failure tonight
+  ("unexpected EOF while looking for matching quote") on a long quoted heredoc was worked
+  around the same way: write the text with the Write tool, splice it in with Python.
+- Money: nil this session. No paid calls, no subagents.
 
 ## Citations
 
