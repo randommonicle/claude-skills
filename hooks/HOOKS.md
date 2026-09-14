@@ -37,6 +37,9 @@ block uses `$USERPROFILE` with forward slashes, which bash expands and node acce
 states `"shell": "bash"` on each entry so the assumption lives in the config. The earlier
 form of this block used `%USERPROFILE%`, which is cmd.exe syntax and expands in neither
 shell, so it silently ran nothing. On macOS/Linux replace `$USERPROFILE` with `$HOME`.
+The command hooks match `Bash|PowerShell` because the Windows desktop harness also exposes
+a `PowerShell` tool carrying the same `tool_input.command`; a `Bash`-only matcher lets a
+`git push` run through that tool walk past the push gate.
 
 ```json
 {
@@ -45,7 +48,7 @@ shell, so it silently ran nothing. On macOS/Linux replace `$USERPROFILE` with `$
       { "hooks": [ { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/session-recon.mjs\"", "shell": "bash", "timeout": 20 } ] }
     ],
     "PreToolUse": [
-      { "matcher": "Bash", "hooks": [
+      { "matcher": "Bash|PowerShell", "hooks": [
         { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/push-gate.mjs\"", "shell": "bash" },
         { "type": "command", "command": "node \"$USERPROFILE/.claude/skills/hooks/sql-surgery-warn.mjs\"", "shell": "bash" }
       ] },
