@@ -28,26 +28,42 @@ CLAUDE.md: `unslop-text` as the final pass on its copy, and
 `substantiate-outward-claims` on any customer-facing claim.
 
 The pack installs into the repo, even where sessions launch from outside it
-(1f916: sessions run from the non-git parent folder). **Corrected
-2026-09-14 evening, replacing a wrong sentence committed in `2bb59bc`**
-("project skills load from the launch directory and its ancestors, never
-from a subdirectory", which prompted a directory junction from the parent's
-`.claude/skills` to the repo's). The harness does discover skills in a
-subdirectory and names them by path scope: a test session launched from
-that parent folder was served a listing of all 14 as `society:ai-seo`,
-`society:pricing` and so on, and invoked `society:content-strategy`
-successfully (transcript `2ee45744`, line 148). Discovery is also dynamic
-rather than fixed at session start: one session's opening listing carried
-none of the pack and it still loaded `ai-seo` later. So install for
-provenance, let path scoping do the reaching, and expect the scoped name.
-The junction was removed the same evening; if a launch-directory listing
-ever needs them unscoped, `mklink /J` is the fallback, not the default.
+(1f916: sessions run from the non-git parent folder). A session's opening
+listing is built from the `.claude/skills/` of the directory it launched
+in, plus the user level; nothing below the launch directory is in it. So
+from that parent folder the pack is reached through a directory junction,
+`<parent>\.claude\skills` to `society\.claude\skills` (`mklink /J`, once
+per machine, command in `society/CLAUDE.md`), and the callable names are
+the bare ones (`seo-audit`, `pricing`), which is what the two 1f916 test
+sessions of 2026-09-14 opened with (98 skills, pack unscoped) and invoked.
 
-The listing a session is given is otherwise fixed when it starts. Skills
-installed into a repo mid-session are not invocable in sessions already
-running: two icc-site sessions were refused six times with `Unknown skill`
-and worked from the SKILL.md files directly. Install, then start a fresh
-session. LESSONS 13.
+**This paragraph was written three times on 2026-09-14, and the second
+version was wrong.** `2bb59bc` said the harness never reaches a
+subdirectory and prescribed the junction. `40fc7e4` said it does, by path
+scope, and removed the junction, citing a listing of all 14 as
+`society:ai-seo` and so on (transcript `2ee45744`, line 148). That line is
+real and was captured mid-session: a `dynamic_skill` event at 20:13:18Z,
+in the second after a `Write` under `society/`, with the junction still in
+place. The twin session `df64a87c` made the same kind of `Write` and got
+no such event, and the first fresh parent-folder session without the
+junction (`57894514`, 21:22Z) listed none of the pack and was refused
+`Unknown skill: society:seo-audit`. The junction went back at 21:31Z.
+Subdirectory discovery therefore exists, is lazy, fired in one of two like
+cases, and is not relied on; expect a session that touches `society/`
+files to list the pack a second time as `society:*`. LESSONS 14.
+
+Two further observations, recorded as observations. A skill directory that
+appears at the launch directory mid-session can be picked up: after the
+junction was recreated, the stale session `57894514` loaded bare
+`seo-audit` (21:34Z) although its opening listing had none of the pack.
+And `change_directory` does not rebuild the listing: the two icc-site test
+sessions launched in a stub folder with no `.claude/skills/`, switched to
+the real repo mid-session, and were refused before and after the switch;
+the "installed mid-session" account of those refusals in `40fc7e4` was
+wrong, the pack had been on disk 44 minutes before they started. The safe
+practice is unchanged, launch in the directory whose skills you need and
+use a fresh session, but it is practice, not a harness rule. LESSONS 13
+(corrected) and 14.
 
 ## 2026-08-10 Vendor skill packs are machine-local
 

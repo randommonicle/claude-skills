@@ -413,6 +413,17 @@ to; here the gate ran, on the wrong shape.
 
 ## 13. The skill was installed, unusable, and invisible at the same time
 
+**Correction, 2026-09-14 late evening (entry 14 has the evidence).** The two
+icc-site sessions were not "already open when the pack was installed". Both
+launched 44 minutes after the pack landed, in a stub folder with no
+`.claude/skills/` (`C:\Users\bengr\OneDrive\Desktop\icc-site`), switched to the
+real repo with `change_directory` mid-session, and were refused before and
+after the switch. The refusals are explained by the launch directory; nothing in
+them tests "install, then start a new session", and a later session showed a
+skill directory appearing at the launch directory mid-session being loaded. The
+fire-log half of this entry stands as written. The paragraph below is left as it
+was, because the misreading is the subject of entry 14.
+
 **What happened.** Fourteen marketing skills were installed into three repos on
 2026-09-14 and six test sessions were run against them. Four were fresh sessions
 and loaded the skills normally. Two were sessions already open on icc-site, and
@@ -435,10 +446,14 @@ exactly the signal worth having: it says someone reached for the skill and could
 not get it. A model that routes around the refusal, reading the file by hand,
 hides the fault at the same time as it does the work.
 
-**How to apply.** Install skills, then start a new session; never install into
-a repo whose session is already open and expect it to see them. When a skill is
-newly installed, the check is a Skill call in a fresh session, not the presence
-of the files or the quality of a document produced without it. For the fire log:
+**How to apply.** Launch the session in the directory whose `.claude/skills/`
+you need; the opening listing is built from the launch directory, and
+`change_directory` does not rebuild it (the first sentence of this paragraph
+read "install skills, then start a new session; never install into a repo whose
+session is already open", which the correction above withdraws as a rule and
+keeps as practice). When a skill is newly installed, the check is a Skill call
+in a fresh session launched in that directory, not the presence of the files or
+the quality of a document produced without it. For the fire log:
 a refused Skill call is worth a line of its own, so that "wanted but unavailable"
 stops being indistinguishable from "never wanted"; until then, read failures out
 of the session transcripts (`is_error` on the tool_result), which is where this

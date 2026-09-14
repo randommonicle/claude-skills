@@ -7,26 +7,32 @@ signals: no compaction or summarisation reminders seen; the session ended at Ben
 Supersedes the next-actions sections of `docs/HANDOVER_fire-log_2026-09-14.md` (stamped at
 its head); that note's diagnosis and traps stand.
 
+**Stamp, 2026-09-14 late evening, next session (`401a03c5`).** Check 1 ran and was refused.
+Re-deriving the evening's evidence from the transcripts showed both of section 9a's loading
+conclusions wrong: the `society:*` listing was captured mid-session with the junction in
+place, and the icc-site sessions were launched in a stub folder, not "already open when the
+pack was installed". Section 9b has the evidence and the citations; the junction is back;
+DECISIONS, LESSONS 13 (correction stamp) and 14, `society/CLAUDE.md`, icc-site L-039 and
+the 1f916 folder's CLAUDE.md and L-058 are re-corrected. Section 0's check 1 is closed
+below; checks 2 and 3 stand as written and are still to run.
+
 ## 0. Start here, first thing next session
 
 Three checks, in this order. They exist because the 2026-09-14 test run proved the pack's
-content and not its loading path (section 9a): two icc-site sessions were already open when
-the pack was installed, were refused by the Skill tool, and produced their documents by
-reading the SKILL.md files directly. Run these from **fresh** sessions, after the restart.
+content and not its loading path (section 9a, corrected in 9b): the two icc-site sessions
+were refused by the Skill tool and produced their documents by reading the SKILL.md files
+directly. Run these from **fresh** sessions, after the restart.
 
-**Check 1, 1f916, thirty seconds.** Launch a session in
-`C:\Users\bengr\Projects\AI domain and social network` (the parent folder, not the repo) and
-paste:
-
-> List the project skills available to you, names exactly as you see them, and say which
-> directory each group came from. Then call the `society:seo-audit` skill and tell me
-> whether it loaded or was refused. Do nothing else.
-
-Pass is the fourteen pack skills appearing as `society:*` and the call loading. That settles
-the junction removal and the corrected DECISIONS entry. A refusal means the scoped names do
-not work without the junction, in which case restore it with the `mklink /J` line in
-`society/CLAUDE.md` and tell me, because the correction in `40fc7e4` would then be wrong in
-the other direction.
+**Check 1, 1f916. Closed 2026-09-14 (section 9b).** Ran at 21:22Z in a fresh parent-folder
+session with no junction: opening listing 84 skills, no pack, `society:seo-audit` refused
+`Unknown skill`. Junction recreated 21:31Z; the same session then loaded bare `seo-audit`
+at 21:34Z and was served the fourteen as bare names. The original prompt and pass criterion
+(fourteen as `society:*`) were wrong in their premise and are not re-run. The cold-start
+proof of the junction route already exists: both 1f916 test sessions opened with 98 skills,
+pack unscoped, at 20:02Z and 20:03Z. Optional, for a line on the record only: a fresh
+parent-folder session, first message "list the project skills available to you, names
+exactly as you see them; do nothing else", expecting `seo-audit` and thirteen more bare
+names in the opening listing.
 
 **Checks 2 and 3, icc-site.** Launch a fresh session in
 `C:\Users\bengr\Projects\ICC\icc-site` for each. These deliberately write `_v2` files rather
@@ -197,10 +203,11 @@ matching the two worktrees already under `PropOS/.claude/worktrees/`.
 3. Merge #313 on Ben's yes; then in the PropOS main checkout `git pull --ff-only` (0 ahead,
    **verified** at write time) and `git worktree remove .claude/worktrees/marketing-pack`.
 4. On the other machine: `git pull` all three repos and the library, then wire
-   `~/.claude/settings.json` from `hooks/HOOKS.md` "Install (per machine)". No junction:
-   that was removed on 2026-09-14 and the scoped names replace it (section 9a). The 1f916
-   parent folder's `CLAUDE.md` and `LESSONS_LEARNED.md` sit outside git, so that machine's
-   copies do not carry L-058 or the pack paragraph; copy them across by hand if wanted.
+   `~/.claude/settings.json` from `hooks/HOOKS.md` "Install (per machine)". The 1f916
+   junction **is** needed there (section 9b reversed 9a on this): the `mklink /J` command is
+   in `society/CLAUDE.md`. The 1f916 parent folder's `CLAUDE.md` and `LESSONS_LEARNED.md`
+   sit outside git, so that machine's copies do not carry L-058 or the pack paragraph; copy
+   them across by hand if wanted, in their corrected form.
 5. Legal fork, fresh session: `git checkout feat/legal-fork`, resume from its handover.
 6. Decide the em-dash sweep scope and the lint-after-edit approach (section 7).
 
@@ -268,6 +275,52 @@ committed ones). Those copies were deleted; both worktrees are back to 16 tracke
 **Still outstanding after Ben restarts:** re-run prompts A and B in fresh icc-site sessions,
 so the pack is exercised through the Skill tool rather than read off disk; and confirm the
 scoped names load in 1f916 with no junction. The six output documents stand either way.
+
+## 9b. Section 9a's two loading conclusions, re-derived (2026-09-14, late evening)
+
+Written in the next session (`401a03c5`) after check 1 was refused. Everything here is
+**verified** against the transcript files named, by a Python scan of each file's lines
+(timestamps are the transcripts' own, UTC); the citations table at the end has the rows.
+Section 9a is left as written above, as the record of what was concluded and why.
+
+**The `society:*` listing was captured mid-session, with the junction in place.** The
+junction was created at 19:16:28Z (`d7173cab` line 814) and removed at 20:56:57Z (line
+1213). Both 1f916 test sessions launched between those times and opened with 98 skills, the
+pack unscoped (`df64a87c` line 9, 20:02:46Z; `2ee45744` line 9, 20:03:42Z); `df64a87c`
+invoked bare `ai-seo` at 20:03:11Z before touching any file. The listing of fourteen
+`society:*` names in `2ee45744` is a `dynamic_skill` attachment at line 147 and the
+`skill_listing` that follows it at line 148, both 20:13:18Z, in the second after the
+session's first file-tool touch under `society/` (a `Write` to `society\docs\product-marketing.md`,
+line 141, 20:13:17Z). `df64a87c` made the equivalent `Write` at line 252 (20:18:19Z) and
+carries no `dynamic_skill` attachment anywhere. The first fresh parent-folder session with
+no junction (`57894514`, 21:22:07Z) opened with 84 skills and was refused
+`Unknown skill: society:seo-audit` (line 44, 21:22:54Z). So the line 9a cited was real and
+did not show what 9a said; the correction in `40fc7e4` inverted the claim it corrected.
+
+**The icc-site sessions were not "already open when the pack was installed".** The pack
+was committed to icc-site at 19:15:18Z (`7976d1c`) and its files carry mtime 19:18:07Z.
+Both test sessions started after that (`0d7887b6` 20:02:22Z, `36de68ba` 20:03:55Z), and
+both started with working directory `C:\Users\bengr\OneDrive\Desktop\icc-site`, a stub
+folder holding only a `.claude` directory from July with no `skills` inside (line 4 of each
+transcript, `environment` attachment, `isGitRepo: false`). Each noticed, worked on
+`C:\Users\bengr\Projects\ICC\icc-site` by absolute path, and called `change_directory` to it
+(`0d7887b6` line 225, 20:08:45Z; `36de68ba` line 272, 20:13:54Z); the working directory
+changed at 20:11:32Z and 20:14:55Z respectively, and a refusal followed each change
+(`schema`, line 298, 20:11:57Z; `copy-editing`, line 300, 20:14:58Z). The launch directory
+explains every refusal. Nothing in those sessions tested a mid-session install, and
+LESSONS 13 and icc-site L-039 were written as if it had. Both now carry correction stamps.
+
+**What was then observed after the junction went back (21:31:46Z, `401a03c5` line 129).**
+The stale session `57894514`, whose opening listing had none of the pack, loaded bare
+`seo-audit` at 21:34:35Z (line 59, result "Launching skill" at line 60) and was served the
+fourteen as bare names (line 62). A skill directory appearing at the launch directory
+mid-session can therefore be picked up; `change_directory` to a different directory was
+not, twice. Both are recorded as observations in DECISIONS, not as rules.
+
+**Net position.** From the parent folder the junction is required and the callable names
+are bare. Subdirectory discovery and mid-session pickup exist, are inconsistent, and are
+not relied on. The safe practice is unchanged: launch in the directory whose skills you
+need, fresh session. It is practice, not a claimed harness rule. LESSONS 14 has the lesson.
 
 ## 10. Test prompts, two per project (the original set, all six run on 2026-09-14)
 
@@ -402,3 +455,37 @@ write-warns are live outside this project.
 | icc-site push | git | | `e3bd73a..7976d1c  main -> main` | `git push` output |
 | 1f916 push | git | | `623d9eda..780b2a13  main -> main` | `git push` output |
 | PropOS PR | GitHub | | `https://github.com/randommonicle/PropOS/pull/313` | `gh pr create` output; `ccd_pr get_status` |
+
+Rows added for section 9b (2026-09-14 late evening). Transcript paths are under
+`~/.claude/projects/`: `U` = `C--Users-bengr-Projects-Unslop/`, `P` =
+`C--Users-bengr-Projects-AI-domain-and-social-network/`, `I` = `C--Users-bengr-Projects-ICC-icc-site/`.
+"Quoted text" is the JSON field the claim rests on; all read by `json.loads` of that line.
+
+| Claim | Path | Line | Quoted text | How verified |
+|---|---|---|---|---|
+| junction created | `U/d7173cab-…jsonl` | 814 | `"timestamp":"2026-09-14T19:16:28.346Z"`, PowerShell input begins `$parent = "C:\Users\bengr\Projects\AI domain and social netw` | Python scan, 2026-09-14 |
+| junction removed | `U/d7173cab-…jsonl` | 1213 | `"timestamp":"2026-09-14T20:56:57.454Z"`, PowerShell input begins `$link = "C:\Users\bengr\Projects\AI domain and social network\.claude\skills"` | Python scan |
+| df64a87c opened with the pack unscoped | `P/df64a87c-…jsonl` | 9 | `"timestamp":"2026-09-14T20:02:46.420Z"`, `skill_listing`, 98 entries, one `- ai-seo` | Python scan |
+| df64a87c invoked bare ai-seo before any file tool | `P/df64a87c-…jsonl` | 41 | `"timestamp":"2026-09-14T20:03:11.910Z"`, Skill input `"skill":"ai-seo"` | Python scan; no Read/Write/Edit/Glob/Grep before line 41 |
+| df64a87c Write under society, no dynamic_skill | `P/df64a87c-…jsonl` | 252 | `"timestamp":"2026-09-14T20:18:19.161Z"`, Write `…\society\docs\AI_SEO_ASSESSMENT_2026-09-14.md` | Python scan; `"dynamic_skill"` absent from all 435 lines |
+| 2ee45744 opened with the pack unscoped | `P/2ee45744-…jsonl` | 9 | `"timestamp":"2026-09-14T20:03:42.579Z"`, `skill_listing`, 98 entries | Python scan |
+| 2ee45744 first file-tool touch under society | `P/2ee45744-…jsonl` | 141 | `"timestamp":"2026-09-14T20:13:17.973Z"`, Write `…\society\docs\product-marketing.md` | Python scan; lines 1 to 140 hold Bash and Skill tool uses only |
+| the `society:*` discovery event | `P/2ee45744-…jsonl` | 147 | `"timestamp":"2026-09-14T20:13:18.878Z"`, `"type":"dynamic_skill"`, `skillDir` `…\society\.claude\skills`, 14 names | Python scan |
+| the line 9a cited | `P/2ee45744-…jsonl` | 148 | `"timestamp":"2026-09-14T20:13:18.878Z"`, `skill_listing` beginning `- society:ai-seo: Wh` | Python scan |
+| check 1 fresh, no pack | `P/57894514-…jsonl` | 9 | `"timestamp":"2026-09-14T21:22:07.698Z"`, `skill_listing`, 84 entries | Python scan |
+| check 1 refused | `P/57894514-…jsonl` | 44 | `"timestamp":"2026-09-14T21:22:54.872Z"`, `<tool_use_error>Unknown skill: society:seo-audit</tool_use_error>` | Python scan |
+| junction recreated | `U/401a03c5-…jsonl` | 129 | `"timestamp":"2026-09-14T21:31:46.789Z"`, PowerShell | Python scan of this session's own transcript |
+| stale session loaded bare seo-audit | `P/57894514-…jsonl` | 59, 60 | `"timestamp":"2026-09-14T21:34:35.643Z"` Skill `"skill":"seo-audit"`; result `Launching skill: seo-audit` | Python scan |
+| stale session served fourteen bare names | `P/57894514-…jsonl` | 62 | `"timestamp":"2026-09-14T21:34:35.659Z"`, `skill_listing` beginning `- ai-seo: Wh`, 14 entries | Python scan |
+| icc-site pack commit time | icc-site git | | `7976d1c … 2026-09-14 20:15:18 +0100 chore: marketing skills pack` | `git log -1 --format='%H %ci %s' 7976d1c` |
+| icc-site pack file mtime | `icc-site/.claude/skills/seo-audit/SKILL.md` | | `2026-09-14 20:18:07.346937000 +0100` | `stat -c '%y %n'` |
+| 0d7887b6 launched in the stub | `I/0d7887b6-…jsonl` | 4 | `"timestamp":"2026-09-14T20:02:22.366Z"`, `"workingDirectory":"C:\Users\bengr\OneDrive\Desktop\icc-site"`, `"isGitRepo":false` | Python scan |
+| 0d7887b6 switched directory | `I/0d7887b6-…jsonl` | 225 | `"timestamp":"2026-09-14T20:08:45.233Z"`, `mcp__ccd_directory__change_directory` path `C:\Users\bengr\Projects\ICC\icc-site` | Python scan |
+| 0d7887b6 working directory changed | `I/0d7887b6-…jsonl` | 289 | `"timestamp":"2026-09-14T20:11:32.946Z"`, `"workingDirectory":"C:\Users\bengr\Projects\ICC\icc-site"` | Python scan |
+| 0d7887b6 refused after the change | `I/0d7887b6-…jsonl` | 298 | `"timestamp":"2026-09-14T20:11:57.586Z"`, `<tool_use_error>Unknown skill: schema</tool_use_error>` | Python scan |
+| 36de68ba launched in the stub | `I/36de68ba-…jsonl` | 4 | `"timestamp":"2026-09-14T20:03:55.325Z"`, `"workingDirectory":"C:\Users\bengr\OneDrive\Desktop\icc-site"`, `"isGitRepo":false` | Python scan |
+| 36de68ba switched directory | `I/36de68ba-…jsonl` | 272 | `"timestamp":"2026-09-14T20:13:54.377Z"`, `mcp__ccd_directory__change_directory` path `C:\Users\bengr\Projects\ICC\icc-site` | Python scan |
+| 36de68ba working directory changed | `I/36de68ba-…jsonl` | 295 | `"timestamp":"2026-09-14T20:14:55.083Z"`, `"workingDirectory":"C:\Users\bengr\Projects\ICC\icc-site"` | Python scan |
+| 36de68ba refused after the change | `I/36de68ba-…jsonl` | 300 | `"timestamp":"2026-09-14T20:14:58.654Z"`, `<tool_use_error>Unknown skill: copy-editing</tool_use_error>` | Python scan |
+| the stub has no skills directory | `C:\Users\bengr\OneDrive\Desktop\icc-site` | | `ls -la` shows `.claude` (Jul 19) only; `ls .claude/skills`: `No such file or directory` | `ls -la`, `ls` |
+| icc-site L-039 pushed | icc-site git | | `3f8da11 2026-09-14 22:10:21 +0100 docs: L-039, a skill installed mid-session is invisible to open sessions` | `git show --stat --format='%h %ci %s' 3f8da11`; `git status -sb` level with origin |
