@@ -27,12 +27,27 @@ it is. Two library skills stand in front of the pack in every target repo's
 CLAUDE.md: `unslop-text` as the final pass on its copy, and
 `substantiate-outward-claims` on any customer-facing claim.
 
-Project skills load from the directory a session launches in and its
-ancestors, never from a subdirectory. Where sessions launch from outside
-the repo (1f916: the non-git parent folder), the pack still installs into
-the repo for provenance, and each machine adds a directory junction from the
-launch directory's `.claude/skills` to the repo's; the repo's CLAUDE.md
-carries the command. Check the launch directory before installing, not after.
+The pack installs into the repo, even where sessions launch from outside it
+(1f916: sessions run from the non-git parent folder). **Corrected
+2026-09-14 evening, replacing a wrong sentence committed in `2bb59bc`**
+("project skills load from the launch directory and its ancestors, never
+from a subdirectory", which prompted a directory junction from the parent's
+`.claude/skills` to the repo's). The harness does discover skills in a
+subdirectory and names them by path scope: a test session launched from
+that parent folder was served a listing of all 14 as `society:ai-seo`,
+`society:pricing` and so on, and invoked `society:content-strategy`
+successfully (transcript `2ee45744`, line 148). Discovery is also dynamic
+rather than fixed at session start: one session's opening listing carried
+none of the pack and it still loaded `ai-seo` later. So install for
+provenance, let path scoping do the reaching, and expect the scoped name.
+The junction was removed the same evening; if a launch-directory listing
+ever needs them unscoped, `mklink /J` is the fallback, not the default.
+
+The listing a session is given is otherwise fixed when it starts. Skills
+installed into a repo mid-session are not invocable in sessions already
+running: two icc-site sessions were refused six times with `Unknown skill`
+and worked from the SKILL.md files directly. Install, then start a fresh
+session. LESSONS 13.
 
 ## 2026-08-10 Vendor skill packs are machine-local
 

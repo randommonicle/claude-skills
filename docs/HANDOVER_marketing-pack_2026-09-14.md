@@ -167,6 +167,40 @@ matching the two worktrees already under `PropOS/.claude/worktrees/`.
 - Money: nil this session. No paid calls; the previous session's clone of the pack
   survived in its scratchpad and was reused.
 
+## 9a. Test run outcome (added the same evening, after the six prompts ran)
+
+All six prompts ran; all six files exist and are house-rule clean (**verified**: zero em
+dashes across the six, every figure carrying a file:line citation or an attribution, the
+only apparent US spellings being the schema.org type name `Organization`).
+
+**The loading half was compromised, informatively.** Four sessions were fresh and invoked
+the pack through the Skill tool (**verified**, fire log and transcripts): `ai-seo`,
+`product-marketing`, `society:content-strategy` in 1f916; `pricing`, `customer-research`,
+`emails` in PropOS. The two icc-site sessions were already open when the pack was installed,
+so their listings were stale and the Skill tool refused six times (**verified**, transcripts
+`0d7887b6` and `36de68ba`: `Unknown skill: seo-audit`, `schema`, `copy-editing` three times).
+Both read the SKILL.md files directly and produced the documents anyway. LESSONS 13.
+
+**A decision made earlier in this session was wrong and is corrected.** The DECISIONS
+sentence committed in `2bb59bc`, "project skills load from the launch directory and its
+ancestors, never from a subdirectory", is false: transcript `2ee45744` line 148 carries a
+listing of all 14 as `society:*`, discovered in the subdirectory and scoped by path. The
+1f916 junction was therefore unnecessary and was removed (**verified**: link gone, target
+intact at 16 entries). DECISIONS, `society/CLAUDE.md` and the parent folder's CLAUDE.md now
+describe the scoped names instead. Ben re-tests from a fresh parent-folder session after a
+restart; if the scoped names fail there, `mklink /J` stays in `society/CLAUDE.md` as the
+fallback.
+
+**Cleanup.** The PropOS prompts ran in two auto-spawned task worktrees
+(`propos-pricing-model-draft-1ebec2`, `property-manager-research-demo-270674`) rather than
+`marketing-pack`, with the needed skills copied in (**verified** byte-identical to the
+committed ones). Those copies were deleted; both worktrees are back to 16 tracked skills and
+0 untracked, their output documents untouched.
+
+**Still outstanding after Ben restarts:** re-run prompts A and B in fresh icc-site sessions,
+so the pack is exercised through the Skill tool rather than read off disk; and confirm the
+scoped names load in 1f916 with no junction. The six output documents stand either way.
+
 ## 10. Test prompts, two per project
 
 Each prompt is self-contained, paste it as the first message of a fresh session launched

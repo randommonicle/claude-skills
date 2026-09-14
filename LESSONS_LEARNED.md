@@ -410,3 +410,46 @@ class: a control tested only against the form its author pictured, while a
 sibling rule in the same library steers everyone to a different one. Sibling of
 entry 11's unwired instrument: there the measurement never ran where it claimed
 to; here the gate ran, on the wrong shape.
+
+## 13. The skill was installed, unusable, and invisible at the same time
+
+**What happened.** Fourteen marketing skills were installed into three repos on
+2026-09-14 and six test sessions were run against them. Four were fresh sessions
+and loaded the skills normally. Two were sessions already open on icc-site, and
+in those the Skill tool refused six times: `Unknown skill: seo-audit`,
+`Unknown skill: schema`, `Unknown skill: copy-editing` three times. A session's
+skill listing is settled when it starts; files appearing on disk afterwards are
+not in it. Both sessions recovered by reading the SKILL.md files directly and
+produced good documents, so from the operator's side the test looked like a pass.
+The fire log tells the same misleading story from the other end: the hook writes
+a line only for a Skill call that succeeds, so six real attempts to use the pack
+left no trace at all, and `audit-fires.mjs` would score those five skills exactly
+as it scores a skill nobody ever wanted. Two separate nulls, the refusal and the
+silence, and neither is visible in the artifact the work produced.
+
+**The lesson.** Sibling of entry 11, one layer up. There the instrument was not
+wired; here it is wired, running, and structurally unable to record the event
+that matters, because a failed load is not a load. Any counter that increments on
+success is blind to demand that was refused, and demand that was refused is
+exactly the signal worth having: it says someone reached for the skill and could
+not get it. A model that routes around the refusal, reading the file by hand,
+hides the fault at the same time as it does the work.
+
+**How to apply.** Install skills, then start a new session; never install into
+a repo whose session is already open and expect it to see them. When a skill is
+newly installed, the check is a Skill call in a fresh session, not the presence
+of the files or the quality of a document produced without it. For the fire log:
+a refused Skill call is worth a line of its own, so that "wanted but unavailable"
+stops being indistinguishable from "never wanted"; until then, read failures out
+of the session transcripts (`is_error` on the tool_result), which is where this
+one was found. More generally, when a test's subject can be bypassed by the thing
+under test, state up front what the artifact would look like if the subject never
+worked, and check for that shape rather than for quality.
+
+skill that should have prevented this: one-real-ride (the ride was run, but on a
+session that predated the change; a ride proves nothing about a seam the session
+was constructed before) / none - new candidate (success-only counters cannot see
+refused demand).
+class: an instrument that records successes only, so a refusal and an absence of
+interest produce identical data. Sibling of entry 11's unwired instrument and
+entry 10's count-not-cause.
