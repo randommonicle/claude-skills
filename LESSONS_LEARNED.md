@@ -468,3 +468,76 @@ refused demand).
 class: an instrument that records successes only, so a refusal and an absence of
 interest produce identical data. Sibling of entry 11's unwired instrument and
 entry 10's count-not-cause.
+
+## 14. Two corrections in one evening, both from lines read without their state
+
+**What happened.** The marketing pack went into `society/.claude/skills/` on
+2026-09-14. Sessions for that project launch from the non-git folder one level
+up, so a directory junction was created at 19:16Z to put the pack in the launch
+directory. Six test sessions ran between 20:02Z and 20:23Z. Reading their
+transcripts afterwards, the session that had done the install drew two
+conclusions and wrote them into DECISIONS, this file, two CLAUDE.md files, a
+lesson in the icc-site repo and another in the 1f916 folder, and pushed three of
+them, all within the hour.
+
+First: a listing of all fourteen skills as `society:ai-seo`, `society:pricing`
+and so on, plus one successful call to `society:content-strategy`, was read as
+"the harness reaches a subdirectory by path scope, the junction was never
+needed", and the junction was removed at 20:56Z. The listing was real. It was a
+`dynamic_skill` event at 20:13:18Z, in the second after a `Write` under
+`society/`, ten minutes into the session, with the junction in place. The same
+session's opening listing, a hundred lines earlier in the same file, carried
+the pack unscoped through the junction, and so did the twin session's, which
+made the same kind of `Write` and got no event. The first fresh session without
+the junction listed no pack and was refused `Unknown skill`.
+
+Second: the two icc-site sessions had been refused six times, and because the
+pack had gone into that repo the same evening, the refusals were read as "a
+session's listing is settled when it starts; install, then start a new
+session", entry 13 above. Both sessions had launched 44 minutes after the pack
+landed, in a stub folder on the OneDrive desktop with no `.claude/skills/` at
+all. They noticed, switched to the real repo mid-session, and were refused
+again after the switch. The launch directory explains every refusal; nothing in
+them tested a mid-session install, and a later session showed one being picked
+up.
+
+Each conclusion was drawn from a line that said exactly what was claimed of it.
+Neither was checked against the state the line was captured in: the session's
+`environment` attachment (working directory, git or not), the timestamp
+relative to the junction's creation and removal, the event immediately before
+it. The environment attachment is line 4 of every transcript; the junction
+times were in the correcting session's own history.
+
+**The lesson.** A transcript line is evidence of what the line says. A claim
+about loading is a claim about state, when in the session, what happened just
+before, what was on disk and where the session was launched, and the line does
+not carry its state. Provenance for a transcript citation is timestamp and
+preconditions, the way provenance for a commit citation is `git log` and not
+the commit message. A correction is a claim like any other, and it is the more
+dangerous kind: it arrives with the word "corrected" attached, it is trusted
+for that, and it propagates into every document that quoted the original,
+which is where the cost of a wrong one is paid.
+
+**How to apply.** Before citing a transcript line as evidence about the harness,
+write three things beside it: the timestamp, the event that immediately
+preceded it, and the state the claim depends on, starting with the session's
+launch directory from its `environment` attachment. Say whether the line is an
+opening listing or a mid-session one. Look for the same line in a second
+session before generalising; one session in two producing an event is a
+finding, and a different one. When a recorded decision is being reversed, keep
+the machinery in place until a fresh session, launched cold in the real
+directory, proves the reversed claim; a ride taken before the machinery is
+removed rides the old seam. And when an account of a failure fits the
+narrative of the evening a little too neatly (the pack went in tonight, the
+sessions were open tonight, therefore), check the timestamps before writing
+the rule.
+
+skill that should have prevented this: verified-citations (the citation
+carried its quoted line, as the skill asks; it did not carry the line's
+timestamp or the state it was captured in, which the skill does not yet ask
+for) / one-real-ride (the ride that "proved" the correction ran with the
+junction in place, and the junction was then removed on its strength).
+class: evidence read without its provenance, one layer up from entry 13. There
+the instrument could not see a refusal; here it saw two real events and the
+reader attached each to the wrong cause. Same genus as verified-citations'
+"provenance is the highest-risk class", extended from commits to transcripts.
