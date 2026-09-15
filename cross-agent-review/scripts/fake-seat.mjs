@@ -61,7 +61,7 @@ process.stdin.on('end', () => {
     const env = { conversation_id: thread, status: 'SUCCESS', num_turns: numTurns, usage };
     if (mode === 'denied') {
       env.response = '';
-      env.denied_actions = [{ action: 'unsandboxed', display_name: 'RunCommand' }];
+      env.denied_actions = [{ action: 'command', display_name: 'RunCommand' }]; // the measured shape (2026-09-15): nothing else, no command text
     } else if (mode === 'timeout') {
       env.response = '';
       env.usage = { ...usage, input_tokens: 195056 };

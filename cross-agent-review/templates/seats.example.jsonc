@@ -91,6 +91,11 @@
     "replyPath":     "response",
     "threadIdPath":  "conversation_id",
     "usagePath":     "usage",
+    // A denial arrives as [{ "action": "command", "display_name": "RunCommand" }] and
+    // nothing else (measured 2026-09-15 with a deliberate `echo`): the command text is
+    // not in the envelope, not on stderr, not in the CLI log. The failure note can name
+    // the tool, never the command, so the promptSuffix below tells the seat what is
+    // allowed instead. A denied review turn cost 82,907 input tokens for nothing.
     "deniedPath":    "denied_actions",
 
     // The CLI's own count of turns on the conversation. Measured 2026-09-15: 1 on a
@@ -104,7 +109,7 @@
     // When find hits a context deadline this agent falls back to recursive list_dir and
     // burns context without bound: 195,056 input tokens for an empty reply. Telling it
     // to use exact paths took the same class of task to 27,320 tokens in 40 seconds.
-    "promptSuffix": "Use the exact file paths given to you. Do NOT search or list directories to find files, and do not fall back to listing directories if a search fails - ask for the path instead.",
+    "promptSuffix": "Use the exact file paths given to you. Do NOT search or list directories to find files, and do not fall back to listing directories if a search fails - ask for the path instead. Shell commands: only git and rg are allowed headlessly (the shipped settings template); any other command is auto-denied and ends your turn with nothing recorded, so read files with your file tool and run nothing else.",
 
     "grounding": "repo-read",
     "timeoutMs": 360000
