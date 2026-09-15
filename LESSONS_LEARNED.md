@@ -543,3 +543,72 @@ class: evidence read without its provenance, one layer up from entry 13. There
 the instrument could not see a refusal; here it saw two real events and the
 reader attached each to the wrong cause. Same genus as verified-citations'
 "provenance is the highest-risk class", extended from commits to transcripts.
+
+## 15. Three probes, each valid for its own question, each answering a different one
+
+**What happened.** On 2026-09-15 a design note for driving Antigravity and GPT
+as headless CLI seats needed two facts: what a turn costs, and whether a seat
+works at all. Both were measured, twice, with a cheap probe, and the number was
+carried to a question the probe had not asked.
+
+First, cost. `agy -p "Reply with exactly: hello from gemini"` returned 13,102
+input tokens; the codex equivalent, 21,425. These went into
+`docs/DESIGN_agent-bus_2026-09-15.md` as "a ~21k input-token floor per turn",
+and a three-seat three-round thread was costed from them at roughly 180k. Both
+figures came from a prompt that used no tools. A codex seat taking a real review
+turn — read the file, run a probe, cite two lines — cost **71,288**; an agy turn
+that read files and timed out cost **195,056**. The committed figure was out by
+three to nine times for any turn that does work, and the correction (`fbef00e`)
+had to say so in a document another machine was going to cost a session from.
+
+Second, viability. After three fixes, `agy -p "Read the file X. Reply with only
+the token."` completed in 40 seconds for 27,320 tokens. That was reported as
+"agy works now", the seat was configured, and the commit said "Working as of
+2026-09-15". An hour later the same seat was ridden through `run-seat.mjs` on a
+real review turn and was **still in progress at the 150s print-timeout after
+73,030 input tokens**, producing no section. Corrected in `faca163`, relabelling
+the seat configured-not-proven.
+
+Third, and the same shape one layer down: every one of the transport's thirteen
+tests passed `process.execPath` as the command — an absolute path, which skips
+PATH resolution entirely. The suite was green while two consecutive real rides
+failed `ENOENT`, because an npm CLI on Windows PATH is a `.cmd` shim sitting
+beside an extensionless POSIX sibling that `spawnSync` cannot execute. The
+fixture differed from the real thing in the exact dimension the code branched on.
+
+**The lesson.** Each probe was well chosen for the question it was actually
+asking. "Does the CLI respond?" is answered by hello. "Can it read a file?" is
+answered by one file and a token. "Does the append logic work?" is answered by
+any spawnable binary. The failure was not a bad measurement; it was carrying a
+good measurement across to a question with a different shape — what does a turn
+cost, can this seat do the job, will this run against the real CLI — where the
+probe was silent by construction.
+
+This is the cheapest possible error to make, because a probe is chosen to be
+cheap, and cheap means stripped of exactly the properties the real case has. The
+smaller and more decisive the probe, the further its number travels before
+anyone notices it has left its own question behind.
+
+**How to apply.** When a measurement is about to be written into a durable
+artifact or built on, state in one line what the probe did **not** exercise, and
+whether the real case differs on that axis. For a cost figure: did the probe use
+tools, and does the real turn? For a viability claim: did the probe do the actual
+job, or a proxy for it? For a fixture: does it differ from production on the
+dimension the code under test branches on — and if so, the suite is green for a
+reason unrelated to correctness.
+
+Write the qualifier into the artifact at the same moment as the number, not as a
+later correction. Both corrections above were made the same day by the same
+session, which is the good case; the bad case is the other machine reading the
+uncorrected figure first. "Measured on X" costs six words and makes the number
+falsifiable; "a ~21k floor per turn" does not.
+
+skill that should have prevented this: one-real-ride (it caught all three, and
+caught every one of them **after** the claim was already committed — its trigger
+is "declaring done", and all three were intermediate facts written mid-session,
+so the ride came second) / none - new candidate (a measurement carried from the
+probe that produced it to a question that probe does not answer).
+class: a probe valid for its own question and silent on the one its number gets
+used for. Sibling of entry 14 one axis over — there a real line was read without
+the state it was captured in; here a real number is read without the question it
+was captured for.
