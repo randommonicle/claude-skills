@@ -157,7 +157,7 @@ listing `{prompt}` on argv, so the argv branch was never exercised. That is §10
 a fourth time, and LESSONS 15 itself cites the 73,030 figure as a viability measurement
 it was not. Also: the suite at `7de222c` has 17 cases, not the 20 stated in §4.
 
-**Landed on this machine as `64871d5`** (push state: `git log origin/main..main`). `{prompt}` substituted last and through
+**Landed on this machine as `64871d5`** (push state: `git log origin/main..main`; line numbers below are as at that commit, `738c872` moved them). `{prompt}` substituted last and through
 a function, since the prompt is untrusted text and a string replacement would expand `$&`
 (`cross-agent-review/scripts/run-seat.mjs:289`); two pre-flight refusals before any spend,
 an argv seat with no `{prompt}` in its active template and a stdin seat with one
@@ -180,3 +180,63 @@ proven with `LastTaskResult 0` and a `current` status file. Action 3 unchanged.
 of entry 15's third shape, plus entry 15's own second paragraph resting on the misread
 figure); DECISIONS candidate raised (the prompt reaches a seat by exactly one channel,
 refused at pre-flight).
+
+## 12. Close-out, bengr machine, 2026-09-15 late (session `cb183a85`)
+
+**1. Session goal.** Read §1-10 after the desktop restart and check everything works. It
+became: prove the restart, find and fix the `{prompt}` gap (§11), then on the operator's
+"yes to all of it": push, run both outstanding rides, act on what the review turn found,
+and write the LESSONS and DECISIONS entries.
+
+**2. Branch and worktree.** `main` at `C:\Users\bengr\.claude\skills`, the only clone here.
+`64871d5`, `18288d7` and `b7a24c1` pushed on the operator's yes, **verified** by
+`git ls-remote` reading `b7a24c1`. Everything after that is local until asked; the commit
+log is the record of push state.
+
+**3. What landed after the push.**
+
+| sha | what | status |
+|---|---|---|
+| `738c872` | channel guards run before `--dry-run` and walk both templates; a seat with no `continue` template is refused with a message, not a `TypeError` at round 2 | **verified** — two new cases red before, 22 green after; both shipped seats still pass `--dry-run` |
+| (this commit) | GEMPRO template: results of both rides, `--print-timeout` 150s → 300s, `timeoutMs` 200000 → 360000; settings `_README`; this section | docs |
+
+**4. The two rides, both verified.**
+
+- **Resume (round 2 on thread `cd20876a…`).** `continue` template, 29.2s, 37,050 input /
+  4,763 output tokens. Asked to quote the round-1 instruction, which went to agy via
+  `--ask` and was never in the exchange file, it returned "Reply with exactly the token
+  PONG-7731 and nothing else." verbatim. The conversation resumed. Input tokens roughly
+  doubled from round 1, consistent with history carried.
+- **Review turn at 300s (§6.1, §8.1).** A four-claim review of `run-seat.mjs` at `64871d5`
+  (328 lines), exact path given, `--cwd` at this repo. ANSWERED in 2m 24.8s wall clock,
+  78,198 input / 21,798 output tokens, a full section with `[[CONVERGED]]`. All sixteen
+  `path:line` citations re-read against the file and correct. It would have been cut at
+  the template's 150s; hence 300s now. It argued two defects, both re-derived and real:
+  `--dry-run` exited before the guards (false assurance), and only the active template was
+  checked (a bad `continue` refused at round 2 after round 1 was paid for). Fixed in
+  `738c872`: guards at `run-seat.mjs:256-266` sit above the dry-run exit at `:268`; cases
+  at `run-seat.test.mjs:272` and `:287`.
+
+So §6.1 is settled: viable, minutes not seconds, about 4x the input tokens of a tool-free
+turn. One measurement on one machine against one file.
+
+**5. Deferred items.** Unchanged from §5. Plus one noticed, not acted on: the
+`seat_turns`/`file_turns` divergence check described at `run-seat.mjs:325-327` cannot fire
+as written, because `seat_turns` is computed from the file's own last value (`lastSeatTurns
++ 1`) rather than read from the CLI. An invariant asserted in a comment and enforced by
+nothing. No `FORWARD` planted; raise with the operator before touching it.
+
+**6. Verification still outstanding.** §6.2 (the 06:30 run, 2026-09-16) and §6.3
+(`lint-after-edit` win32 red) unchanged. §8.3 (a real multi-round review with the GPT seat)
+still unridden; the GEMPRO resume above is the nearest evidence that round mechanics hold.
+
+**7. Blockers.** None.
+
+**8. Next actions.** Push `738c872` and the docs commits (ask first). Then §8.3.
+
+**9. Traps.** Two more for the list: `node -e` with a backslash in the source and a bash
+heredoc with a backslash both eat it silently; use the script's own parser or the Write
+tool. And a handover figure ("20 cases") is a claim like any other: count before repeating.
+
+**10. Promoted, not left here.** LESSONS entry 16 and the DECISIONS entry are written in
+this session, in their own commits, on the operator's yes.

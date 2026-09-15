@@ -49,24 +49,29 @@
   ,
 
   // ---------------------------------------------------------------------------
-  // Gemini via the Antigravity CLI. TRANSPORT PROVEN; NOT YET PROVEN ON A REAL REVIEW TURN.
+  // Gemini via the Antigravity CLI. PROVEN through run-seat.mjs on ONE real review turn
+  // and ONE resume, bengr machine, 2026-09-15 evening, agy 1.2.3:
   //
-  // What is verified: with the setup below, a SIMPLE task (read one named file, return a
-  // token) completes in 40 seconds for 27,320 input tokens - against >5 minutes and
-  // 195,056 tokens for an empty reply before it. That is a real fix to a real problem.
-  // And through run-seat.mjs itself, on the bengr machine 2026-09-15 evening: a
-  // tool-free ask ("reply with exactly this token") came back ANSWERED with the exact
-  // token in 26.9 seconds for 18,000 input tokens, thread id recorded. That is the
-  // first section this seat has ever had appended by the transport.
+  //   review turn   a four-claim review of a 328-line script, exact path given, tool-using
+  //                 (it read the file): ANSWERED in 2m25s wall clock, 78,198 input /
+  //                 21,798 output tokens, every one of its 16 path:line citations re-read
+  //                 against the file and correct, two real defects raised.
+  //   resume        round 2 on the recorded thread via the continue template: 29s,
+  //                 37,050 input tokens, and it quoted the round-1 instruction that was
+  //                 never in the exchange file, so the conversation did resume.
+  //   tool-free     "reply with exactly this token": 27s, 18,000 input tokens.
   //
-  // What is NOT verified: a real review turn. The earlier ride recorded here - "still
-  // in progress at the 150s print-timeout after 73,030 input tokens, no section" - was
-  // NOT a review turn. run-seat.mjs at that commit substituted every placeholder except
-  // {prompt}, so agy was handed the literal string "{prompt}" as its whole prompt and
-  // spent 73,030 tokens working out what it meant. Fixed in 64871d5, with a pre-flight
-  // refusal for the shape. So nothing is yet known about how long a
-  // review turn takes or what it costs on this seat. Until someone rides one to a
-  // completed section, treat GEMPRO as experimental and prefer GPT.
+  // Hence --print-timeout 300s below, not 150s: the review turn took 145s and would have
+  // been cut at the old value. Expect a review turn to take minutes, to cost about 4x the
+  // input tokens of a tool-free turn and to emit 100x the output (21,798 against 199, the
+  // reasoning). One measurement, one machine, one file: the shape of the cost, not its
+  // ceiling.
+  //
+  // The earlier "still in progress at the 150s print-timeout after 73,030 input tokens,
+  // no section" was NOT a review turn. run-seat.mjs before 64871d5 substituted every
+  // placeholder except {prompt}, so agy was handed the literal string "{prompt}" as its
+  // whole prompt and spent 73,030 tokens working out what it meant. Fixed in 64871d5 and
+  // 738c872 with pre-flight refusals for the shape.
   // ---------------------------------------------------------------------------
   "GEMPRO": {
     "command": "agy",
@@ -75,8 +80,8 @@
     // which is a different invocation shape). run-seat refuses above ~30,000 characters
     // rather than letting spawn fail ENAMETOOLONG and look like an unanswered seat.
     "promptVia": "argv",
-    "start":    ["-p", "{prompt}", "--output-format", "json", "--new-project", "--print-timeout", "150s"],
-    "continue": ["-p", "{prompt}", "--conversation", "{thread}", "--output-format", "json", "--print-timeout", "150s"],
+    "start":    ["-p", "{prompt}", "--output-format", "json", "--new-project", "--print-timeout", "300s"],
+    "continue": ["-p", "{prompt}", "--conversation", "{thread}", "--output-format", "json", "--print-timeout", "300s"],
 
     // ONE envelope on stdout, not a JSONL stream. The reply is in it; there is no -o file.
     "outputFormat":  "envelope",
@@ -92,7 +97,7 @@
     "promptSuffix": "Use the exact file paths given to you. Do NOT search or list directories to find files, and do not fall back to listing directories if a search fails - ask for the path instead.",
 
     "grounding": "repo-read",
-    "timeoutMs": 200000
+    "timeoutMs": 360000
   }
 
   // THREE THINGS OUTSIDE THIS FILE make the seat work. Without them a tool-using turn
