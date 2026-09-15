@@ -322,3 +322,32 @@ All three closed, each on its own commit, local until asked.
   the second agent must be one the user drives.
 
 Still open: §6.2 only (the 06:30 run, 2026-09-16).
+
+## 15. The budget question and the README, bengr machine, 2026-09-15 late (operator: 46% at the start)
+
+**Can the 30,000 argv budget be extended? No.** It is Windows' command-line ceiling. stdin was
+the candidate, and agy 1.2.3 takes the prompt there (`--print= --input-format stream-json
+--output-format stream-json`, one line `{"event":"user","message":{"role":"user","content":
+"..."}}`; `--conversation` resumes; a denial ships `denied_actions` in the final `result`
+event), **all verified**. But it drops any stdin line over about 23,500 bytes and returns
+SUCCESS with an empty response and zero usage, nothing on stderr (23,184 answered, 23,884
+did not; nine probes). A lower ceiling than argv, and silent. Landed as `cef4930`: the
+transport gained `stdinJson`, `envelopeFrom` and `stdinBudget` (five cases red-first, 37
+green); the shipped GEMPRO block stays on argv with the stdin variant and its ceiling
+documented beside it; ridden once on the restored block. One wedged conversation
+(`b75b4983…`) was left behind by an interrupted turn: "subscriber fell behind updates" then
+"timeout waiting for cascade to start running" on every later resume. Not the pipe: a fresh
+conversation took the same payload under the ceiling.
+
+**The answer to a long exchange is shorter sections or fewer seats.** A delta mode (send a
+resumed seat only the sections since its last turn, since its own history holds the rest)
+would cut both the payload and the token cost per round; designed nowhere yet, a candidate.
+
+**README** (`3ff658c`): a plain-English "Start here" section (what it is, three kinds of thing,
+five-minute install, what changes afterwards, where things are) and two stale sentences
+corrected. **Deferred to a fresh session: the pass over every remaining section for a lay
+reader**, which the operator asked for; it is 160 lines of dense engineering prose and this
+session was in the yellow band when the ask arrived.
+
+Spend this section: about 260k Gemini input tokens across the stdin probes and the ceiling
+search (successes at ~20k each, drops free), one restored-argv ride at 18k.
