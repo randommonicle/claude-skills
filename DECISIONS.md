@@ -5,19 +5,69 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-09-15 A seat_turns divergence is recorded with a warning, never refused, never retried
+
+`run-seat.mjs` records two counts in each section's metadata: `seat_turns`, the
+CLI's own count of turns on the thread (`num_turns` in the agy envelope; `-`
+for codex, whose events carry none), and `file_turns`, the sections this file
+holds for that seat. When they differ, a turn happened that the record never
+received, a kill or a timeout after the seat had already advanced its history,
+and a resume carries it.
+
+The section is still appended. Beside it go both counts in the metadata, a
+visible `> **[transport] ... recorded with a warning**` line under the
+terminator naming them and what they mean, and `ANSWERED ... WARNING` on
+stdout with exit 0. Nothing is retried and no thread is reset by the script.
+
+Why record rather than refuse: by the time the counts can be compared the
+reply's temporary file is already unlinked, so refusing the section destroys
+the only copy of an answer the operator paid for (78,000 to 93,000 input
+tokens a turn on the agy seat), over a fact about the thread rather than the
+reply. Recording keeps the answer and states the provenance doubt where a
+reader will meet it. Why no retry: the script formats one requested turn and
+decides neither when a seat speaks nor what it is asked; reset versus resume
+belongs to the operator. Both seats of the 2026-09-15 cross-agent review first
+argued for refusal and conceded on this reasoning. Measured before building:
+`num_turns` counts conversation turns, not model steps (1 on a tool-using
+start, 2 after one resume). Landed in `d329385`.
+
+## 2026-09-15 A pre-flight refusal writes nothing to the exchange file
+
+`run-seat.mjs` refuses with exit 2 and a reason on stderr, and appends nothing,
+when the configuration or the invocation is wrong: no open round, a seat that
+already answered, a missing or malformed template, a bad `promptVia`, a prompt
+over the argv budget. Only a seat that was actually spawned and did not answer
+gets the visible `> **[transport] ... did not complete**` note.
+
+Why: LESSONS_LEARNED 13 separates "the seat was never asked" from "the seat
+had nothing to add". A pre-flight refusal IS never asked, and the file says
+exactly that: round open, no section, no note. The process that ran the
+command holds the reason. A note here would also fire on the double-turn
+refusal and record a failure against a round already answered, and would fill
+the shared transcript with the operator's config typos. A caller that runs the
+script unattended and ignores exit codes has a caller bug, not a transport
+gap. Argued in the 2026-09-15 cross-agent review (GPT proposed the note and
+conceded).
+
 ## 2026-09-15 A CLI seat gets its prompt by exactly one channel, refused at pre-flight
 
 `cross-agent-review/scripts/run-seat.mjs` composes the prompt for a headless
 seat and hands it over either on stdin (`promptVia: "stdin"`, the codex shape)
 or on argv through a `{prompt}` placeholder in the seat's template (`promptVia:
-"argv"`, the agy shape). The script refuses, with exit 2 and a message naming
-the seat and the template, before it spawns anything and before `--dry-run`
-prints anything, when:
+"argv"`, the agy shape). The channel is resolved once (`cfg.promptVia ??
+"argv"`), must be exactly one of those two strings, and that one value drives
+the guard, the argv budget check and the spawn. The script refuses, with exit
+2 and a message naming the seat and the template, before it spawns anything
+and before `--dry-run` prints anything, when:
 
-- an argv seat's `start` or `continue` template carries no `{prompt}`, since
-  the seat would never receive the prompt; or
-- a stdin seat's template carries one, since the prompt would go by two
-  channels or the placeholder would go literally.
+- `promptVia` is any other value, since the old guard treated it as stdin and
+  the spawn treated it as not-stdin, and the seat received no prompt at all;
+- a template element is not a string;
+- an argv seat's `start` or `continue` template has `{prompt}` any number of
+  times other than exactly one: none and the seat never receives the prompt,
+  two and it receives the prompt twice (or once plus a literal placeholder when
+  both are in one element);
+- a stdin seat's template has one, since the prompt would go by two channels.
 
 Both templates are checked at every turn, not only the active one. They are
 static config, so a `continue` template that would be refused at round 2 is
@@ -33,10 +83,15 @@ before `--dry-run`: a dry run that prints a prompt for a seat that could never
 be invoked is false assurance. Why not the `ARGV_BUDGET` check too: seeing an
 over-long prompt is what a dry run is for, so that one stays after it.
 
-The substitution itself is by function, never by string, because the prompt is
-untrusted text and `String.prototype.replace` expands `$&` and `$1` in a string
-replacement. `run-seat.test.mjs` holds a case for each clause (`64871d5`,
-`738c872`); LESSONS_LEARNED 16 has the history.
+The substitution is one regex pass over the five placeholders with a function
+on the right: each is replaced once from a fixed table, an inserted value is
+never re-scanned, and no `$&` or `$1` inside the prompt is interpreted. Chained
+replaces re-scanned each inserted value, so a thread id of `{prompt}` read
+from the exchange file (untrusted material, by the protocol's own framing)
+expanded into the whole prompt as the `--conversation` argument.
+`run-seat.test.mjs` holds a case for each clause (`64871d5`, `738c872`,
+`e440365`); LESSONS_LEARNED 16 has the history and the 2026-09-15 cross-agent
+review (`docs/REVIEW_run-seat-guards_2026-09-15.md`) the argument.
 
 ## 2026-09-14 Domain skill packs install per project, stripped
 
