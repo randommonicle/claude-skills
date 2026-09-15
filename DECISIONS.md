@@ -5,6 +5,39 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-09-15 A CLI seat gets its prompt by exactly one channel, refused at pre-flight
+
+`cross-agent-review/scripts/run-seat.mjs` composes the prompt for a headless
+seat and hands it over either on stdin (`promptVia: "stdin"`, the codex shape)
+or on argv through a `{prompt}` placeholder in the seat's template (`promptVia:
+"argv"`, the agy shape). The script refuses, with exit 2 and a message naming
+the seat and the template, before it spawns anything and before `--dry-run`
+prints anything, when:
+
+- an argv seat's `start` or `continue` template carries no `{prompt}`, since
+  the seat would never receive the prompt; or
+- a stdin seat's template carries one, since the prompt would go by two
+  channels or the placeholder would go literally.
+
+Both templates are checked at every turn, not only the active one. They are
+static config, so a `continue` template that would be refused at round 2 is
+refused before round 1 is paid for.
+
+Why a refusal rather than a warning or a default: the failure this guards
+against is silent. On 2026-09-15 the shipped script substituted every
+placeholder except `{prompt}`, the agy seat was handed the literal string
+`{prompt}` as its whole prompt, spent 73,030 input tokens on it, and the
+transport recorded an honest "did not complete" that was read as "slow". A
+seat that cannot receive its prompt must fail loudly and cost nothing. Why
+before `--dry-run`: a dry run that prints a prompt for a seat that could never
+be invoked is false assurance. Why not the `ARGV_BUDGET` check too: seeing an
+over-long prompt is what a dry run is for, so that one stays after it.
+
+The substitution itself is by function, never by string, because the prompt is
+untrusted text and `String.prototype.replace` expands `$&` and `$1` in a string
+replacement. `run-seat.test.mjs` holds a case for each clause (`64871d5`,
+`738c872`); LESSONS_LEARNED 16 has the history.
+
 ## 2026-09-14 Domain skill packs install per project, stripped
 
 The 2026-08-10 entry gives third-party material two doors: vendor pack
