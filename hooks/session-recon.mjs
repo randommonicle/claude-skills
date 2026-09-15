@@ -39,10 +39,20 @@ function skillsUpdateLine() {
         ' changed, so this session is the first to load them.'
       );
     }
-    return (
-      'skills library: the update did NOT run cleanly (' + s.state + (s.reason ? ': ' + s.reason : '') + '). ' +
-      'The library may be behind - fix this before relying on its hooks.'
-    );
+    // One message per failure mode: these four states want four different
+    // actions, and "the library may be behind" is simply untrue of an ahead one.
+    const advice = {
+      'skipped-ahead':
+        (s.ahead ?? '?') + ' local commit(s) are not on origin, so the update is holding off. ' +
+        'Push them, or the other machine never sees them.',
+      'skipped-dirty': 'uncommitted changes are blocking the fast-forward. Commit or stash them.',
+      'skipped-diverged':
+        'local and origin have diverged (' + (s.ahead ?? '?') + ' ahead, ' + (s.behind ?? '?') + ' behind). ' +
+        'Reconcile by hand; the updater will not touch it.',
+      error: 'the updater could not run' + (s.reason ? ' - ' + s.reason : '') + '.',
+    };
+    return 'skills library: ' + (advice[s.state] ?? 'unrecognised update state "' + s.state + '".') +
+      ' (last run ' + s.at + ')';
   } catch {
     return null;
   }
