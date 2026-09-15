@@ -569,6 +569,11 @@ real review turn and was **still in progress at the 150s print-timeout after
 73,030 input tokens**, producing no section. Corrected in `faca163`, relabelling
 the seat configured-not-proven.
 
+*Correction, the same evening (entry 16): that was not a review turn. The
+script had handed agy the literal string `{prompt}`; the 73,030 tokens were
+spent on eight characters. The relabelling was right and the evidence for it
+was wrong, which is this entry's own lesson applied to this entry.*
+
 Third, and the same shape one layer down: every one of the transport's thirteen
 tests passed `process.execPath` as the command — an absolute path, which skips
 PATH resolution entirely. The suite was green while two consecutive real rides
@@ -612,3 +617,62 @@ class: a probe valid for its own question and silent on the one its number gets
 used for. Sibling of entry 14 one axis over — there a real line was read without
 the state it was captured in; here a real number is read without the question it
 was captured for.
+
+## 16. The failure matched the prior, so nobody asked what the seat had received
+
+**What happened.** On 2026-09-15 the agy seat of the cross-agent-review CLI
+transport was ridden through `run-seat.mjs` on a review turn. It was still in
+progress at the 150s print-timeout after 73,030 input tokens and produced no
+section. The transport did its job: a visible failure note, the round left
+open. That result was accepted as a measurement of the seat, slow but alive,
+and written into four places the same day: the seat template, the settings
+README, the handover, and entry 15 above as evidence.
+
+The same evening, on the other machine, an echo seat (a thirty-line fake that
+returns its own argv and stdin as its reply) was driven through the unchanged
+script. The CLI had received `["-p","{prompt}","--output-format","json",
+"--new-project"]` and nothing on stdin. The script substituted `{thread}`,
+`{replyFile}`, `{cwd}` and `{sandbox}` into a seat's argv template and never
+`{prompt}`. The seat had not been asked anything. Seventy-three thousand tokens
+was agy trying to work out what eight characters meant.
+
+The suite was green at 17 cases (the handover said 20; nobody had counted)
+because the one envelope-shaped fixture said `promptVia: 'stdin'` while listing
+`{prompt}` on argv, so the argv branch never ran under test. Fixed in `64871d5`
+with three cases that were red first. After the fix a real review turn
+completed in 2m25s for 78,198 tokens, every citation correct, and its own first
+finding was two more gaps in the guard that had just fixed it (`738c872`).
+
+**The lesson.** A failure that looks like the failure you expected is the most
+dangerous evidence there is, because it asks no question. The prior was "agy is
+slow"; a slow-looking timeout confirmed it; the mechanism was never checked.
+The transport's honesty made it worse: it recorded faithfully THAT the seat did
+not answer, and the reader supplied WHY from the prior. Entry 15 is about a
+good number carried to the wrong question. This is a number from a run that
+never happened, accepted as a measurement because the run failed the way the
+prior said it would.
+
+The cheapest check in the whole chain was the one not run. An echo seat costs
+nothing, takes a minute to write, and settles "what did the seat receive" in
+one run. It was written only after a reviewer asked the question the failure
+had not.
+
+**How to apply.** When a ride through a harness fails, the first question is
+"what did the thing under test actually receive", not "why did it fail". Answer
+it with an echo before attributing anything. For any transport that composes
+input for another process, keep an echo seat beside the fakes and run it first.
+When a fixture's config shape differs from the shipped one (stdin here, argv in
+production), the suite is green about a different program. And when a failure
+matches your prior, treat the match as the reason to check, never as the reason
+to stop.
+
+skill that should have prevented this: findings-are-evidence (its norm covers
+"your own first-hand defect analysis", and the diagnosis of the timeout was
+exactly that, written into durable artifacts without re-derivation) /
+prove-it-can-fail (the envelope case could not fail on the argv path; asked
+"what does this print if the argv branch is broken", the answer was "PASS").
+one-real-ride ran and caught the failure, then the failure was misread, which
+is outside what that skill checks.
+class: a failure attributed to the component under test when the harness never
+delivered the input; the failure matched the prior, so its mechanism went
+unexamined. Sibling of 15 one axis over.

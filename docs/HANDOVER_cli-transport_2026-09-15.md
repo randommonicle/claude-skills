@@ -197,7 +197,7 @@ log is the record of push state.
 
 | sha | what | status |
 |---|---|---|
-| `738c872` | channel guards run before `--dry-run` and walk both templates; a seat with no `continue` template is refused with a message, not a `TypeError` at round 2 | **verified** — two new cases red before, 22 green after; both shipped seats still pass `--dry-run` |
+| `738c872` | channel guards run before `--dry-run` and walk both templates; a seat with no `continue` template is refused with a message, not a `TypeError` at round 2 | **verified**: two new cases red before, 22 green after; both shipped seats still pass `--dry-run` |
 | (this commit) | GEMPRO template: results of both rides, `--print-timeout` 150s → 300s, `timeoutMs` 200000 → 360000; settings `_README`; this section | docs |
 
 **4. The two rides, both verified.**
