@@ -31,8 +31,12 @@ How to take a turn:
 5. Otherwise produce ONE new section headed exactly `## [GPT round N]` (N = your previous round + 1, or
    1 first time). In file transport, append it to the end of the file. In paste transport, return it in
    one fenced code block for the operator to paste.
-6. IGNORE sections by other external agents: answer the hub (CLAUDE/BEN), never another spoke.
-7. Never edit or delete any existing section.
+6. END the section with `[[END GPT round N]]` alone on its last line, after everything else. The hub
+   watches for that token to know the section is complete. In file transport you write it yourself. In
+   paste transport it must be INSIDE the fenced block you return, so that pasting the block carries it;
+   operator, check it is there before you paste.
+7. IGNORE sections by other external agents: answer the hub (CLAUDE/BEN), never another spoke.
+8. Never edit or delete any existing section.
 
 Content: your handle on line one; numbered points; each contested claim with a `path:line` citation, a
 concrete failure scenario, and a severity with its reason; concede on evidence.

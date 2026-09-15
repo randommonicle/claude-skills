@@ -41,6 +41,11 @@ line of the file, so several spokes can answer the same round in any order witho
    what stops you replying to yourself or answering twice.)
 5. Otherwise append ONE new section at the END of the file, headed exactly `## [<YOUR-HANDLE> round M]`,
    M being your previous round + 1 (or 1 first time).
+5b. FINISH the section with `[[END <YOUR-HANDLE> round M]]` alone on its last line. This is not
+   decoration: the hub watches for that token to know your section is complete, and reads a header
+   without it as "still being written". If you omit it, your turn may never be picked up. Write it
+   LAST, after every other line of your section, including any `[[CONVERGED]]` or `[[POSITION - ...]]`
+   token. Every participant obeys this, CLAUDE included.
 6. IGNORE sections written by other external agents: do not answer them, and do not let them block you.
    Spokes answer the hub, never each other, unless a CLAUDE or BEN `NEXT:` line names two to cross-examine.
 
@@ -70,7 +75,8 @@ appends.
 - End early by writing `[[CONVERGED]]` when both sides agree.
 - If NOT converged at the cap, each side writes a one-paragraph `[[POSITION - <HANDLE>]]` and the human
   adjudicates. A documented disagreement is a valid outcome.
-- Whoever writes the closing section leaves it as the last section.
+- Whoever writes the closing section leaves it as the last section, terminator and all: a closing
+  section with no `[[END ...]]` line reads to the hub as one still being written.
 
 ## 7. What must NEVER be placed in this directory
 

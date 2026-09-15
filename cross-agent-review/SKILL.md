@@ -64,21 +64,32 @@ code discussion and citations only; never personal data, credentials, secrets, o
   Prove it does what you think with `git add -n exchange/` (only the scaffolding should be listed) and
   `git check-ignore -v` on a sample `REVIEW_*.md`, before trusting it. Do not commit or push without
   the user's per-action say-so.
-- **Claude arms a persistent Monitor** that emits each NEW spoke header, so every reply wakes this
-  session. Grep the review file for the spoke handles and diff against the previous set:
+- **Claude arms a persistent Monitor** that emits two DIFFERENT signals per spoke, so every reply wakes
+  this session and a half-written one cannot be read as a finished one. A header is written when a seat
+  STARTS a section; the terminator is written when it finishes. Watching the header alone is the same
+  proxy-signal mistake `verify-the-effect` exists to stop: it wakes Claude onto a section the seat is
+  still streaming.
   ```bash
   f="<<repo>>/exchange/REVIEW_<topic>_<date>.md"
-  prev=$(grep -oiE '^## \[(GEMPRO|GEMFLASH|SONNET|GPT)[^]]*\]' "$f" 2>/dev/null | sort -u)
+  seats='GEMPRO|GEMFLASH|SONNET|GPT'
+  snap() { grep -oiE "^(## \[($seats)[^]]*\]|\[\[END ($seats)[^]]*\]\])" "$f" 2>/dev/null | sort -u; }
+  prev=$(snap)
   while true; do
-    cur=$(grep -oiE '^## \[(GEMPRO|GEMFLASH|SONNET|GPT)[^]]*\]' "$f" 2>/dev/null | sort -u)
-    comm -13 <(printf '%s\n' "$prev") <(printf '%s\n' "$cur"); prev="$cur"; sleep 5
+    cur=$(snap); comm -13 <(printf '%s\n' "$prev") <(printf '%s\n' "$cur"); prev="$cur"; sleep 5
   done
   ```
+  Read the two signals differently. `## [GEMPRO round 1]` means that seat has STARTED: do not read the
+  section yet. `[[END GEMPRO round 1]]` means it is complete: read and verify now. **A header with no
+  terminator after about two minutes is its own outcome** — do not read the section and do not treat the
+  exchange as stalled; ask the operator whether that seat finished, since a seat that dropped the
+  terminator and a seat still writing look identical from here.
+
   **Prove the watcher can fire before trusting its silence** (a mistyped pattern makes "no replies yet"
-  indistinguishable from "watcher broken"): grep a synthetic `## [GEMPRO round 1]` and confirm it
-  matches AND that the `## [CLAUDE ...]` line does not. Monitors die with the session; re-arm at the
-  start of any session resuming an open exchange. One watcher covers several handles; for a late-joining
-  seat, arm a second watcher rather than restarting the first and risking a gap.
+  indistinguishable from "watcher broken"): grep a synthetic `## [GEMPRO round 1]` AND a synthetic
+  `[[END GEMPRO round 1]]`, confirm both match, and confirm `## [CLAUDE round 1]` matches neither.
+  Monitors die with the session; re-arm at the start of any session resuming an open exchange. One
+  watcher covers several handles; for a late-joining seat, arm a second watcher rather than restarting
+  the first and risking a gap.
 - **Human arms the external side.** Each external chat is kicked off with its handle (below). Antigravity
   can also run a background daemon that watches the dir and wakes the agent; optional.
 - **Optional but powerful: live read-only evidence.** If a read-only data source is connected (Supabase
@@ -110,6 +121,11 @@ token burn, and routes every finding through Claude's verification.
 ## Protocol (state it in every exchange file; full text in templates/PROTOCOL.md)
 
 - Section headers `## [<HANDLE> round N]`, append-only, never edit or delete an earlier section.
+- **Every section ends with `[[END <HANDLE> round N]]` on its own last line, CLAUDE's included.** It is
+  what makes "this section is finished" readable by a watcher instead of guessed at. The rule is
+  universal so there is no exception to forget, and because the spoke side has the same problem in
+  reverse: an Antigravity daemon watching the file needs to know when CLAUDE's section is complete.
+  In GPT paste transport the operator adds the terminator when pasting, since GPT never writes the file.
 - **The turn rule (keys off the last hub message, not the last line, so parallel spokes never reply to
   themselves).** Before writing, a spoke: (1) finds the last `## [CLAUDE ...]` or `## [BEN ...]` section,
   the OPEN ROUND; (2) answers only if its `NEXT:` line says `ALL` (or has none) or names the spoke's

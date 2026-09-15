@@ -14,6 +14,8 @@ Claude fills round 1. Do not leave the <<slots>> unfilled.
 - **Stop:** `[[CONVERGED]]` on agreement; a `[[POSITION - <HANDLE>]]` paragraph each at the cap.
 
 Protocol: `PROTOCOL.md`. Append-only. Cite `path:line`. Concede on evidence.
+End every section with `[[END <HANDLE> round N]]` on its own last line, or the hub will not read it
+as finished.
 
 ---
 
@@ -33,3 +35,5 @@ Protocol: `PROTOCOL.md`. Append-only. Cite `path:line`. Concede on evidence.
 3. <<specific claim to try to refute, with where to look>>
 
 NEXT: ALL  <!-- or: NEXT: GEMPRO, GPT -->
+
+[[END CLAUDE round 1]]

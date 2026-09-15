@@ -29,8 +29,11 @@ How to take a turn:
    (This is what stops you replying to yourself.)
 5. Otherwise append ONE new section at the end of the file, headed exactly
    `## [<<YOUR-HANDLE>> round N]`, N being your previous round + 1 (or 1 first time).
-6. IGNORE sections by other external agents: answer the hub (CLAUDE/BEN), never another spoke.
-7. Never edit or delete any existing section, including your own. Append only.
+6. FINISH that section with `[[END <<YOUR-HANDLE>> round N]]` alone on its last line, written after
+   everything else in the section. The hub watches for this token to know you have finished; a section
+   without it is read as still being written, and your turn may never be picked up.
+7. IGNORE sections by other external agents: answer the hub (CLAUDE/BEN), never another spoke.
+8. Never edit or delete any existing section, including your own. Append only.
 
 What a good section contains: your handle on the first line; numbered points; each contested claim with
 a `path:line` citation to the primary source, a concrete failure scenario, and a severity with its
