@@ -301,6 +301,19 @@ test('a continue template missing {prompt} is refused at round 1, before the fir
   return true;
 });
 
+test('a seat with no continue template is refused with a message, not a TypeError', (s) => {
+  stageEnvelope(s);
+  const seatsPath = join(s.root, 'exchange', 'seats.jsonc');
+  const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
+  delete seats.GEM.continue;
+  writeFileSync(seatsPath, JSON.stringify(seats), 'utf8');
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  if (r.code !== 2) return 'exit ' + r.code + ', expected 2 :: ' + r.out.slice(0, 200);
+  if (!/has no continue template/.test(r.out)) return 'refusal does not name the missing template: ' + r.out.slice(0, 200);
+  if (/TypeError/.test(r.out)) return 'crashed instead of refusing';
+  return true;
+});
+
 test('a stdin seat whose template also lists {prompt} is refused', (s) => {
   const seatsPath = join(s.root, 'exchange', 'seats.jsonc');
   const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
