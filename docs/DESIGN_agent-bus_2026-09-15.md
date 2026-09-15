@@ -300,6 +300,11 @@ blocked by a Restricted execution policy; `npm.cmd` sidesteps it). One real turn
   shared with every other flag. A last-N window of substantial replies exceeds it, so the
   adapter contract needs a `promptVia: argv | stdin | file` field that it does not have.
   Both CLIs accept a prompt on stdin. REVIEW F11.
+- **CORRECTION, later the same day: the floors below are NO-TOOL floors and understate a real
+  turn by 3-9x.** Measured once the CLI transport was built and ridden: a codex seat taking an
+  actual review turn (read a file, run a probe, cite two lines) cost **71,288 input tokens**,
+  and an agy turn that read files and timed out cost **195,056**. The 13k and 21k figures are
+  the cost of saying hello. Cost a session from 70k-200k per tool-using turn, not from these.
 - **There is a ~21k input-token floor per turn.** "Reply with exactly: hello from codex"
   cost 21,425 input tokens (12,160 of them cached) for 8 output tokens — that is the agent's
   own system context, before any of our transcript. A three-seat three-round thread therefore
