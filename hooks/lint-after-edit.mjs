@@ -127,13 +127,33 @@ function resolveBin(projectDir, name) {
 // so quotes and metacharacters in a filename cannot become a command. Returns
 // null for anything that is not a completed run, which the caller treats as a
 // silent skip.
+//
+// Windows is the exception it has to be. The resolved bin there is npm's .cmd
+// shim, and Node refuses to spawn a .cmd without a shell (EINVAL, since 20.12),
+// so from 2026-09-14 to 2026-09-15 this hook skipped silently on every Windows
+// project and nothing said so. A .cmd now runs through cmd.exe /d /s /c. That
+// line is re-parsed by cmd.exe, so the no-shell guarantee is kept another way:
+// a bin or file path carrying any cmd.exe metacharacter is skipped, not crossed.
+// Each token is quoted and the whole line wrapped once more, which is what /s
+// needs to keep the inner quotes when a path has a space; passed verbatim so
+// libuv does not quote it a second time.
 function run(bin, args, cwd) {
-  const r = spawnSync(bin, args, {
+  let file = bin;
+  let argv = args;
+  let verbatim = false;
+  if (/\.(cmd|bat)$/i.test(bin)) {
+    if ([bin, ...args].some((a) => /[&|<>^%"]/.test(a))) return null;
+    file = process.env.ComSpec ?? 'cmd.exe';
+    argv = ['/d', '/s', '/c', `"${[bin, ...args].map((a) => `"${a}"`).join(' ')}"`];
+    verbatim = true;
+  }
+  const r = spawnSync(file, argv, {
     cwd,
     timeout: TIMEOUT_MS,
     encoding: 'utf8',
     maxBuffer: MAX_BUFFER,
     windowsHide: true,
+    windowsVerbatimArguments: verbatim,
   });
   if (r.error || r.signal || typeof r.status !== 'number') return null;
   return { status: r.status, out: `${r.stdout ?? ''}${r.stderr ?? ''}` };

@@ -4,22 +4,21 @@
 // theatre). Feeds crafted PostToolUse payloads on stdin against throwaway fixture
 // projects and asserts each case.
 //
-// The linters are stubs: a two-line POSIX sh script on the project's own
-// node_modules/.bin, exiting 1 with a finding when the target file contains the
-// string BAD and 0 in silence otherwise. So this suite needs no ESLint, no Biome
-// and no network, and it still exercises the real detection walk, the real
-// binary resolution, and the real spawn.
+// The linters are stubs: a node script on the project's own node_modules/.bin,
+// exiting 1 with a finding when the target file contains the string BAD and 0 in
+// silence otherwise, plus, on win32, the .cmd shim npm would have written beside
+// it. So this suite needs no ESLint, no Biome and no network, and it still
+// exercises the real detection walk, the real binary resolution on both
+// platforms, and the real spawn.
 //
-// Not covered here: the win32 branch of resolveBin (eslint.cmd before eslint).
-// The stubs are sh scripts, which cmd.exe cannot execute, and this machine is
-// Linux, so the branch cannot be exercised without a Windows runner. It is two
-// existsSync calls in preference order, and a wrong answer there fails open to a
-// silent skip, which is the same outcome as no linter installed.
-//
-// FORWARD: on Windows that same fact reds the six "fires" cases (2026-09-14, identical
-// on origin/main): spawnSync cannot execute the sh stubs, so the hook skips silently
-// and nothing fires. Write a .cmd stub beside each sh stub when process.platform is
-// win32 so the suite proves the branch instead of failing around it.
+// The win32 branch is the one that mattered. resolveBin prefers eslint.cmd there,
+// and Node refuses to spawn a .cmd without a shell (EINVAL, since 20.12), so the
+// hook skipped silently on every Windows project from 2026-09-14 until run()
+// learned to go through cmd.exe on 2026-09-15. The stubs were POSIX sh until
+// then, which cmd.exe cannot execute either, so the six "fires" cases were red
+// on Windows for the fixture's reason and could not show the hook's. Node
+// scripts run the same on both platforms; the shim is the only per-platform
+// piece, exactly as with a real install.
 //
 // Run: node hooks/lint-after-edit.test.mjs
 import { spawn } from 'node:child_process';
@@ -35,67 +34,78 @@ const PKG = '{ "name": "fixture", "version": "1.0.0" }\n';
 const DIRTY = 'export const x = "BAD";\n';
 const CLEAN = 'export const x = 1;\n';
 
+// The stubs set process.exitCode rather than calling process.exit: stdout to a
+// pipe is asynchronous on Windows, and an immediate exit can drop the finding.
+const STUB_HEAD = `#!/usr/bin/env node
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+const has = (a) => { try { return fs.readFileSync(a, 'utf8').includes('BAD'); } catch { return false; } };
+`;
+
 // Stub ESLint: finding on stdout. Non-flag arguments are the file list.
-const STUB_ESLINT = `#!/bin/sh
-for a in "$@"; do
-  case "$a" in -*) continue ;; esac
-  if grep -q BAD "$a" 2>/dev/null; then
-    echo "$a"
-    echo "  1:1  error  BAD is not allowed  stub-finding/no-bad"
-    exit 1
-  fi
-done
-exit 0
+const STUB_ESLINT = `${STUB_HEAD}
+for (const a of args) {
+  if (a.startsWith('-')) continue;
+  if (has(a)) {
+    process.stdout.write(a + '\\n  1:1  error  BAD is not allowed  stub-finding/no-bad\\n');
+    process.exitCode = 1;
+    break;
+  }
+}
 `;
 
 // Stub Biome: finding on STDERR, so the capture of both streams is asserted, and
 // the routine one-line summary on a clean run, so the benign-summary filter is
 // asserted too (real biome check prints that summary and exits 0).
-const STUB_BIOME = `#!/bin/sh
-for a in "$@"; do
-  case "$a" in -*|check) continue ;; esac
-  if grep -q BAD "$a" 2>/dev/null; then
-    echo "$a lint/suspicious/noBad  stub-finding/no-bad" >&2
-    exit 1
-  fi
-done
-echo "Checked 1 file in 3ms. No fixes applied."
-exit 0
+const STUB_BIOME = `${STUB_HEAD}
+let dirty = false;
+for (const a of args) {
+  if (a.startsWith('-') || a === 'check') continue;
+  if (has(a)) {
+    process.stderr.write(a + ' lint/suspicious/noBad  stub-finding/no-bad\\n');
+    dirty = true;
+    break;
+  }
+}
+if (dirty) process.exitCode = 1;
+else process.stdout.write('Checked 1 file in 3ms. No fixes applied.\\n');
 `;
 
 // Stub for an ESLint major predating --no-warn-ignored: rejects the flag as a
 // usage error, which must earn one plain retry rather than a reported finding.
-const STUB_ESLINT_LEGACY = `#!/bin/sh
-for a in "$@"; do
-  if [ "$a" = "--no-warn-ignored" ]; then
-    echo "error: unknown option '--no-warn-ignored'" >&2
-    exit 2
-  fi
-done
-for a in "$@"; do
-  case "$a" in -*) continue ;; esac
-  if grep -q BAD "$a" 2>/dev/null; then
-    echo "  1:1  error  BAD is not allowed  stub-finding/legacy-retry"
-    exit 1
-  fi
-done
-exit 0
+const STUB_ESLINT_LEGACY = `${STUB_HEAD}
+if (args.includes('--no-warn-ignored')) {
+  process.stderr.write("error: unknown option '--no-warn-ignored'\\n");
+  process.exitCode = 2;
+} else {
+  for (const a of args) {
+    if (a.startsWith('-')) continue;
+    if (has(a)) {
+      process.stdout.write('  1:1  error  BAD is not allowed  stub-finding/legacy-retry\\n');
+      process.exitCode = 1;
+      break;
+    }
+  }
+}
 `;
 
 // Stub that floods, for the 30-line cap.
-const STUB_ESLINT_VERBOSE = `#!/bin/sh
-i=1
-while [ $i -le 50 ]; do
-  echo "stub-line $i BAD"
-  i=$((i + 1))
-done
-exit 1
+const STUB_ESLINT_VERBOSE = `${STUB_HEAD}
+let out = '';
+for (let i = 1; i <= 50; i++) out += 'stub-line ' + i + ' BAD\\n';
+process.stdout.write(out);
+process.exitCode = 1;
 `;
 
 function write(file, content) {
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, content);
 }
+
+// What npm writes on Windows beside the extensionless script: a .cmd shim that
+// hands the arguments to node. resolveBin prefers it there, so the hook's cmd.exe
+// route is what the win32 run of this suite exercises.
+const shim = (bin) => `@echo off\r\nnode "%~dp0${bin}" %*\r\nexit /b %ERRORLEVEL%\r\n`;
 
 function project(name, files, bins = {}) {
   const dir = join(ROOT, name);
@@ -104,6 +114,7 @@ function project(name, files, bins = {}) {
     const path = join(dir, 'node_modules', '.bin', bin);
     write(path, script);
     chmodSync(path, 0o755);
+    if (process.platform === 'win32') write(`${path}.cmd`, shim(bin));
   }
   return dir;
 }
@@ -181,8 +192,18 @@ try {
     { eslint: STUB_ESLINT_VERBOSE },
   );
 
+  // A project whose path has a space: the input that breaks a cmd.exe /s /c line
+  // unless every token is quoted and the whole line wrapped once more. Trivial on
+  // POSIX, and it should stay that way.
+  const spaceProject = project(
+    'space project',
+    { 'package.json': PKG, 'eslint.config.js': 'export default [];\n', 'src/dirty.ts': DIRTY },
+    { eslint: STUB_ESLINT },
+  );
+
   const CASES = [
     ['dirty .ts in an ESLint project', true, ['eslint', 'dirty.ts', 'stub-finding/no-bad'], join(eslintProject, 'src/dirty.ts')],
+    ['dirty .ts in a project whose path has a space', true, ['dirty.ts', 'stub-finding/no-bad'], join(spaceProject, 'src/dirty.ts')],
     ['clean .ts in the same project', false, [], join(eslintProject, 'src/clean.ts')],
     ['nested file resolves the root upward', true, ['unit.ts', 'stub-finding/no-bad'], join(eslintProject, 'src/deep/nested/unit.ts')],
     ['dirty .tsx in a Biome project', true, ['biome', 'dirty.tsx', 'stub-finding/no-bad'], join(biomeProject, 'src/dirty.tsx')],
