@@ -157,7 +157,7 @@ listing `{prompt}` on argv, so the argv branch was never exercised. That is §10
 a fourth time, and LESSONS 15 itself cites the 73,030 figure as a viability measurement
 it was not. Also: the suite at `7de222c` has 17 cases, not the 20 stated in §4.
 
-**Landed here, local only, not pushed:** `64871d5`. `{prompt}` substituted last and through
+**Landed on this machine as `64871d5`** (push state: `git log origin/main..main`). `{prompt}` substituted last and through
 a function, since the prompt is untrusted text and a string replacement would expand `$&`
 (`cross-agent-review/scripts/run-seat.mjs:289`); two pre-flight refusals before any spend,
 an argv seat with no `{prompt}` in its active template and a stdin seat with one
