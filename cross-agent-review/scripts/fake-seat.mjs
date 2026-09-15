@@ -34,10 +34,14 @@ process.stdin.on('end', () => {
     const pIdx = argv.indexOf('-p');
     writeFileSync(
       process.env.FAKE_SEAT_PROMPT_DUMP,
-      JSON.stringify({ argvPrompt: pIdx >= 0 ? argv[pIdx + 1] : null, stdin }),
+      JSON.stringify({ argvPrompt: pIdx >= 0 ? argv[pIdx + 1] : null, argv, stdin }),
       'utf8',
     );
   }
+
+  // A seat that never answers within the transport's timeoutMs. spawnSync then kills it
+  // and reports ETIMEDOUT, which is a different failure from a CLI that could not start.
+  if (mode === 'hang') { setTimeout(() => process.exit(0), 5000); return; }
 
   if (mode === 'missing-binary') process.exit(127);
 
@@ -45,7 +49,11 @@ process.stdin.on('end', () => {
   // structured denied_actions array on a denial (but never on a timeout - verified
   // against a real run on 2026-09-15).
   if (process.env.FAKE_SEAT_SHAPE === 'envelope') {
-    const env = { conversation_id: thread, status: 'SUCCESS', num_turns: isResume ? 2 : 1, usage };
+    // num_turns is the CLI's own count of conversation turns (measured 2026-09-15: 1 on a
+    // tool-using start, 2 after one resume). Overridable so a test can make it disagree
+    // with the file, which is the one thing the transport's integrity check must notice.
+    const numTurns = process.env.FAKE_SEAT_NUM_TURNS ? Number(process.env.FAKE_SEAT_NUM_TURNS) : isResume ? 2 : 1;
+    const env = { conversation_id: thread, status: 'SUCCESS', num_turns: numTurns, usage };
     if (mode === 'denied') {
       env.response = '';
       env.denied_actions = [{ action: 'unsandboxed', display_name: 'RunCommand' }];

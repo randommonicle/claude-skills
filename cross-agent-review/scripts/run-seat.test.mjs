@@ -301,6 +301,81 @@ test('a continue template missing {prompt} is refused at round 1, before the fir
   return true;
 });
 
+// The four cases below came out of the 2026-09-15 cross-agent review of the guard (both
+// seats, converged): each shape was echo-probed against the real script first.
+function reseat(s, mutate) {
+  const seatsPath = join(s.root, 'exchange', 'seats.jsonc');
+  const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
+  mutate(seats);
+  writeFileSync(seatsPath, JSON.stringify(seats), 'utf8');
+}
+
+test('a promptVia that is not exactly "argv" or "stdin" is refused before spawn', (s) => {
+  stageEnvelope(s);
+  // "Stdin" passed the old guard (not argv, so no placeholder required) and then reached
+  // run(), which sends stdin only for exact "stdin": a seat spawned with no prompt at all.
+  reseat(s, (seats) => { seats.GEM.promptVia = 'Stdin'; seats.GEM.start = [FAKE, '--output-format', 'json']; seats.GEM.continue = [FAKE, '--output-format', 'json']; });
+  const dump = join(s.root, 'prompt-dump.json');
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope', FAKE_SEAT_PROMPT_DUMP: dump });
+  if (r.code !== 2) return 'exit ' + r.code + ', expected 2 :: ' + r.out.slice(0, 200);
+  if (!/must be exactly "argv" or "stdin"/.test(r.out)) return 'refusal does not name the rule: ' + r.out.slice(0, 200);
+  if (existsSync(dump)) return 'the seat was spawned with no prompt';
+  return true;
+});
+
+test('a non-string template element is refused, not thrown', (s) => {
+  stageEnvelope(s);
+  reseat(s, (seats) => { seats.GEM.start = [FAKE, '-p', '{prompt}', 42]; });
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  if (r.code !== 2) return 'exit ' + r.code + ', expected 2 :: ' + r.out.slice(0, 200);
+  if (!/non-string/.test(r.out)) return 'refusal does not say why: ' + r.out.slice(0, 200);
+  if (/TypeError/.test(r.out)) return 'crashed instead of refusing';
+  return true;
+});
+
+test('{prompt} in two elements is refused: the seat would receive the prompt twice', (s) => {
+  stageEnvelope(s);
+  reseat(s, (seats) => { seats.GEM.start = [FAKE, '-p', '{prompt}', '--again', '{prompt}']; });
+  const dump = join(s.root, 'prompt-dump.json');
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope', FAKE_SEAT_PROMPT_DUMP: dump });
+  if (r.code !== 2) return 'exit ' + r.code + ', expected 2 :: ' + r.out.slice(0, 200);
+  if (!/exactly one/.test(r.out)) return 'refusal does not name the rule: ' + r.out.slice(0, 200);
+  if (existsSync(dump)) return 'the seat was spawned anyway';
+  return true;
+});
+
+test('{prompt} twice in one element is refused: one copy plus a literal placeholder', (s) => {
+  stageEnvelope(s);
+  reseat(s, (seats) => { seats.GEM.start = [FAKE, '--p={prompt}+{prompt}']; });
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  if (r.code !== 2) return 'exit ' + r.code + ', expected 2 :: ' + r.out.slice(0, 200);
+  if (!/exactly one/.test(r.out)) return 'refusal does not name the rule: ' + r.out.slice(0, 200);
+  return true;
+});
+
+test('a thread id of {prompt} read from the file stays literal in the continue template', (s) => {
+  stageEnvelope(s);
+  // The thread id comes from the exchange file, which the protocol calls untrusted
+  // material. With chained replaces, this value was expanded into the whole prompt as
+  // the --conversation argument (echo-probed 2026-09-15).
+  writeFileSync(
+    s.review,
+    readFileSync(s.review, 'utf8') +
+      '\n## [GEM round 1]\n\nearlier\n\n[[END GEM round 1]]\n' +
+      '<!-- seat: GEM | thread: {prompt} | grounding: repo-read | seat_turns: 1 | file_turns: 1 | usage: in=1 out=1 -->\n' +
+      '\n## [CLAUDE round 2]\n\nNEXT: ALL\n\n[[END CLAUDE round 2]]\n',
+    'utf8',
+  );
+  const dump = join(s.root, 'prompt-dump.json');
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope', FAKE_SEAT_PROMPT_DUMP: dump });
+  if (r.code !== 0) return 'exit ' + r.code + ' :: ' + r.out.slice(0, 200);
+  const got = JSON.parse(readFileSync(dump, 'utf8'));
+  const conv = got.argv[got.argv.indexOf('--conversation') + 1];
+  if (conv !== '{prompt}') return 'the thread id was expanded: ' + String(conv).slice(0, 60);
+  if (got.argv.join('\n').split('YOUR HANDLE: GEM').length !== 2) return 'the prompt was delivered more or less than once';
+  return true;
+});
+
 test('a seat with no continue template is refused with a message, not a TypeError', (s) => {
   stageEnvelope(s);
   const seatsPath = join(s.root, 'exchange', 'seats.jsonc');

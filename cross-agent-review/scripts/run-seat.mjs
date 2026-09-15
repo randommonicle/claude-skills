@@ -142,7 +142,9 @@ function resolveCommand(command) {
   return null;
 }
 
-function run(cfg, argv, prompt, timeoutMs, cwd) {
+// stdinInput is the prompt for a stdin seat and undefined for an argv one; the caller
+// decided that once, from the same resolved channel the guard used.
+function run(cfg, argv, stdinInput, timeoutMs, cwd) {
   const resolved = resolveCommand(cfg.command);
   if (!resolved) return { status: null, stdout: '', stderr: '', spawnError: `NOTFOUND: ${cfg.command} is not on PATH` };
   // The child's working directory is load-bearing, not cosmetic: agy has no --cd flag and
@@ -150,7 +152,7 @@ function run(cfg, argv, prompt, timeoutMs, cwd) {
   // decides whether its file reads are auto-allowed or auto-denied. codex takes -C as
   // well; setting both agrees rather than conflicts.
   const r = spawnSync(resolved.file, [...resolved.prefix, ...argv], {
-    input: cfg.promptVia === 'stdin' ? prompt : undefined,
+    input: stdinInput,
     cwd,
     encoding: 'utf8',
     timeout: timeoutMs,
@@ -252,15 +254,31 @@ const prompt = compose({ md, handle, round, ask, reviewPath, suffix: cfg.promptS
 // so a continue template that would be refused at round 2 is refused before round 1 is
 // paid for, and a dry run cannot say "fine" for a seat that could never be invoked. Both
 // were raised by the first GEMPRO review turn the transport completed (2026-09-15).
-const viaArgv = (cfg.promptVia ?? 'argv') === 'argv';
+//
+// The channel is resolved ONCE and that value drives the guard, the budget check and
+// run(). Before this the guard compared against "argv" and run() against "stdin", so a
+// third value ("Stdin", a typo, an empty string) passed the guard and reached the seat on
+// neither channel: echo-probed 2026-09-15, ANSWERED with no prompt at all. Occurrences are
+// counted, not elements: {prompt} in two elements sends the prompt twice, and twice in
+// one element sends it once plus a literal placeholder (both probed). From the
+// cross-agent review of 2026-09-15, both seats converged.
+const promptVia = cfg.promptVia ?? 'argv';
+if (promptVia !== 'argv' && promptVia !== 'stdin') {
+  die(`${handle} has promptVia ${JSON.stringify(promptVia)}; it must be exactly "argv" or "stdin"`);
+}
+const viaArgv = promptVia === 'argv';
 for (const name of ['start', 'continue']) {
   const t = cfg[name];
   if (!Array.isArray(t)) die(`${handle} has no ${name} template`);
-  const has = t.some((a) => a.includes('{prompt}'));
-  if (viaArgv && !has) {
+  if (!t.every((a) => typeof a === 'string')) die(`${handle}'s ${name} template has a non-string element`);
+  const n = t.reduce((acc, a) => acc + a.split('{prompt}').length - 1, 0);
+  if (viaArgv && n === 0) {
     die(`${handle} takes the prompt on argv but its ${name} template has no {prompt}, so the seat would never receive it`);
   }
-  if (!viaArgv && has) {
+  if (viaArgv && n > 1) {
+    die(`${handle} takes the prompt on argv but its ${name} template has {prompt} ${n} times; it needs exactly one, or the seat receives the prompt more than once`);
+  }
+  if (!viaArgv && n > 0) {
     die(`${handle} takes the prompt on stdin but its ${name} template also lists {prompt}; the prompt goes by one channel, not two`);
   }
 }
@@ -276,7 +294,7 @@ if (argv.includes('--dry-run')) {
 // did not answer" - so the exchange would record a parked seat and never say why. Refuse
 // before spending anything, and name the actual limit.
 const ARGV_BUDGET = 30000;
-if ((cfg.promptVia ?? 'argv') === 'argv' && prompt.length > ARGV_BUDGET) {
+if (viaArgv && prompt.length > ARGV_BUDGET) {
   die(
     `the composed prompt is ${prompt.length} characters and ${handle} takes it on argv, ` +
       `which fails above about ${ARGV_BUDGET} on this platform. Give this seat a stdin ` +
@@ -288,15 +306,16 @@ const template = st.thread ? cfg.continue : cfg.start;
 const tmp = mkdtempSync(join(tmpdir(), 'seat-'));
 const replyFile = join(tmp, 'reply.txt');
 const cwd = flag('--cwd', dirname(resolve(reviewPath)));
-// {prompt} goes last, so placeholders that happen to appear inside the prompt text are
-// not substituted, and through a function, because the prompt is untrusted text and a
-// string replacement would expand any $& or $1 it contains.
-const subst = (s) =>
-  s.replace('{thread}', st.thread).replace('{replyFile}', replyFile)
-   .replace('{cwd}', cwd).replace('{sandbox}', cfg.sandbox ?? 'read-only')
-   .replace('{prompt}', () => prompt);
+// One pass, one regex, a function on the right. Each placeholder is replaced once from a
+// fixed table and an inserted value is never re-scanned, so a thread id of "{prompt}"
+// read from the exchange file (untrusted material, by the protocol's own framing) stays
+// literal instead of expanding into the whole prompt as the --conversation argument,
+// which the chained replaces did (echo-probed 2026-09-15). The function form also means
+// no $& or $1 inside the prompt is ever interpreted.
+const values = { thread: st.thread, replyFile, cwd, sandbox: cfg.sandbox ?? 'read-only', prompt };
+const subst = (s) => s.replace(/\{(thread|replyFile|cwd|sandbox|prompt)\}/g, (_, k) => values[k]);
 
-const res = run(cfg, template.map(subst), prompt, cfg.timeoutMs ?? 600000, cwd);
+const res = run(cfg, template.map(subst), viaArgv ? undefined : prompt, cfg.timeoutMs ?? 600000, cwd);
 const outs = readOutputs(res, cfg, replyFile);
 const reply = outs.reply;
 const verdict = classify({ res, reply, denied: outs.denied });
