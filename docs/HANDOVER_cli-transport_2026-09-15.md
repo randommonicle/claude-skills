@@ -246,10 +246,11 @@ this session, in their own commits, on the operator's yes.
 **1. What ran.** A real cross-agent review through `run-seat.mjs` alone, no pasting: two
 seats (GPT via codex, GEMPRO via agy), Claude as hub, three rounds, converged. Target: the
 guard shipped earlier tonight (`7de222c..8a64f5c`) plus the inert `seat_turns` check as a
-design question. Record: `%USERPROFILE%\agent-exchange\REVIEW_run-seat-guards_2026-09-15.md`
-on this machine, with its `seats.jsonc` and `PROTOCOL.md` (machine-local, not committed; the
-operator decides whether it goes under `docs/`). Every seat citation was re-read against the
-file before it was acted on; every conceded shape was echo-probed at zero tokens first.
+design question. Record: `docs/REVIEW_run-seat-guards_2026-09-15.md`, committed verbatim on
+the operator's decision (paths inside are this machine's, as the seats were shown them; a
+copy also sits at `%USERPROFILE%\agent-exchange\` here). Every seat citation was re-read
+against the file before it was acted on; every conceded shape was echo-probed at zero
+tokens first.
 
 **2. What the review found, all verified by probe.** (a) `promptVia` other than the two
 exact strings reached the seat on neither channel; (b) `{prompt}` in two elements sent the
@@ -291,5 +292,5 @@ command's text is not recoverable from either the envelope or the log; if agy's
 `denied_actions` carries more fields than `display_name` and `action`, the failure note
 could name the command. Not measured.
 
-**7. Next actions.** Push the four commits and this section (ask). Decide whether the
-review transcript is kept under `docs/`.
+**7. Next actions.** Push the four commits and this section (ask). The transcript is under
+`docs/` on the operator's decision (2026-09-15, 21:00 BST).
