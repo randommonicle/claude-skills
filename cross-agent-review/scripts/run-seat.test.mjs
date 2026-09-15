@@ -162,10 +162,22 @@ test('refuses a second section for a seat that already answered the open round',
   return true;
 });
 
-test('a missing CLI fails loudly and appends only a failure note', (s) => {
-  const r = runSeat(s.review, 'GPT', 'missing-binary');
-  if (/## \[GPT round 1\]/.test(r.md)) return 'appended a section with no CLI';
+// Until the 2026-09-15 review this case was titled "a missing CLI fails loudly" and
+// launched process.execPath, which then exited 127: it never reached resolveCommand()
+// returning null. Titled for what it tests now; the genuine case follows it.
+test('a CLI that exits non-zero with no reply appends only a failure note', (s) => {
+  const r = runSeat(s.review, 'GPT', 'exit-127');
+  if (/## \[GPT round 1\]/.test(r.md)) return 'appended a section for a turn with no reply';
   if (!/did not complete/.test(r.md)) return 'no failure note';
+  return true;
+});
+
+test('a command that is not on PATH is refused as NOTFOUND with nothing spawned', (s) => {
+  reseat(s, (seats) => { seats.GPT.command = 'no-such-cli-7f3a2c'; });
+  const r = runSeat(s.review, 'GPT', 'success');
+  if (/## \[GPT round 1\]/.test(r.md)) return 'appended a section with no CLI';
+  if (!/could not be started \(NOTFOUND: no-such-cli-7f3a2c is not on PATH\)/.test(r.md)) return 'NOTFOUND not reported: ' + r.md.slice(-200);
+  if (r.code !== 1) return 'exit ' + r.code + ', expected 1';
   return true;
 });
 

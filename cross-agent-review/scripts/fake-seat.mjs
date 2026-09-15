@@ -43,7 +43,7 @@ process.stdin.on('end', () => {
   // and reports ETIMEDOUT, which is a different failure from a CLI that could not start.
   if (mode === 'hang') { setTimeout(() => process.exit(0), 5000); return; }
 
-  if (mode === 'missing-binary') process.exit(127);
+  if (mode === 'exit-127') process.exit(127);
 
   // agy's shape: ONE envelope on stdout, the reply inside it, no -o file, and a
   // structured denied_actions array on a denial (but never on a timeout - verified
