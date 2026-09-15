@@ -54,8 +54,10 @@ This preserves what makes cross-model work worth doing: the spoke is a **whole a
 its own tools and its own view of the repo**, not a bare model completion. Calling the
 Gemini and GPT APIs directly would be far simpler and would throw exactly that away.
 
-Conversation continuity is also what makes section 5's parking model possible. It is doing
-two jobs, so its retention behaviour is a step-0 question, not a detail.
+Conversation continuity is also what makes section 5's parking model possible. Both sides
+store conversation state as **local files keyed by the conversation id**, so a parked thread
+is resumable until those files are deleted — verified for both in section 7a. That was the
+single assumption the parking model rested on, and it holds.
 
 ## 3. Architecture
 
@@ -181,17 +183,20 @@ CLI that takes a prompt and can resume a thread by id.
     "timeout": "5m"
   },
 
-  // NOT verified - agy is not installed yet. Field paths are guesses.
+  // VERIFIED against agy 1.2.3 by two real runs (open + resume), 2026-09-15.
   "gemini-pro": {
     "transport": "cli",
-    "start":    ["agy", "-p", "{prompt}", "--output-format", "json", "--model", "{model}"],
-    "continue": ["agy", "-p", "{prompt}", "--conversation", "{thread}", "--output-format", "json"],
-    "threadIdPath": "conversation_id",   // PLACEHOLDER
-    "replyPath":    "response",          // PLACEHOLDER
-    "rateLimit":    { "exitCode": 429, "matches": ["quota", "rate limit"] },
+    "start":    ["agy", "-p", "{prompt}", "--output-format", "json", "--model", "{model}",
+                 "--sandbox", "--print-timeout", "90s"],
+    "continue": ["agy", "-p", "{prompt}", "--conversation", "{thread}", "--output-format", "json",
+                 "--sandbox", "--print-timeout", "90s"],
+    "threadIdPath": "conversation_id",   // top level of the single JSON envelope
+    "replyPath":    "response",
+    "statusPath":   "status",            // "SUCCESS" on a good turn; the ladder keys off this
+    "usagePath":    "usage",             // input/output/thinking/cache_read/total tokens
     "fallbackTo":   "gemini-flash",      // rung 2 of the ladder; null means skip to rung 3
     "model":   "gemini-3.5-flash-medium",
-    "trust":   "sandboxed",
+    "trust":   "sandboxed",              // --sandbox; --dangerously-skip-permissions is the opt-out
     "timeout": "5m"
   }
 }
@@ -273,6 +278,38 @@ blocked by a Restricted execution policy; `npm.cmd` sidesteps it). One real turn
   hard evidence for Ben's instinct that collab mode is the expensive one, and it argues for the
   last-N window in section 8a over the full transcript.
 
+### 7b. The Antigravity half (2026-09-15)
+
+`agy 1.2.3`. The first install attempt failed with a truncated 166 MB download; the script's
+SHA512 check caught it and halted rather than installing a corrupt binary. A clean re-run
+fetched the full 195 MB and installed. The security control worked exactly as designed —
+worth recording, because the visible symptom was simply "nothing installed".
+
+**Every flag this note quoted from the docs exists**: `-p`/`--print`, `--output-format`,
+`--json-schema`, `--continue`, `--conversation`, `--model`, `--effort`, `--sandbox`,
+`--dangerously-skip-permissions`, `--input-format`, `--print-timeout` (default `5m0s`).
+
+Unlike Codex's JSONL event stream, `agy --output-format json` returns **one envelope**:
+
+```json
+{"conversation_id":"b378179c-…","status":"SUCCESS","response":"hello from gemini\n",
+ "duration_seconds":13.0,"num_turns":1,
+ "usage":{"input_tokens":13102,"output_tokens":36,"thinking_tokens":32,
+          "cache_read_tokens":0,"total_tokens":13138}}
+```
+
+- **Resume verified, not assumed.** A second turn with `--conversation <id>` returned the same
+  id, `num_turns: 2`, and quoted its own previous reply verbatim. Input tokens went
+  13,102 → 26,454, which is the transcript replay cost made visible in the envelope.
+- **Retention: local.** The CLI keeps its own state at `~/.gemini/antigravity-cli/`, separate
+  from the IDE's `~/.gemini/antigravity/` — `conversations/<uuid>.db` plus `brain/<uuid>/`
+  transcripts. Keyed by conversation id, retained until deleted. Parking holds on this side too.
+- **`status` is the ladder's discriminator.** `"SUCCESS"` on a good turn; the rate-limited and
+  error values are the one thing still unobserved, since a limit cannot be forced to order.
+  Scope of the remaining unknown is now one enum in a known field, not an unknown mechanism.
+- **Input floor ~13k tokens**, against Codex's ~21k. Both charge a per-turn floor before any
+  shared transcript, which is the structural reason collab mode is expensive.
+
 ## 8. Decisions for you
 
 **a. Transcript strategy — the cost lever for collab mode.** Every spoke turn replays
@@ -321,13 +358,19 @@ usage record and the 21k input floor. The claim that `codex mcp-server` exists w
 and is **false** for codex-cli 0.154.0 — it came from a third-party page dated May 2026, and
 it is the reason this section exists.
 
-**Still from documentation, not run here:** every `agy` flag in this note (`-p`,
-`--output-format`, `--json-schema`, `--continue`, `--conversation`, `--model`, `--effort`,
-`--print-timeout`, `--sandbox`, `--dangerously-skip-permissions`) comes from the official
-Antigravity CLI headless docs, not from `agy --help` on this machine — the CLI is not yet
-installed. The `gemini-pro` field names in section 6 (`conversation_id`, `response`) and the
-`rateLimit` shape remain **invented placeholders**. Nothing is known about how long an `agy`
-conversation id stays resumable, which is the one open question the parking model rests on.
+**Also verified by real runs, 2026-09-15** (section 7b): `agy 1.2.3`, every flag quoted
+here, the single-envelope shape, both field paths that were previously guesses
+(`conversation_id` and `response` — the guesses happened to be right), the `status` and
+`usage` fields, resume across two turns, and local conversation storage under
+`~/.gemini/antigravity-cli/`.
+
+**What remains unverified:** the `status` value (and any exit code) that a rate-limited or
+quota-exhausted turn produces, on either CLI. A limit cannot be forced to order, so rung 1 of
+the ladder should be written defensively — treat any non-`SUCCESS` status as "not answered",
+and refine the retry-versus-park split the first time a real limit is observed. Until then,
+**a rate limit will degrade to rung 3 (park the seat), not rung 1 (retry)**. That is the safe
+direction: it under-retries rather than hammering a limited endpoint, and the transcript
+records the seat as absent rather than silently missing.
 
 MCP and A2A statements in section 1 come from the official specification changelog, the MCP
 blog and Linux Foundation press releases, all dated 2026.
