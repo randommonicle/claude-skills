@@ -87,16 +87,29 @@ SessionStart pull races the skill listing this library's own LESSONS 13 and 14 a
 in both directions. Running it between sessions removes the question rather than answering
 it. On Windows, per user, no elevation:
 
-```
-schtasks /create /tn "claude-skills update" /tr "node \"%USERPROFILE%\\.claude\\skills\\hooks\\update-skills.mjs\"" /sc daily /st 06:30 /f
+```powershell
+$node   = (Get-Command node).Source          # full path: a scheduled task's PATH is not the shell's
+$script = "$env:USERPROFILE\.claude\skills\hooks\update-skills.mjs"
+$action   = New-ScheduledTaskAction -Execute $node -Argument ('"' + $script + '"')
+$trigger  = New-ScheduledTaskTrigger -Daily -At '06:30'
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
+Register-ScheduledTask -TaskName 'claude-skills update' -Action $action -Trigger $trigger -Settings $settings -Force
 ```
 
-Remove with `schtasks /delete /tn "claude-skills update" /f`; inspect with
-`schtasks /query /tn "claude-skills update" /v /fo list`. Verify the install by running the
-command once by hand and confirming `~/.claude/skills-update.json` appears with a `state`
-and an `at`; then confirm the negative path by checking that a session opened with that file
-aged past 36h reports the staleness, which is the branch that catches the task silently
-dying. `node hooks/session-recon.test.mjs` asserts both.
+This is the form that was run and proven on 2026-09-15, not a `schtasks /create` line — the
+`/tr` form wants `%USERPROFILE%` and this file already records what that costs elsewhere.
+`-StartWhenAvailable` matters on a laptop: a 06:30 missed because the machine was off runs
+at the next wake instead of being skipped for the day.
+
+Remove with `Unregister-ScheduledTask -TaskName 'claude-skills update' -Confirm:$false`
+(without `-Confirm:$false` it prompts, and hangs in a non-interactive shell); inspect with
+`Get-ScheduledTaskInfo -TaskName 'claude-skills update'`.
+
+Verify by DELETING `~/.claude/skills-update.json` first, then `Start-ScheduledTask`, then
+confirming the file reappears with a fresh `at` — a status file left in place proves
+nothing, since the task failing to run looks identical. Then confirm the negative path:
+a session opened with that file aged past 36h must report the staleness, which is the
+branch that catches the task dying quietly. `node hooks/session-recon.test.mjs` asserts it.
 
 ## Deferred hook rows
 
