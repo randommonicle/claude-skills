@@ -90,6 +90,19 @@ code discussion and citations only; never personal data, credentials, secrets, o
   Monitors die with the session; re-arm at the start of any session resuming an open exchange. One
   watcher covers several handles; for a late-joining seat, arm a second watcher rather than restarting
   the first and risking a gap.
+- **CLI transport: Claude drives a seat itself, no human in the loop.** A seat whose agent ships a
+  headless CLI with conversation continuity can be run directly:
+  `node scripts/run-seat.mjs <review-file> <HANDLE> --ask "..."`. The script composes the prompt from
+  the exchange file, invokes the CLI, and appends the seat's section with its header, terminator and a
+  metadata comment carrying the conversation id, token usage and what the seat could reach. Configure
+  seats by copying `templates/seats.example.jsonc` to the exchange dir. **No Monitor is needed for a
+  CLI seat** — the call is synchronous, so Claude has the reply when it returns; the watcher above is
+  still required whenever a human-driven seat is in play.
+  Two rules this transport is built around, both measured rather than assumed:
+  a turn counts as answered **only if the reply body is non-empty** (a print timeout and a permission
+  denial each returned `status: "SUCCESS"` with an empty reply and exit code 0), and a turn that did
+  not answer gets a **visible failure note** in the file instead of a section, so "this seat was cut
+  off" never reads as "this seat had nothing to add".
 - **Human arms the external side.** Each external chat is kicked off with its handle (below). Antigravity
   can also run a background daemon that watches the dir and wakes the agent; optional.
 - **Optional but powerful: live read-only evidence.** If a read-only data source is connected (Supabase

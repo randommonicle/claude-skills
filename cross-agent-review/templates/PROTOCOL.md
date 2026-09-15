@@ -16,6 +16,27 @@ Same machinery, three shapes. The opener states which one is running.
 - **Challenger-Claude:** Claude puts up a claim or a provisional verdict; the external agents attack it.
 - **Peer design:** all sides propose and critique a design; divergence is an expected outcome.
 
+## 1b. Transports: who physically writes your section
+
+The rules in this file are identical whichever way you are driven. Only the mechanics differ.
+
+- **File transport.** You read and append to the review file yourself.
+- **Paste transport.** You return your section in one fenced block and the operator pastes it, adding
+  the terminator.
+- **CLI transport.** Claude runs you headlessly and appends your section for you, with the header,
+  the terminator and a metadata comment. You return only the BODY of your section. You do not write
+  the file; a reply that tries to is still only a reply.
+
+A section written on your behalf is your section and binds you exactly as if you had typed it.
+
+Two things a reader needs to know about a CLI-driven seat, and the metadata comment records both: the
+`grounding` field says what that seat could actually reach, so a claim from a seat that was handed only
+the exchange file can be weighed differently from one that read the repository; and `seat_turns`
+against `file_turns` catches a turn the seat believes it took that never reached the file.
+
+A line beginning `> **[transport]` is NOT a section. It records a seat that was asked and did not
+answer — timed out, refused, or returned nothing — and the round it names is still open.
+
 ## 2. Handles (this is how you distinguish yourself)
 
 Every participant holds exactly ONE handle for the whole exchange. A handle is a SEAT, not a model: if

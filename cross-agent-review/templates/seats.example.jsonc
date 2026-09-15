@@ -1,0 +1,58 @@
+// Seat configuration for the CLI transport (run-seat.mjs).
+// Copy to <exchange-dir>/seats.jsonc and edit. Every field below was verified against
+// a real invocation on 2026-09-15; see docs/DESIGN_agent-bus_2026-09-15.md sections 7a
+// and 7b for the envelopes these paths were read out of.
+//
+// A seat qualifies for this transport if its CLI takes a prompt non-interactively and
+// can resume a conversation by id. Adding one is a block here, not code.
+{
+  // ---------------------------------------------------------------------------
+  // GPT via the Codex CLI. Verified working: reads, refuses writes, resumable.
+  // ---------------------------------------------------------------------------
+  "GPT": {
+    "command": "codex",
+
+    // The prompt goes on STDIN, not argv. Measured on this machine: argv dies with
+    // ENAMETOOLONG at ~32,700 characters, which is about 8,000 tokens - less than one
+    // round of a real exchange. `-` tells codex to read instructions from stdin.
+    "promptVia": "stdin",
+    "start":    ["exec", "--json", "-s", "{sandbox}", "-C", "{cwd}", "-o", "{replyFile}", "-"],
+
+    // `exec resume` takes a NARROWER flag set than `exec`: it rejects --sandbox, --cd,
+    // --add-dir, --approve-for-me and --profile. A continuation turn therefore inherits
+    // the sandbox and working root from the turn that opened the thread. Do not add
+    // -s or -C here; it exits 2 with "unexpected argument".
+    "continue": ["exec", "resume", "{thread}", "--json", "-o", "{replyFile}", "-"],
+
+    // Output is JSONL events. The reply is taken from the -o file rather than parsed
+    // out of the stream: cleaner, and it does not break when the event schema changes.
+    "outputFormat": "jsonl",
+    "replyFrom":    "replyFile",
+    "threadIdFrom": { "event": "thread.started",  "field": "thread_id" },
+    "usageFrom":    { "event": "turn.completed",  "field": "usage" },
+
+    // read-only is NOT a reading restriction. Verified 2026-09-15: under -s read-only a
+    // seat read a file OUTSIDE its -C root, so -C does not contain reads and the seat
+    // can read anything the user can. What read-only does buy, also verified, is that
+    // writes are refused - the seat replied BLOCKED and created no file. Since Claude
+    // appends the section, a seat has no reason to write anything.
+    //   read-only | workspace-write | danger-full-access
+    "sandbox": "read-only",
+
+    // What the seat could reach, recorded per section so a reader can weigh a claim by
+    // whether the seat could actually check it. "repo-read" means unrestricted reads.
+    "grounding": "repo-read",
+
+    "timeoutMs": 600000
+  }
+
+  // ---------------------------------------------------------------------------
+  // FORWARD: agy (Gemini via Antigravity) is NOT configured here yet. Four tool-using
+  // headless turns failed on 2026-09-15 - two permission auto-denials (read_file, then
+  // unsandboxed for the same task) and two print timeouts, one of which spent 195,056
+  // input tokens and returned an empty response. Only no-tool turns succeeded.
+  // Blocked on: does --output-format stream-json preserve partial output on timeout?
+  // If it does, a timed-out turn yields the work done instead of nothing, and the seat
+  // becomes viable. See docs/DESIGN_agent-bus_2026-09-15.md and the research note.
+  // ---------------------------------------------------------------------------
+}

@@ -1,6 +1,9 @@
 # Kickoff brief: the GPT / Codex seat
 
-Two transports, depending on what the GPT app can reach:
+Three transports. **If the `codex` CLI is installed, prefer the CLI transport** — Claude drives the
+seat itself with `scripts/run-seat.mjs`, no pasting, and the conversation id is recorded in the file so
+a later session can resume the same thread. Verified working 2026-09-15 against codex-cli 0.154.0. The
+two below are the fallbacks when it is not available:
 - **File transport (Codex or any GPT that can read the repo folder):** paste the block below, fill the
   slots, and it reads and writes the review file directly like an Antigravity seat.
 - **Paste transport (a chat GPT that cannot read local files):** paste the block below, then paste the
