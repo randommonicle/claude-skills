@@ -261,14 +261,33 @@ if ((cfg.promptVia ?? 'argv') === 'argv' && prompt.length > ARGV_BUDGET) {
   );
 }
 
+// The prompt reaches the seat by exactly one channel, and that is checked before anything
+// is spent. The shipped 2026-09-15 code substituted every placeholder except {prompt},
+// so the agy seat was handed those eight characters as its whole prompt; it spent 73,030
+// input tokens working out what they meant and the record called that a slow review
+// turn. Twenty tests were green because the one envelope fixture said stdin.
+const template = st.thread ? cfg.continue : cfg.start;
+const which = st.thread ? 'continue' : 'start';
+const viaArgv = (cfg.promptVia ?? 'argv') === 'argv';
+const hasPlaceholder = template.some((a) => a.includes('{prompt}'));
+if (viaArgv && !hasPlaceholder) {
+  die(`${handle} takes the prompt on argv but its ${which} template has no {prompt}, so the seat would never receive it`);
+}
+if (!viaArgv && hasPlaceholder) {
+  die(`${handle} takes the prompt on stdin but its ${which} template also lists {prompt}; the prompt goes by one channel, not two`);
+}
+
 const tmp = mkdtempSync(join(tmpdir(), 'seat-'));
 const replyFile = join(tmp, 'reply.txt');
 const cwd = flag('--cwd', dirname(resolve(reviewPath)));
+// {prompt} goes last, so placeholders that happen to appear inside the prompt text are
+// not substituted, and through a function, because the prompt is untrusted text and a
+// string replacement would expand any $& or $1 it contains.
 const subst = (s) =>
   s.replace('{thread}', st.thread).replace('{replyFile}', replyFile)
-   .replace('{cwd}', cwd).replace('{sandbox}', cfg.sandbox ?? 'read-only');
+   .replace('{cwd}', cwd).replace('{sandbox}', cfg.sandbox ?? 'read-only')
+   .replace('{prompt}', () => prompt);
 
-const template = st.thread ? cfg.continue : cfg.start;
 const res = run(cfg, template.map(subst), prompt, cfg.timeoutMs ?? 600000, cwd);
 const outs = readOutputs(res, cfg, replyFile);
 const reply = outs.reply;

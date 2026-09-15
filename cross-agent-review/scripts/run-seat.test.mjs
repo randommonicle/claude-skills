@@ -6,10 +6,13 @@
 // 4, 5 and 6 all return exit 0 and would be banked as answers), a version that appends a
 // section for an empty reply (case 6), a version that writes nothing on failure (cases
 // 4-7, the LESSONS_LEARNED 13 shape), a version that loses the thread id so a later
-// session cannot resume (case 2), and a version with no anti-double-turn guard (case 8).
+// session cannot resume (case 2), a version with no anti-double-turn guard (case 8), and
+// a version that hands an argv seat the literal string "{prompt}" instead of the prompt
+// (the shipped 2026-09-15 code did exactly that, green at 20 cases, because the only
+// envelope fixture took its prompt on stdin).
 // Run: node scripts/run-seat.test.mjs
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -215,7 +218,10 @@ function stageEnvelope(s) {
   const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
   seats.GEM = {
     command: process.execPath,
-    promptVia: 'stdin',
+    // argv, as the real agy seat is configured. The fixture used to say stdin here while
+    // still listing {prompt} on argv, so the argv branch was never exercised and the
+    // literal placeholder went to the CLI unseen.
+    promptVia: 'argv',
     start: [FAKE, '-p', '{prompt}', '--output-format', 'json'],
     continue: [FAKE, '-p', '{prompt}', '--conversation', '{thread}', '--output-format', 'json'],
     outputFormat: 'envelope',
@@ -223,11 +229,56 @@ function stageEnvelope(s) {
     threadIdPath: 'conversation_id',
     usagePath: 'usage',
     deniedPath: 'denied_actions',
+    promptSuffix: 'Use the exact file paths given to you.',
     grounding: 'repo-read',
     timeoutMs: 30000,
   };
   writeFileSync(seatsPath, JSON.stringify(seats), 'utf8');
 }
+
+test('an argv seat receives the composed prompt, not the literal placeholder', (s) => {
+  stageEnvelope(s);
+  const dump = join(s.root, 'prompt-dump.json');
+  // $& and $1 are what a string-form replace would expand; the ask is untrusted text
+  // and must arrive exactly as typed.
+  const ask = 'Cite the line. The cost is $& not $1.';
+  const r = runSeat(s.review, 'GEM', 'success', ['--ask', ask], { FAKE_SEAT_SHAPE: 'envelope', FAKE_SEAT_PROMPT_DUMP: dump });
+  if (r.code !== 0) return 'exit ' + r.code + ' :: ' + r.out.slice(0, 200);
+  const got = JSON.parse(readFileSync(dump, 'utf8'));
+  if (got.argvPrompt === '{prompt}') return 'the CLI was handed the literal placeholder';
+  if (!got.argvPrompt || !/YOUR HANDLE: GEM/.test(got.argvPrompt)) return 'composed prompt not on argv: ' + String(got.argvPrompt).slice(0, 80);
+  if (!/Framing and evidence\./.test(got.argvPrompt)) return 'exchange file not in the prompt';
+  if (!got.argvPrompt.includes('THIS ROUND: ' + ask)) return 'ask not delivered verbatim';
+  if (!got.argvPrompt.endsWith('Use the exact file paths given to you.')) return 'promptSuffix not delivered';
+  if (got.stdin.length) return 'prompt was also sent on stdin';
+  return true;
+});
+
+test('an argv seat whose template has no {prompt} is refused before anything is spent', (s) => {
+  stageEnvelope(s);
+  const seatsPath = join(s.root, 'exchange', 'seats.jsonc');
+  const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
+  seats.GEM.start = [FAKE, '--output-format', 'json'];
+  writeFileSync(seatsPath, JSON.stringify(seats), 'utf8');
+  const dump = join(s.root, 'prompt-dump.json');
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope', FAKE_SEAT_PROMPT_DUMP: dump });
+  if (r.code !== 2) return 'exit ' + r.code + ', expected 2 :: ' + r.out.slice(0, 200);
+  if (!/never receive/.test(r.out)) return 'refusal does not say why: ' + r.out.slice(0, 200);
+  if (existsSync(dump)) return 'the seat was spawned anyway';
+  if (/## \[GEM round 1\]/.test(r.md)) return 'a section was appended';
+  return true;
+});
+
+test('a stdin seat whose template also lists {prompt} is refused', (s) => {
+  const seatsPath = join(s.root, 'exchange', 'seats.jsonc');
+  const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
+  seats.GPT.start = [FAKE, 'exec', '--json', '-p', '{prompt}', '-o', '{replyFile}', '-'];
+  writeFileSync(seatsPath, JSON.stringify(seats), 'utf8');
+  const r = runSeat(s.review, 'GPT', 'success');
+  if (r.code !== 2) return 'exit ' + r.code + ', expected 2 :: ' + r.out.slice(0, 200);
+  if (!/one channel/.test(r.out)) return 'refusal does not name the conflict: ' + r.out.slice(0, 200);
+  return true;
+});
 
 test('reads a single-envelope seat, taking the reply from the envelope not a file', (s) => {
   stageEnvelope(s);

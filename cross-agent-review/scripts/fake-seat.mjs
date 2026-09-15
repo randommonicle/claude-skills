@@ -26,6 +26,19 @@ process.stdin.on('end', () => {
   const emit = (o) => process.stdout.write(JSON.stringify(o) + '\n');
   const usage = { input_tokens: isResume ? 42879 : 21425, cached_input_tokens: 0, output_tokens: 16 };
 
+  // What the seat was actually asked, on each channel, for the test that proves the
+  // composed prompt arrived where the config says it goes. Without this a fixture is
+  // green whether the CLI got the prompt or the literal string "{prompt}" - which is
+  // what the real agy seat was handed on 2026-09-15 while every case passed.
+  if (process.env.FAKE_SEAT_PROMPT_DUMP) {
+    const pIdx = argv.indexOf('-p');
+    writeFileSync(
+      process.env.FAKE_SEAT_PROMPT_DUMP,
+      JSON.stringify({ argvPrompt: pIdx >= 0 ? argv[pIdx + 1] : null, stdin }),
+      'utf8',
+    );
+  }
+
   if (mode === 'missing-binary') process.exit(127);
 
   // agy's shape: ONE envelope on stdout, the reply inside it, no -o file, and a
