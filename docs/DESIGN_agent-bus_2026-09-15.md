@@ -1,8 +1,19 @@
 # Design note: an agent bus, and the two skills that ride on it
 
-Status: **proposal, nothing built.** Written 2026-09-15 after web research and a local
-environment probe; revised the same day to split dispatch from collaboration and to add the
-degradation model. Read section 9 before trusting any flag name in here.
+> **SUPERSEDED AS A PLAN, 2026-09-15.** An adversarial review found three of the four
+> load-bearing arguments do not survive contact with this document's own evidence. The
+> decision is to prototype a CLI transport for `cross-agent-review` instead of building this
+> MCP server. See `REVIEW_agent-bus_2026-09-15.md` for the findings, the verification status
+> of each, and why.
+>
+> This note is kept because the research in sections 1, 2, 7a and 7b is sound and was
+> expensive to get, and because the review's findings only make sense against it. **The
+> factual errors it shipped with have been corrected in place** — an implementer copying the
+> adapter block should get working argv even though the architecture around it was dropped.
+
+Status: **proposal, superseded — see above.** Written 2026-09-15 after web research and a
+local environment probe; revised the same day to split dispatch from collaboration and to add
+the degradation model; corrected after review the same evening.
 
 Goal: Claude, Antigravity and GPT working together with no prompt pasting and no exchange
 folder, Claude holding leadership, other agents easy to plug in later. Two shapes of work,
@@ -174,8 +185,13 @@ CLI that takes a prompt and can resume a thread by id.
     "transport":  "cli",
     "start":      ["codex", "exec", "--json", "-s", "read-only", "-C", "{cwd}",
                    "-m", "{model}", "-o", "{replyFile}", "{prompt}"],
-    "continue":   ["codex", "exec", "resume", "{thread}", "--json", "-s", "read-only",
-                   "-C", "{cwd}", "-o", "{replyFile}", "{prompt}"],
+    // CORRECTED after review: `exec resume` takes a NARROWER flag set than `exec`.
+    // It rejects --sandbox, --cd, --add-dir, --approve-for-me and --profile. The original
+    // argv here failed with exit 2, "unexpected argument '-s' found". See REVIEW F4.
+    "continue":   ["codex", "exec", "resume", "{thread}", "--json",
+                   "-o", "{replyFile}", "{prompt}"],
+    // CONSEQUENCE, unsolved: the sandbox cannot be set as a flag on a continuation turn,
+    // so "the bus enforces trust in argv construction" is true for turn 1 only.
     "threadIdFrom": { "event": "thread.started", "field": "thread_id" },
     "replyFrom":    "{replyFile}",        // -o writes the final message; do not parse JSONL for it
     "usageFrom":    { "event": "turn.completed", "field": "usage" },
@@ -194,8 +210,10 @@ CLI that takes a prompt and can resume a thread by id.
     "replyPath":    "response",
     "statusPath":   "status",            // "SUCCESS" on a good turn; the ladder keys off this
     "usagePath":    "usage",             // input/output/thinking/cache_read/total tokens
-    "fallbackTo":   "gemini-flash",      // rung 2 of the ladder; null means skip to rung 3
-    "model":   "gemini-3.5-flash-medium",
+    "fallbackTo":   null,                // was "gemini-flash" - a seat defined nowhere in
+                                         // this config, so rung 2 resolved to a dangling
+                                         // reference. REVIEW F15.
+    "model":   "gemini-3.5-pro",         // was "...-flash-medium" on a seat named -pro
     "trust":   "sandboxed",              // --sandbox; --dangerously-skip-permissions is the opt-out
     "timeout": "5m"
   }
@@ -217,7 +235,8 @@ Three rules that keep this honest:
 
 ## 7. Step 0, before any code is written
 
-Neither CLI is on PATH here. Verified 2026-09-15: `agy`, `codex`, `gemini` and `antigravity`
+**Both CLIs were installed later the same day — see 7a and 7b; the paragraph below records
+the state at the time the plan was written.** Verified 2026-09-15, before installation: `agy`, `codex`, `gemini` and `antigravity`
 absent from both the Git Bash and PowerShell PATH; the Antigravity IDE is installed at
 `%LOCALAPPDATA%\Programs\Antigravity` but ships no CLI shim in `resources/bin` (only
 `language_server.exe` and `webm_encoder.exe`); `~/.codex` is heavily used and authenticated,
@@ -271,6 +290,16 @@ blocked by a Restricted execution policy; `npm.cmd` sidesteps it). One real turn
   `cached_input_tokens`, `cache_write_input_tokens`, `output_tokens` and
   `reasoning_output_tokens`. The bus can therefore bank *measured* spend per turn rather than
   estimating it, which makes the budget cap and the 80% converge warning exact.
+- **Resume verified after review, with corrected flags.** `codex exec resume <uuid>`
+  returns the same `thread_id` and quotes its own previous reply. **Turn 2 cost 42,879 input
+  tokens against turn 1's 21,425 — exactly 2.00×**, of which 33,408 were cache reads. So the
+  replay term is real and matches `agy`'s, but the cache discount means the raw-token
+  doubling overstates the bill. REVIEW F2.
+- **The argv ceiling is ~32,700 characters on this machine** (measured through Node's
+  `spawn`: fine at 32,000, `ENAMETOOLONG` at 32,700) — roughly 8,000 tokens of prompt,
+  shared with every other flag. A last-N window of substantial replies exceeds it, so the
+  adapter contract needs a `promptVia: argv | stdin | file` field that it does not have.
+  Both CLIs accept a prompt on stdin. REVIEW F11.
 - **There is a ~21k input-token floor per turn.** "Reply with exactly: hello from codex"
   cost 21,425 input tokens (12,160 of them cached) for 8 output tokens — that is the agent's
   own system context, before any of our transcript. A three-seat three-round thread therefore
@@ -352,7 +381,9 @@ idea is findable.
 
 Verified locally on 2026-09-15: every statement in section 7 about this machine.
 
-**Verified by a real run, 2026-09-15** (section 7a): everything in the `gpt` adapter block,
+**Verified by a real run, 2026-09-15** (section 7a) — *this list was over-scoped when first
+written; corrected after review, see REVIEW F4*: the `start` argv of the `gpt` adapter block
+(the `continue` argv was NOT run, and failed when it finally was),
 the Codex event names and field paths, the sandbox flags, session retention, the per-turn
 usage record and the 21k input floor. The claim that `codex mcp-server` exists was checked
 and is **false** for codex-cli 0.154.0 — it came from a third-party page dated May 2026, and
