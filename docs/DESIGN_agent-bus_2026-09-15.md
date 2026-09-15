@@ -48,7 +48,7 @@ own tools, working directory and repo grounding.
 | | Headless turn | Continue a thread | Structured output |
 |---|---|---|---|
 | Antigravity (`agy`) | `agy -p "…"` | `--continue`, or `--conversation <id>` | `--output-format json`, `--json-schema` |
-| Codex | `codex exec` | `codex mcp-server` → `codex()` / `codex-reply(threadId)` | JSON envelope |
+| Codex | `codex exec` | `codex exec resume <uuid>` | `--json` (JSONL events) + `-o <file>` |
 
 This preserves what makes cross-model work worth doing: the spoke is a **whole agent with
 its own tools and its own view of the repo**, not a bare model completion. Calling the
@@ -73,7 +73,7 @@ two jobs, so its retention behaviour is a step-0 question, not a detail.
               │ adapter       │ adapter          │ adapter
         ┌─────▼─────┐   ┌─────▼──────┐     ┌─────▼─────┐
         │ agy CLI   │   │ codex      │     │ (future)  │
-        │ Gemini    │   │ mcp-server │     │           │
+        │ Gemini    │   │ exec CLI   │     │           │
         └───────────┘   └────────────┘     └───────────┘
 ```
 
@@ -167,16 +167,31 @@ CLI that takes a prompt and can resume a thread by id.
 
 ```jsonc
 {
+  // VERIFIED against codex-cli 0.154.0 by a real run, 2026-09-15.
+  "gpt": {
+    "transport":  "cli",
+    "start":      ["codex", "exec", "--json", "-s", "read-only", "-C", "{cwd}",
+                   "-m", "{model}", "-o", "{replyFile}", "{prompt}"],
+    "continue":   ["codex", "exec", "resume", "{thread}", "--json", "-s", "read-only",
+                   "-C", "{cwd}", "-o", "{replyFile}", "{prompt}"],
+    "threadIdFrom": { "event": "thread.started", "field": "thread_id" },
+    "replyFrom":    "{replyFile}",        // -o writes the final message; do not parse JSONL for it
+    "usageFrom":    { "event": "turn.completed", "field": "usage" },
+    "trust":   "sandboxed",               // -s read-only; workspace-write / danger-full-access exist
+    "timeout": "5m"
+  },
+
+  // NOT verified - agy is not installed yet. Field paths are guesses.
   "gemini-pro": {
     "transport": "cli",
     "start":    ["agy", "-p", "{prompt}", "--output-format", "json", "--model", "{model}"],
     "continue": ["agy", "-p", "{prompt}", "--conversation", "{thread}", "--output-format", "json"],
-    "threadIdPath": "conversation_id",   // PLACEHOLDER - step 0 replaces this
-    "replyPath":    "response",          // PLACEHOLDER - step 0 replaces this
+    "threadIdPath": "conversation_id",   // PLACEHOLDER
+    "replyPath":    "response",          // PLACEHOLDER
     "rateLimit":    { "exitCode": 429, "matches": ["quota", "rate limit"] },
     "fallbackTo":   "gemini-flash",      // rung 2 of the ladder; null means skip to rung 3
     "model":   "gemini-3.5-flash-medium",
-    "trust":   "sandboxed",              // sandboxed | trusted
+    "trust":   "sandboxed",
     "timeout": "5m"
   }
 }
@@ -214,13 +229,49 @@ guess until these exist:
 3. **How long a conversation id stays resumable.** Parking assumes a thread can be re-entered
    tomorrow. If ids expire in an hour, the parking model needs rethinking, and it is better
    to learn that now than on the day a quota resets.
-4. Whether `codex mcp-server` exists in the installed version and lists `codex` /
-   `codex-reply`.
+4. ~~Whether `codex mcp-server` exists.~~ **Answered 2026-09-15: it does not.** See 7a.
 5. Whether either CLI reports remaining quota. If it does, the bus can warn before spending
    rather than discovering the wall.
 
 Designing further against documentation, when a real invocation is ten minutes away, is the
 mistake LESSONS 13 and 14 were both written about.
+
+### 7a. What the Codex half of step 0 actually returned (2026-09-15)
+
+`codex-cli 0.154.0` installed via `npm.cmd install -g @openai/codex` (the `.ps1` shim is
+blocked by a Restricted execution policy; `npm.cmd` sidesteps it). One real turn was run.
+
+- **`codex mcp-server` does not exist.** The `mcp` subcommand manages external MCP servers
+  *for* Codex — it is a client, not a server. The third-party page that claimed otherwise was
+  dated May 2026 and is wrong for this version. The transport is `codex exec`.
+- **Headless:** `codex exec --json` emits JSONL events: `thread.started`, `turn.started`,
+  `item.completed`, `turn.completed`.
+- **Thread id:** `thread.started.thread_id`, a UUID. Resume with
+  `codex exec resume <uuid> "<prompt>"`, or `--last`.
+- **Reply:** take it from `-o <file>` (`--output-last-message`) rather than parsing JSONL.
+  Cleaner and version-independent.
+- **Retention is not a problem here.** Sessions are local files under
+  `~/.codex/sessions/<year>/…`, resumable until `codex archive` or `codex delete`. The
+  parking model in section 5 holds for Codex. **Still unknown for `agy`.**
+- **`--ephemeral` is incompatible with parking.** It runs without persisting session files,
+  so it destroys resumability. The May-2026 advice to use it for parallel work applies only to
+  fire-and-forget dispatch, never to collab threads.
+- **Trust is a first-class flag:** `-s read-only | workspace-write | danger-full-access`,
+  with `-C <dir>` for the working root. Section 6's `sandboxed` default maps straight onto
+  `-s read-only`, enforced in argv exactly as intended.
+
+**Two findings that change the cost model:**
+
+- **Every turn reports its own usage.** `turn.completed.usage` carries `input_tokens`,
+  `cached_input_tokens`, `cache_write_input_tokens`, `output_tokens` and
+  `reasoning_output_tokens`. The bus can therefore bank *measured* spend per turn rather than
+  estimating it, which makes the budget cap and the 80% converge warning exact.
+- **There is a ~21k input-token floor per turn.** "Reply with exactly: hello from codex"
+  cost 21,425 input tokens (12,160 of them cached) for 8 output tokens — that is the agent's
+  own system context, before any of our transcript. A three-seat three-round thread therefore
+  starts from roughly nine turns × 20k+ input before the shared transcript is added. This is
+  hard evidence for Ben's instinct that collab mode is the expensive one, and it argues for the
+  last-N window in section 8a over the full transcript.
 
 ## 8. Decisions for you
 
@@ -264,14 +315,19 @@ idea is findable.
 
 Verified locally on 2026-09-15: every statement in section 7 about this machine.
 
-**From documentation, not run here:** every `agy` flag in this note (`-p`,
+**Verified by a real run, 2026-09-15** (section 7a): everything in the `gpt` adapter block,
+the Codex event names and field paths, the sandbox flags, session retention, the per-turn
+usage record and the 21k input floor. The claim that `codex mcp-server` exists was checked
+and is **false** for codex-cli 0.154.0 — it came from a third-party page dated May 2026, and
+it is the reason this section exists.
+
+**Still from documentation, not run here:** every `agy` flag in this note (`-p`,
 `--output-format`, `--json-schema`, `--continue`, `--conversation`, `--model`, `--effort`,
 `--print-timeout`, `--sandbox`, `--dangerously-skip-permissions`) comes from the official
-Antigravity CLI headless docs, not from `agy --help` on this machine. The Codex
-`mcp-server` tool names and the `--ephemeral` parallel hazard come from a third-party
-knowledge base dated May 2026 and a DeepWiki page, not from OpenAI's own docs and not from
-the installed binary. The JSON field names in section 6 (`conversation_id`, `response`) and
-the `rateLimit` shape are **invented placeholders** — that is what step 0 replaces.
+Antigravity CLI headless docs, not from `agy --help` on this machine — the CLI is not yet
+installed. The `gemini-pro` field names in section 6 (`conversation_id`, `response`) and the
+`rateLimit` shape remain **invented placeholders**. Nothing is known about how long an `agy`
+conversation id stays resumable, which is the one open question the parking model rests on.
 
 MCP and A2A statements in section 1 come from the official specification changelog, the MCP
 blog and Linux Foundation press releases, all dated 2026.
@@ -284,6 +340,6 @@ blog and Linux Foundation press releases, all dated 2026.
 - Antigravity CLI install & auth — https://antigravity.google/docs/cli/install
 - Antigravity CLI MCP (consumer only) — https://antigravity.google/docs/cli/mcp
 - Codex headless execution mode — https://deepwiki.com/openai/codex/4.2-headless-execution-mode-(codex-exec)
-- Codex CLI as an MCP server — https://codex.danielvaughan.com/2026/05/18/codex-cli-as-mcp-server-exposing-agent-capabilities-agents-sdk-multi-agent-delegation/
+- Codex CLI as an MCP server — https://codex.danielvaughan.com/2026/05/18/codex-cli-as-mcp-server-exposing-agent-capabilities-agents-sdk-multi-agent-delegation/ **(SUPERSEDED: its `mcp-server` subcommand does not exist in codex-cli 0.154.0; see 7a)**
 - A2A joins the Linux Foundation — https://www.linuxfoundation.org/press/linux-foundation-launches-the-agent2agent-protocol-project-to-enable-secure-intelligent-communication-between-ai-agents
 - agent-dispatch (prior art) — https://github.com/ginkida/agent-dispatch
