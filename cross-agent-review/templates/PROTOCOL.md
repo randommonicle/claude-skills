@@ -32,10 +32,14 @@ A section written on your behalf is your section and binds you exactly as if you
 Two things a reader needs to know about a CLI-driven seat, and the metadata comment records both: the
 `grounding` field says what that seat could actually reach, so a claim from a seat that was handed only
 the exchange file can be weighed differently from one that read the repository; and `seat_turns`
-against `file_turns` catches a turn the seat believes it took that never reached the file.
+(the CLI's own count of turns on the thread, or `-` where the CLI exposes none) against `file_turns`
+catches a turn the seat believes it took that never reached the file.
 
-A line beginning `> **[transport]` is NOT a section. It records a seat that was asked and did not
-answer — timed out, refused, or returned nothing — and the round it names is still open.
+A line beginning `> **[transport]` is NOT a section. It records either a seat that was asked and did
+not answer (timed out, refused, or returned nothing), in which case the round it names is still open;
+or, directly under a section's terminator, that the section was recorded WITH a warning because
+`seat_turns` and `file_turns` disagree: the thread holds a turn this file never received, and a resume
+carries it.
 
 ## 2. Handles (this is how you distinguish yourself)
 

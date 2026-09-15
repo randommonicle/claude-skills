@@ -214,7 +214,7 @@ log is the record of push state.
   the template's 150s; hence 300s now. It argued two defects, both re-derived and real:
   `--dry-run` exited before the guards (false assurance), and only the active template was
   checked (a bad `continue` refused at round 2 after round 1 was paid for). Fixed in
-  `738c872`: guards at `run-seat.mjs:256-266` sit above the dry-run exit at `:268`; cases
+  `738c872` (line numbers as at that commit; `e440365` onward moved them): guards at `run-seat.mjs:256-266` sit above the dry-run exit at `:268`; cases
   at `run-seat.test.mjs:272` and `:287`.
 
 So §6.1 is settled: viable, minutes not seconds, about 4x the input tokens of a tool-free
@@ -246,10 +246,10 @@ this session, in their own commits, on the operator's yes.
 **1. What ran.** A real cross-agent review through `run-seat.mjs` alone, no pasting: two
 seats (GPT via codex, GEMPRO via agy), Claude as hub, three rounds, converged. Target: the
 guard shipped earlier tonight (`7de222c..8a64f5c`) plus the inert `seat_turns` check as a
-design question. Record: `REVIEW_run-seat-guards_2026-09-15.md` in this session's
-scratchpad (machine-local, not committed; the operator decides whether it goes under
-`docs/`). Every seat citation was re-read against the file before it was acted on; every
-conceded shape was echo-probed at zero tokens first.
+design question. Record: `%USERPROFILE%\agent-exchange\REVIEW_run-seat-guards_2026-09-15.md`
+on this machine, with its `seats.jsonc` and `PROTOCOL.md` (machine-local, not committed; the
+operator decides whether it goes under `docs/`). Every seat citation was re-read against the
+file before it was acted on; every conceded shape was echo-probed at zero tokens first.
 
 **2. What the review found, all verified by probe.** (a) `promptVia` other than the two
 exact strings reached the seat on neither channel; (b) `{prompt}` in two elements sent the
