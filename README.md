@@ -1,5 +1,47 @@
 # claude-skills
 
+## Start here
+
+This is a set of rules and checks for [Claude Code](https://claude.com/claude-code), the AI
+coding tool. Claude reads each one automatically at the moment it is about to do the thing
+that rule covers (write a test, push code, change a database, send something to an AI model),
+and each one exists because that mistake has already happened once on a real project. You do
+not run anything by hand; once installed, the rules load themselves.
+
+Three kinds of thing live here:
+
+- **Skills**: short playbooks Claude reads at the right moment. The table below lists them.
+- **Hooks**: small scripts that run around Claude's actions. One asks you before any push. One
+  runs your project's linter on a file Claude has just edited. One fetches your repo's state at
+  the start of a session so Claude is not working from a stale picture.
+- **Norms**: six one-line rules that apply in every session.
+
+**To install on a new machine**, about five minutes:
+
+1. Install Claude Code, `git` and [Node.js](https://nodejs.org/). For the live repo checks,
+   also the [GitHub CLI](https://cli.github.com/) and run `gh auth login`.
+2. In a Claude Code session run `/plugin marketplace add randommonicle/claude-skills`, then
+   `/plugin install ash@ash-skills`.
+3. Check it worked: `node ~/.claude/skills/hooks/check-index.mjs` prints `ok: ...`. If skills are
+   present but nothing ever fires, the hooks are the part that did not install; see
+   [Install on a new machine](#install-on-a-new-machine) below.
+4. Optional, for the two-model code review (`cross-agent-review`, where Claude has Gemini and GPT
+   argue over a change): install the `agy` and `codex` command-line tools and copy one settings
+   file. The steps are in [cross-agent-review/SKILL.md](cross-agent-review/SKILL.md) and the
+   comments of [cross-agent-review/templates/](cross-agent-review/templates/).
+
+**What you will notice afterwards**: a confirmation prompt before every push; a line about your
+repo's state at the start of each session; a lint report when Claude edits a JavaScript or
+TypeScript file in a project that has a linter; and Claude visibly loading a skill before it
+writes a test, a migration or a call to an AI model.
+
+**Where things are**: the skills in the table below; hooks in [hooks/HOOKS.md](hooks/HOOKS.md);
+what went wrong on real jobs and what was learned in [LESSONS_LEARNED.md](LESSONS_LEARNED.md);
+standing choices and why in [DECISIONS.md](DECISIONS.md). The rest of this page is the
+engineering detail.
+
+## What this is
+
 Personal, version-controlled [Claude Code](https://claude.com/claude-code) skills, synced to `~/.claude/skills/`. Installed at the **user level**, so they apply to every project on this machine automatically (no per-project setup).
 
 **If you have arrived here from outside:** these are engineering guardrails, not prompts or personas. Each skill is a short playbook that loads when Claude is about to do the specific thing it guards, and almost every one exists because a real defect shipped without it. They were distilled from the lessons-learned corpora of four production repos, one of them a regulated UK property-management platform, so the examples are concrete and some are domain-specific. You are welcome to install the lot, fork it, or read a few and steal the ideas. Start with [`verify-the-effect`](verify-the-effect/SKILL.md) and [`prove-it-can-fail`](prove-it-can-fail/SKILL.md), which are the two that change the most behaviour for the least reading. **This repository is licensed under Apache-2.0** (see the `LICENSE` file). The three `unslop-*` skills are forks and carry their upstream's terms, recorded in their own `UPSTREAM.md`.
@@ -55,7 +97,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **checkpoint-log** | leaf | Per-commit checkpoint notes in a committed WORKLOG.md for multi-commit units; close with an explicit checklist walk, wiring steps included. |
 | **handover** | leaf | Structured handover from a real /context reading, or an honestly recorded gap where the harness cannot take one; supersession stamps; carry-forwards cite live state. |
 | **committee-review** | process | Three-lens review with shared evidence, attribution-stripped consolidation, and voting. |
-| **cross-agent-review** | process | Adversarially review a scoped change/design/finding by debating one or more independent AI agents (Gemini or GPT, several seats at once) over a shared file relay, grounded in live read-only evidence; converge or two positions. |
+| **cross-agent-review** | process | Adversarially review a scoped change/design/finding by debating one or more independent AI agents (Gemini via the agy CLI or GPT via the codex CLI, driven by Claude itself with no pasting; or a chat you drive; several seats at once) over a shared file relay, grounded in live read-only evidence; converge or two positions. |
 | **skill-library-builder** | process | Turn a repo into a project-specific skill library; skills encode mechanical steps, not awareness. |
 | **ai-surface-discipline / unslop-ui / unslop-text / unslop-code** | see rows above / forks | The three **unslop-\*** skills are forks of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches — see each skill's `UPSTREAM.md`. |
 
@@ -73,7 +115,7 @@ node hooks/check-index.mjs
 
 It asserts the **set** in both directions, which is the load-bearing half, plus each skill's frontmatter `name` against its directory, a non-empty description, and all three stated counts. It is a CI gate rather than a hook because the drift was caused by a **deletion**, which no Write or Edit hook can see. `hooks/check-index.test.mjs` proves it can go red: fourteen cases, each mutating one thing and pinning the substring that identifies its own defect, including a regression case named for `1d780cb`. Run against real history the gate reds with three problems at `1d780cb` and two at `385755d`, tracking the partial fix exactly.
 
-The same workflow's second job runs **every** hook suite (`hooks/*.test.mjs`) on ubuntu, and that job is why it is worth having. `lint-after-edit.test.mjs` builds `#!/bin/sh` linter stubs, so its six "fires" cases cannot execute on the Windows machine this library is maintained from, and before the job existed they were not executed on Linux either. Six cases guarding nothing look identical to six cases passing. Every suite runs even after one fails, so a red run reports the whole picture rather than the first fault.
+The same workflow's second job runs **every** hook suite (`hooks/*.test.mjs`) on ubuntu, and that job is why it is worth having. `lint-after-edit.test.mjs` built `#!/bin/sh` linter stubs until 2026-09-15, so its six "fires" cases could not execute on the Windows machine this library is maintained from, and before the job existed they were not executed on Linux either. Six cases guarding nothing look identical to six cases passing, and here they hid a hook that was silent on every Windows project; the stubs are node scripts now and the suite runs on both platforms. Every suite runs even after one fails, so a red run reports the whole picture rather than the first fault.
 
 ## The archive gate
 
