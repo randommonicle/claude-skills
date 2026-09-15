@@ -14,8 +14,13 @@ import { writeFileSync } from 'node:fs';
 const argv = process.argv.slice(2);
 const outIdx = argv.indexOf('-o');
 const outFile = outIdx >= 0 ? argv[outIdx + 1] : null;
-const isResume = argv.includes('resume');
-const thread = isResume ? argv[argv.indexOf('resume') + 1] : '01a0a4d5-3e2a-7e42-93d4-49cb6405bdb5';
+// A resume is `exec resume <id>` in codex's shape and `--conversation <id>` in agy's. The
+// fake read only the first until the seat_turns work of 2026-09-15, so an envelope-shaped
+// resume never counted as one and num_turns stayed at 1: the fixture differed from the
+// real CLI on the dimension under test.
+const resumeIdx = argv.includes('resume') ? argv.indexOf('resume') : argv.indexOf('--conversation');
+const isResume = resumeIdx >= 0;
+const thread = isResume ? argv[resumeIdx + 1] : '01a0a4d5-3e2a-7e42-93d4-49cb6405bdb5';
 const mode = process.env.FAKE_SEAT_MODE ?? 'success';
 
 // Drain stdin: the real CLI reads the prompt there, and a test that never reads it can

@@ -105,7 +105,41 @@ test('a second turn resumes the recorded thread instead of opening a new one', (
   // continue template ran rather than start.
   if (!/Conceded on the citation/.test(r.md)) return 'resume template was not used';
   if (!/usage: in=42879/.test(r.md)) return 'resume usage not recorded';
-  if (!/seat_turns: 2 \| file_turns: 2/.test(r.md)) return 'turn counters wrong';
+  // codex's JSONL carries no turn count, so seat_turns is unknown and says so. Until the
+  // 2026-09-15 review this line expected "seat_turns: 2", a number the script had
+  // manufactured from the file's own previous value (GPT: "circular").
+  if (!/seat_turns: - \| file_turns: 2/.test(r.md)) return 'an unknown CLI turn count was not recorded as unknown: ' + r.md.slice(-160);
+  return true;
+});
+
+test('records the CLI turn count from the envelope, on the start and on the resume', (s) => {
+  stageEnvelope(s);
+  runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  let md = readFileSync(s.review, 'utf8');
+  if (!/seat_turns: 1 \| file_turns: 1/.test(md)) return 'round 1 count not recorded: ' + md.slice(-160);
+  writeFileSync(s.review, md + '\n## [CLAUDE round 2]\n\nNEXT: ALL\n\n[[END CLAUDE round 2]]\n');
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  if (r.code !== 0) return 'exit ' + r.code + ' :: ' + r.out.slice(0, 200);
+  if (!/seat_turns: 2 \| file_turns: 2/.test(r.md)) return 'round 2 count not recorded: ' + r.md.slice(-160);
+  if (/recorded with a warning/.test(r.md)) return 'a matching count raised a warning';
+  return true;
+});
+
+test('a CLI turn count the file does not hold is recorded with a visible warning, never dropped', (s) => {
+  stageEnvelope(s);
+  runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  writeFileSync(s.review, readFileSync(s.review, 'utf8') + '\n## [CLAUDE round 2]\n\nNEXT: ALL\n\n[[END CLAUDE round 2]]\n');
+  // The CLI says this thread has had three turns; the file holds one section, so this is
+  // file turn 2. A turn happened that the record never received. The reply is still the
+  // seat's answer to this ask and the operator paid for it (record-and-warn, converged
+  // in the 2026-09-15 review, against both seats' first instinct to refuse the section).
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope', FAKE_SEAT_NUM_TURNS: '3' });
+  if (r.code !== 0) return 'exit ' + r.code + ' :: ' + r.out.slice(0, 200);
+  if (!/^## \[GEM round 2\]$/m.test(r.md)) return 'the section was dropped';
+  if (!/guard at src\/a\.ts:12/.test(r.md)) return 'the reply body was dropped';
+  if (!/seat_turns: 3 \| file_turns: 2/.test(r.md)) return 'both counts not recorded: ' + r.md.slice(-200);
+  if (!/\[transport\] GEM round 2 recorded with a warning.*3 turns.*2 sections/.test(r.md)) return 'no visible warning: ' + r.md.slice(-300);
+  if (!/ANSWERED.*WARNING/.test(r.out)) return 'stdout does not warn: ' + r.out.slice(0, 200);
   return true;
 });
 

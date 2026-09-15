@@ -22,7 +22,7 @@ import { dirname, join, resolve } from 'node:path';
 
 const SPOKE_HEADER = /^## \[([A-Z][A-Z0-9_-]*) round (\d+)\]/gm;
 const HUB_HEADER = /^## \[(CLAUDE|BEN)[^\]]*\]/gm;
-const META = /^<!-- seat: ([A-Z][A-Z0-9_-]*) \| thread: ([^ |]*) \|.*?seat_turns: (\d+)/gm;
+const META = /^<!-- seat: ([A-Z][A-Z0-9_-]*) \| thread: ([^ |]*) \|/gm;
 
 function die(msg) {
   console.error(`run-seat: ${msg}`);
@@ -65,9 +65,8 @@ function readState(md, handle) {
   const answeredOpenRound = spokeTurns.some((m) => m.index > openRoundAt);
 
   let thread = '';
-  let seatTurns = 0;
   for (const m of md.matchAll(META)) {
-    if (m[1] === handle) { thread = m[2] === '-' ? '' : m[2]; seatTurns = Number(m[3]); }
+    if (m[1] === handle) thread = m[2] === '-' ? '' : m[2];
   }
   return {
     nextRound: spokeTurns.length + 1,
@@ -75,7 +74,6 @@ function readState(md, handle) {
     answeredOpenRound,
     hasOpenRound: openRoundAt >= 0,
     thread,
-    lastSeatTurns: seatTurns,
   };
 }
 
@@ -182,6 +180,14 @@ function pickEvent(stdout, spec) {
 // events and writes the reply to a -o file; agy returns ONE envelope on stdout carrying
 // the reply, the conversation id, usage and - for a denial, though not for a timeout -
 // a structured denied_actions array.
+// The CLI's own count of turns on this conversation, or null where the CLI exposes none.
+// agy's envelope carries num_turns (measured 2026-09-15: 1 on a tool-using start, 2 after
+// one resume, so it counts conversation turns and not model steps); codex's JSONL carries
+// nothing equivalent.
+function turnCount(v) {
+  return typeof v === 'number' && Number.isFinite(v) ? v : null;
+}
+
 function readOutputs(res, cfg, replyFile) {
   if (cfg.outputFormat === 'envelope') {
     let env = {};
@@ -191,6 +197,7 @@ function readOutputs(res, cfg, replyFile) {
       thread: env[cfg.threadIdPath ?? 'conversation_id'] ?? '',
       usage: env[cfg.usagePath ?? 'usage'] ?? {},
       denied: env[cfg.deniedPath ?? 'denied_actions'] ?? null,
+      seatTurns: turnCount(env[cfg.seatTurnsPath ?? 'num_turns']),
     };
   }
   return {
@@ -198,6 +205,7 @@ function readOutputs(res, cfg, replyFile) {
     thread: pickEvent(res.stdout, cfg.threadIdFrom) ?? '',
     usage: pickEvent(res.stdout, cfg.usageFrom) ?? {},
     denied: null,
+    seatTurns: turnCount(pickEvent(res.stdout, cfg.seatTurnsFrom)),
   };
 }
 
@@ -330,7 +338,15 @@ const verdict = classify({ res, reply, denied: outs.denied });
 
 const thread = outs.thread || st.thread;
 const usage = outs.usage;
-const usageStr = `in=${usage.input_tokens ?? '?'} out=${usage.output_tokens ?? '?'}`;
+// in/out are gross on both CLIs. codex re-sends its context on every tool call and agy
+// reports cache reads and thinking separately, so the cheaper components are recorded
+// where a CLI exposes them; a reader costing a turn from this line needs them.
+const usageStr =
+  `in=${usage.input_tokens ?? '?'} out=${usage.output_tokens ?? '?'}` +
+  ['cached_input_tokens', 'cache_read_tokens', 'thinking_tokens']
+    .filter((k) => typeof usage[k] === 'number')
+    .map((k) => ` ${k.replace(/_tokens$/, '')}=${usage[k]}`)
+    .join('');
 rmSync(tmp, { recursive: true, force: true });
 
 if (!verdict.ok) {
@@ -349,15 +365,31 @@ if (!verdict.ok) {
   process.exit(1);
 }
 
-// seat_turns is the CLI's own count; file_turns is ours. A divergence means a turn
-// happened that the record never received - the one check that catches a reply lost to
-// a kill or a timeout after the seat had already advanced its own history.
-const seatTurns = st.lastSeatTurns + 1;
+// seat_turns is the CLI's own count of turns on this thread; file_turns is ours. They
+// diverge when a turn happened that this record never received: a kill or a timeout
+// after the seat had already advanced its own history. Until the 2026-09-15 review
+// seat_turns was computed from the file's previous value plus one, so it equalled
+// file_turns by construction and the check could not fire.
+//
+// On divergence the section is still recorded. The reply is the seat's answer to THIS
+// ask and the operator paid for it; the divergence is a fact about the thread, not the
+// reply, and is stated beside it in the file, in the metadata and on stdout. Nothing is
+// retried: this script formats one turn and decides nothing.
+const seatTurns = outs.seatTurns;
+const diverged = seatTurns !== null && seatTurns !== round;
 appendFileSync(
   reviewPath,
   `\n## [${handle} round ${round}]\n\n${reply.trim()}\n\n[[END ${handle} round ${round}]]\n` +
     `<!-- seat: ${handle} | thread: ${thread || '-'} | grounding: ${cfg.grounding ?? 'unknown'}` +
-    ` | seat_turns: ${seatTurns} | file_turns: ${round} | usage: ${usageStr} -->\n`,
+    ` | seat_turns: ${seatTurns ?? '-'} | file_turns: ${round} | usage: ${usageStr} -->\n` +
+    (diverged
+      ? `> **[transport] ${handle} round ${round} recorded with a warning** - the CLI reports ${seatTurns} turns ` +
+        `on this thread but this file holds ${round} sections for ${handle}. A turn happened that this record ` +
+        `never received, and a resume carries it. Reset the thread or read on knowing that.\n`
+      : ''),
   'utf8',
 );
-console.log(`ANSWERED      ${handle} round ${round} (${usageStr}) thread=${thread || '-'}`);
+console.log(
+  `ANSWERED      ${handle} round ${round} (${usageStr}) thread=${thread || '-'}` +
+    (diverged ? ` WARNING: seat_turns ${seatTurns} != file_turns ${round}` : ''),
+);

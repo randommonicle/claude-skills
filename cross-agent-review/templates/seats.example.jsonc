@@ -30,6 +30,9 @@
     "replyFrom":    "replyFile",
     "threadIdFrom": { "event": "thread.started",  "field": "thread_id" },
     "usageFrom":    { "event": "turn.completed",  "field": "usage" },
+    // codex's events carry no count of turns on the thread, so seat_turns is recorded
+    // as "-" for this seat and the divergence check does not apply. Add a seatTurnsFrom
+    // { event, field } here if a later codex exposes one.
 
     // read-only is NOT a reading restriction. Verified 2026-09-15: under -s read-only a
     // seat read a file OUTSIDE its -C root, so -C does not contain reads and the seat
@@ -89,6 +92,13 @@
     "threadIdPath":  "conversation_id",
     "usagePath":     "usage",
     "deniedPath":    "denied_actions",
+
+    // The CLI's own count of turns on the conversation. Measured 2026-09-15: 1 on a
+    // tool-using start, 2 after one resume, so it counts conversation turns, not model
+    // steps. run-seat records it as seat_turns beside its own file_turns; when they
+    // differ, a turn happened that the record never received (a kill or timeout after
+    // the seat advanced its history) and the section is recorded WITH a visible warning.
+    "seatTurnsPath": "num_turns",
 
     // The anti-wander rule, and the single biggest cost lever measured on 2026-09-15.
     // When find hits a context deadline this agent falls back to recursive list_dir and
