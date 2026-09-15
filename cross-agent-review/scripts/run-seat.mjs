@@ -165,13 +165,15 @@ function run(cfg, argv, stdinInput, timeoutMs, cwd) {
   };
 }
 
+// codex keys its events "type"; agy keys them "event". spec.key names which.
 function pickEvent(stdout, spec) {
   if (!spec) return undefined;
+  const key = spec.key ?? 'type';
   for (const line of stdout.split('\n')) {
     if (!line.trim()) continue;
     let o;
     try { o = JSON.parse(line); } catch { continue; }
-    if (o.type === spec.event) return o[spec.field];
+    if (o[key] === spec.event) return o[spec.field];
   }
   return undefined;
 }
@@ -190,8 +192,13 @@ function turnCount(v) {
 
 function readOutputs(res, cfg, replyFile) {
   if (cfg.outputFormat === 'envelope') {
+    // The envelope is the whole of stdout (agy --output-format json) or one field of one
+    // event in a stream (agy --output-format stream-json puts the same object under
+    // "result" of the final {"event":"result"} line; envelopeFrom names that).
     let env = {};
-    try { env = JSON.parse(res.stdout); } catch {}
+    if (cfg.envelopeFrom) env = pickEvent(res.stdout, cfg.envelopeFrom) ?? {};
+    else { try { env = JSON.parse(res.stdout); } catch {} }
+    if (typeof env !== 'object' || env === null) env = {};
     return {
       reply: String(env[cfg.replyPath ?? 'response'] ?? ''),
       thread: env[cfg.threadIdPath ?? 'conversation_id'] ?? '',
@@ -299,6 +306,31 @@ for (const name of ['start', 'continue']) {
   }
 }
 
+// A stdin seat may wrap the prompt: stdinJson is an object sent as one NDJSON line with
+// its single "{prompt}" leaf replaced by the prompt text (agy's --input-format
+// stream-json wants {"event":"user","message":{"role":"user","content":"..."}}). The same
+// rule as the templates, for the same reason: exactly one slot, or the seat receives
+// the prompt never or twice and the transport cannot tell.
+function promptLeaves(v) {
+  if (v === '{prompt}') return 1;
+  if (Array.isArray(v)) return v.reduce((acc, x) => acc + promptLeaves(x), 0);
+  if (v && typeof v === 'object') return Object.values(v).reduce((acc, x) => acc + promptLeaves(x), 0);
+  return 0;
+}
+function fillPrompt(v) {
+  if (v === '{prompt}') return prompt;
+  if (Array.isArray(v)) return v.map(fillPrompt);
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fillPrompt(x)]));
+  return v;
+}
+if (cfg.stdinJson !== undefined) {
+  if (viaArgv) die(`${handle} takes the prompt on argv but also has stdinJson; the prompt goes by one channel, not two`);
+  if (!cfg.stdinJson || typeof cfg.stdinJson !== 'object') die(`${handle}'s stdinJson must be an object`);
+  const n = promptLeaves(cfg.stdinJson);
+  if (n !== 1) die(`${handle}'s stdinJson has ${n} "{prompt}" slot${n === 1 ? '' : 's'}; it needs exactly one, or the seat receives the prompt ${n === 0 ? 'never' : 'more than once'}`);
+}
+const stdinPayload = viaArgv ? undefined : cfg.stdinJson !== undefined ? JSON.stringify(fillPrompt(cfg.stdinJson)) + '\n' : prompt;
+
 if (argv.includes('--dry-run')) {
   process.stdout.write(prompt);
   process.exit(0);
@@ -313,8 +345,20 @@ const ARGV_BUDGET = 30000;
 if (viaArgv && prompt.length > ARGV_BUDGET) {
   die(
     `the composed prompt is ${prompt.length} characters and ${handle} takes it on argv, ` +
-      `which fails above about ${ARGV_BUDGET} on this platform. Give this seat a stdin ` +
-      `transport ("promptVia": "stdin"), or shorten the exchange.`,
+      `which fails above about ${ARGV_BUDGET} on this platform. Shorten the exchange, or ` +
+      `give this seat a stdin transport if its CLI has one without a lower ceiling.`,
+  );
+}
+
+// stdin is not free of ceilings either, and the one measured is SILENT: agy 1.2.3's
+// stream-json input drops any line over about 23,500 bytes and returns SUCCESS with an
+// empty response and zero usage, which this transport would otherwise report as "the
+// seat returned an empty reply" (measured 2026-09-15: 23,184 bytes answered, 23,884 did
+// not). A seat that names its ceiling in stdinBudget is refused before spawning instead.
+if (!viaArgv && typeof cfg.stdinBudget === 'number' && Buffer.byteLength(stdinPayload, 'utf8') > cfg.stdinBudget) {
+  die(
+    `the stdin payload is ${Buffer.byteLength(stdinPayload, 'utf8')} bytes and ${handle} declares a ` +
+      `stdinBudget of ${cfg.stdinBudget}; past it the CLI drops the turn silently. Shorten the exchange.`,
   );
 }
 
@@ -331,7 +375,7 @@ const cwd = flag('--cwd', dirname(resolve(reviewPath)));
 const values = { thread: st.thread, replyFile, cwd, sandbox: cfg.sandbox ?? 'read-only', prompt };
 const subst = (s) => s.replace(/\{(thread|replyFile|cwd|sandbox|prompt)\}/g, (_, k) => values[k]);
 
-const res = run(cfg, template.map(subst), viaArgv ? undefined : prompt, cfg.timeoutMs ?? 600000, cwd);
+const res = run(cfg, template.map(subst), stdinPayload, cfg.timeoutMs ?? 600000, cwd);
 const outs = readOutputs(res, cfg, replyFile);
 const reply = outs.reply;
 const verdict = classify({ res, reply, denied: outs.denied });

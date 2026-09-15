@@ -109,7 +109,10 @@ code discussion and citations only; never personal data, credentials, secrets, o
   workspace and auto-allowed; give exact paths and forbid shell (the shipped `promptSuffix` does, and a
   denied command ends the turn with nothing at 80k tokens); and treat the exchange file as a **shared
   budget**, because an argv seat receives the whole file and is refused above 30,000 characters, which
-  a three-round, two-seat review with 4,000-character sections reaches at round three. Measured cost of
+  a three-round, two-seat review with 4,000-character sections reaches at round three. That ceiling
+  is Windows' command line, and stdin is not the way round it for agy: its stream-json input drops a
+  line over about 23,500 bytes silently (measured), so the answer to a long exchange is shorter
+  sections or fewer seats, not a bigger budget. Measured cost of
   a review turn: agy 80-95k input tokens and 1.5-2.5 minutes, codex 400-600k gross (mostly cache
   reads, recorded as `cached_input`) and 1.5-3.5 minutes. The metadata line also carries
   `seat_turns`, the CLI's own count of turns on the thread (`-` for codex); when it disagrees with

@@ -437,6 +437,102 @@ test('a thread id of {prompt} read from the file stays literal in the continue t
   return true;
 });
 
+// agy's stdin shape, the one the shipped GEMPRO block uses since 2026-09-15: the prompt
+// travels inside one NDJSON message and the envelope comes back inside a "result" event.
+// No argv budget applies, which is the point.
+function stageStreamJson(s) {
+  reseat(s, (seats) => {
+    seats.GEM = {
+      command: process.execPath,
+      promptVia: 'stdin',
+      stdinJson: { event: 'user', message: { role: 'user', content: '{prompt}' } },
+      start: [FAKE, '--print=', '--input-format', 'stream-json', '--output-format', 'stream-json', '--new-project'],
+      continue: [FAKE, '--print=', '--input-format', 'stream-json', '--output-format', 'stream-json', '--conversation', '{thread}'],
+      outputFormat: 'envelope',
+      envelopeFrom: { key: 'event', event: 'result', field: 'result' },
+      replyPath: 'response',
+      threadIdPath: 'conversation_id',
+      usagePath: 'usage',
+      deniedPath: 'denied_actions',
+      seatTurnsPath: 'num_turns',
+      promptSuffix: 'Use the exact file paths given to you.',
+      grounding: 'repo-read',
+      timeoutMs: 30000,
+    };
+  });
+}
+
+test('a stdin-json seat receives the composed prompt inside the message, and nothing on argv', (s) => {
+  stageStreamJson(s);
+  const dump = join(s.root, 'prompt-dump.json');
+  const r = runSeat(s.review, 'GEM', 'success', ['--ask', 'Cite the line. The cost is $& not $1.'], { FAKE_SEAT_SHAPE: 'stream-json', FAKE_SEAT_PROMPT_DUMP: dump });
+  if (r.code !== 0) return 'exit ' + r.code + ' :: ' + r.out.slice(0, 200);
+  const got = JSON.parse(readFileSync(dump, 'utf8'));
+  let msg;
+  try { msg = JSON.parse(got.stdin.split('\n')[0]); } catch { return 'stdin was not one JSON message: ' + got.stdin.slice(0, 80); }
+  if (msg.event !== 'user' || typeof msg.message?.content !== 'string') return 'wrong message shape: ' + JSON.stringify(msg).slice(0, 120);
+  if (!/YOUR HANDLE: GEM/.test(msg.message.content)) return 'composed prompt not in the message';
+  if (!msg.message.content.includes('THIS ROUND: Cite the line. The cost is $& not $1.')) return 'ask not delivered verbatim';
+  if (!msg.message.content.endsWith('Use the exact file paths given to you.')) return 'promptSuffix not delivered';
+  if (got.argv.some((a) => /YOUR HANDLE/.test(a))) return 'the prompt also went on argv';
+  return true;
+});
+
+test('an envelope nested in a result event is read: reply, thread, usage and turn count', (s) => {
+  stageStreamJson(s);
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'stream-json' });
+  if (r.code !== 0) return 'exit ' + r.code + ' :: ' + r.out.slice(0, 200);
+  if (!/^## \[GEM round 1\]$/m.test(r.md)) return 'no section';
+  if (!/guard at src\/a\.ts:12/.test(r.md)) return 'reply not taken from the nested envelope';
+  if (!/<!-- seat: GEM \| thread: 01a0a4d5-/.test(r.md)) return 'thread id not read from the nested envelope';
+  if (!/seat_turns: 1 \| file_turns: 1 \| usage: in=21425/.test(r.md)) return 'usage or turn count not read: ' + r.md.slice(-200);
+  return true;
+});
+
+test('a denial inside the result event is named, and no section is appended', (s) => {
+  stageStreamJson(s);
+  const r = runSeat(s.review, 'GEM', 'denied', [], { FAKE_SEAT_SHAPE: 'stream-json' });
+  if (/## \[GEM round 1\]/.test(r.md)) return 'appended a section for a denied turn';
+  if (!/RunCommand/.test(r.md)) return 'did not name the denied tool: ' + r.md.slice(-200);
+  return true;
+});
+
+test('each channel has its own ceiling: argv refuses over 30,000, a stdin seat refuses over its stdinBudget', (s) => {
+  // 40,000 characters of exchange. The argv seat is refused (Windows' command-line
+  // ceiling). A stdin seat with no declared budget goes through, because the transport
+  // cannot know a CLI's stdin limit. One that declares stdinBudget is refused before
+  // spawning, because agy 1.2.3 drops an over-long line SILENTLY (SUCCESS, empty
+  // response, zero usage; measured 2026-09-15 between 23,184 and 23,884 bytes), which
+  // would otherwise be recorded as "the seat returned an empty reply".
+  const big = readFileSync(s.review, 'utf8').replace('Framing and evidence.', 'Framing and evidence.\n\n' + 'x'.repeat(40000));
+  writeFileSync(s.review, big, 'utf8');
+  stageEnvelope(s);
+  const argv = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  if (argv.code !== 2 || !/takes it on argv/.test(argv.out)) return 'the argv seat was not refused over budget: exit ' + argv.code + ' :: ' + argv.out.slice(0, 160);
+  stageStreamJson(s);
+  const free = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'stream-json' });
+  if (free.code !== 0) return 'a stdin seat with no declared budget did not answer: exit ' + free.code + ' :: ' + free.out.slice(0, 200);
+  writeFileSync(s.review, big, 'utf8');
+  reseat(s, (seats) => { seats.GEM.stdinBudget = 23000; });
+  const dump = join(s.root, 'prompt-dump.json');
+  const capped = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'stream-json', FAKE_SEAT_PROMPT_DUMP: dump });
+  if (capped.code !== 2) return 'a stdin seat over its stdinBudget was not refused: exit ' + capped.code + ' :: ' + capped.out.slice(0, 200);
+  if (!/drops the turn silently/.test(capped.out)) return 'refusal does not say why: ' + capped.out.slice(0, 200);
+  if (existsSync(dump)) return 'the seat was spawned over budget';
+  return true;
+});
+
+test('a stdinJson with no {prompt} slot is refused before spawn', (s) => {
+  stageStreamJson(s);
+  reseat(s, (seats) => { seats.GEM.stdinJson = { event: 'user', message: { role: 'user', content: 'fixed text' } }; });
+  const dump = join(s.root, 'prompt-dump.json');
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'stream-json', FAKE_SEAT_PROMPT_DUMP: dump });
+  if (r.code !== 2) return 'exit ' + r.code + ', expected 2 :: ' + r.out.slice(0, 200);
+  if (!/"\{prompt\}" slot/.test(r.out)) return 'refusal does not name the missing slot: ' + r.out.slice(0, 200);
+  if (existsSync(dump)) return 'the seat was spawned with no prompt';
+  return true;
+});
+
 test('a seat with no continue template is refused with a message, not a TypeError', (s) => {
   stageEnvelope(s);
   const seatsPath = join(s.root, 'exchange', 'seats.jsonc');

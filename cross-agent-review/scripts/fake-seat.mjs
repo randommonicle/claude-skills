@@ -53,7 +53,13 @@ process.stdin.on('end', () => {
   // agy's shape: ONE envelope on stdout, the reply inside it, no -o file, and a
   // structured denied_actions array on a denial (but never on a timeout - verified
   // against a real run on 2026-09-15).
-  if (process.env.FAKE_SEAT_SHAPE === 'envelope') {
+  //
+  // agy's stdin shape (measured 2026-09-15): --input-format stream-json reads one NDJSON
+  // line {"event":"user","message":{"role":"user","content":"<prompt>"}} and writes
+  // events keyed "event", the last being {"event":"result","result":{<the same
+  // envelope, denied_actions included>}}. The same envelope, one level down.
+  const shape = process.env.FAKE_SEAT_SHAPE;
+  if (shape === 'envelope' || shape === 'stream-json') {
     // num_turns is the CLI's own count of conversation turns (measured 2026-09-15: 1 on a
     // tool-using start, 2 after one resume). Overridable so a test can make it disagree
     // with the file, which is the one thing the transport's integrity check must notice.
@@ -70,6 +76,21 @@ process.stdin.on('end', () => {
       env.response = '';
     } else {
       env.response = 'The guard at src/a.ts:12 is present four lines above where the report says it is missing.\n';
+    }
+    if (shape === 'stream-json') {
+      // A malformed stdin line is what the real CLI refuses with status ERROR and no
+      // turn; the fake does the same so a transport that sends the raw prompt instead of
+      // the message is caught by the shape, not only by the dump.
+      let msg = null;
+      try { msg = JSON.parse(stdin.split('\n')[0]); } catch {}
+      if (!msg || msg.event !== 'user' || typeof msg.message?.content !== 'string') {
+        emit({ event: 'result', result: { ...env, status: 'ERROR', response: '', num_turns: 0, error: 'stream input message is missing the "event" field' } });
+        process.exit(1);
+      }
+      emit({ event: 'init', conversation_id: thread, init: { cwd: process.cwd() } });
+      emit({ event: 'step_update', step: 1 });
+      emit({ event: 'result', result: env });
+      process.exit(0);
     }
     process.stdout.write(JSON.stringify(env) + '\n');
     process.exit(0);

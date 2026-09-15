@@ -79,9 +79,20 @@
   "GEMPRO": {
     "command": "agy",
 
-    // agy takes the prompt on ARGV, not stdin (--input-format stream-json expects NDJSON,
-    // which is a different invocation shape). run-seat refuses above ~30,000 characters
-    // rather than letting spawn fail ENAMETOOLONG and look like an unanswered seat.
+    // The prompt goes on ARGV. run-seat refuses above 30,000 characters, which is Windows'
+    // command-line ceiling (measured ENAMETOOLONG at ~32,700), rather than letting the
+    // spawn fail and look like an unanswered seat; a three-round, two-seat review reached
+    // it at round three (2026-09-15).
+    //
+    // Why not stdin, measured the same night: agy 1.2.3 does take the prompt on stdin
+    // (--print= --input-format stream-json --output-format stream-json, one line
+    // {"event":"user","message":{"role":"user","content":"..."}}, resumes with
+    // --conversation, ships denied_actions in the final {"event":"result"} line), but it
+    // DROPS any stdin line over about 23,500 bytes and returns SUCCESS with an empty
+    // response and zero usage, nothing on stderr: a lower ceiling than argv, and a silent
+    // one. The transport supports that shape (promptVia "stdin" + stdinJson + envelopeFrom
+    // { key: "event", event: "result", field: "result" } + stdinBudget 23000, so the drop
+    // becomes a named refusal) for a later agy that lifts the limit. Until then, argv.
     "promptVia": "argv",
     "start":    ["-p", "{prompt}", "--output-format", "json", "--new-project", "--print-timeout", "300s"],
     "continue": ["-p", "{prompt}", "--conversation", "{thread}", "--output-format", "json", "--print-timeout", "300s"],
