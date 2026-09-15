@@ -240,3 +240,56 @@ tool. And a handover figure ("20 cases") is a claim like any other: count before
 
 **10. Promoted, not left here.** LESSONS entry 16 and the DECISIONS entry are written in
 this session, in their own commits, on the operator's yes.
+
+## 13. The multi-round review ran (§8.3), and what it changed. bengr machine, 2026-09-15 late
+
+**1. What ran.** A real cross-agent review through `run-seat.mjs` alone, no pasting: two
+seats (GPT via codex, GEMPRO via agy), Claude as hub, three rounds, converged. Target: the
+guard shipped earlier tonight (`7de222c..8a64f5c`) plus the inert `seat_turns` check as a
+design question. Record: `REVIEW_run-seat-guards_2026-09-15.md` in this session's
+scratchpad (machine-local, not committed; the operator decides whether it goes under
+`docs/`). Every seat citation was re-read against the file before it was acted on; every
+conceded shape was echo-probed at zero tokens first.
+
+**2. What the review found, all verified by probe.** (a) `promptVia` other than the two
+exact strings reached the seat on neither channel; (b) `{prompt}` in two elements sent the
+prompt twice, twice in one element sent one copy plus a literal; (c) a thread id of
+`{prompt}` in the file's metadata expanded into the whole prompt as the `--conversation`
+argument; (d) a hard `spawnSync` timeout was reported as "could not be started
+(ETIMEDOUT)"; (e) the "missing CLI" test never reached `resolveCommand() === null`; (f)
+the resume test's `seat_turns` assertion was circular. Two challenges were settled on
+evidence: pre-flight silence is NOT a defect (GPT conceded to GEMPRO); on a `seat_turns`
+divergence the section is recorded with a warning, not refused (both seats conceded to the
+hub: the reply file is already unlinked by then, so refusal destroys the only copy). The
+gate both seats set, one direct agy probe, returned `num_turns: 1` on a tool-using turn.
+
+**3. What landed, all local until asked, each with red-first cases.**
+
+| sha | what | proof |
+|---|---|---|
+| `e440365` | channel resolved once and validated; string elements; exactly one `{prompt}` per argv template; single-pass function substitution | 5 cases red before; the three probe shapes now refused; 28 green |
+| `143e776` | ETIMEDOUT is a hard transport timeout, its own message | hanging fake, red before; 29 green |
+| `5933090` | genuine NOTFOUND case; the old one retitled, fake mode `exit-127` | mutation-checked; 30 green |
+| `d329385` | `seat_turns` from the CLI (`seatTurnsPath`, `-` for JSONL); record-and-warn on divergence; cached/thinking usage recorded | 2 red before; a fixture gap found and fixed (the fake saw only codex's `resume`, never agy's `--conversation`); 32 green |
+
+**4. Ridden after the fixes, verified.** Tool-free start and resume against real agy:
+`seat_turns: 1 | file_turns: 1` then `2 | 2`, from the envelope. One tool-free codex turn:
+`seat_turns: -`, `cached_input=23040` of `in=26448`. 24 seconds for the three.
+
+**5. Transport observations from the review itself.** GEMPRO's first round-1 attempt was
+auto-denied at a `RunCommand` (82,907 tokens; visible note; round left open; re-asked with
+shell forbidden and answered). The transport records only the denied tool's name, not the
+command; the agy log does not carry it either. The argv budget was reached at round 3
+(29,655 of 30,000): the hub ran GEMPRO before GPT that round for that reason; a longer
+exchange would refuse GEMPRO at pre-flight. Spend recorded in the exchange: 2.03M input /
+110k output tokens across seven seat turns, of which GPT's 1.5M input is gross codex
+context re-sends; the fixed transport now records the cached component. Wall clock about
+ten and a half minutes, plus the 35s probe.
+
+**6. Still open.** §6.2 (the 06:30 run), §6.3 (`lint-after-edit` win32 red). The denied
+command's text is not recoverable from either the envelope or the log; if agy's
+`denied_actions` carries more fields than `display_name` and `action`, the failure note
+could name the command. Not measured.
+
+**7. Next actions.** Push the four commits and this section (ask). Decide whether the
+review transcript is kept under `docs/`.
