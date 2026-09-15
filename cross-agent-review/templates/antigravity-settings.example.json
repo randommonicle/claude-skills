@@ -1,0 +1,44 @@
+{
+  "_README": [
+    "Copy this to ~/.gemini/antigravity-cli/settings.json (create the directory if the agy",
+    "CLI has never run). PER MACHINE - it is not in this repo's checkout path and does not",
+    "travel with a clone.",
+    "",
+    "WHY IT MATTERS. With no settings file the agy CLI starts with permissions=<nil> and",
+    "toolPermission=request-review, and headless mode auto-denies every shell command",
+    "because it cannot prompt anyone. The turn still returns status SUCCESS with an empty",
+    "response and exit code 0, so the seat looks like it had nothing to say. Verified",
+    "2026-09-15: creating this file flips the CLI's startup log from permissions=<nil> to",
+    "permissions=&{Allow:[...]}, which settles GitHub issue #548 - allow-rules ARE honoured",
+    "headless in agy 1.2.3, and that issue is stale.",
+    "",
+    "RULE SYNTAX. command(x) matches by prefix, so command(git) covers git add, git log and",
+    "so on. Do NOT write unsandboxed(...) rules even though a stderr message may tell you",
+    "to: the binary states 'unsandboxed is no longer a valid rule, use command() instead'.",
+    "File reads inside a detected workspace (a git repo) are auto-allowed and need no rule;",
+    "a directory that is not a workspace is outside that grant and will be denied.",
+    "",
+    "THIS FILE IS NOT THE WHOLE FIX. Two other things were needed to make a tool-using",
+    "headless turn complete in 40 seconds instead of timing out at 5m30s having burned",
+    "195,056 input tokens for an empty reply:",
+    "  1. --new-project on the invocation. Without it the CLI resumes the project's",
+    "     persisted model from conversation_summaries.db and ignores --model, which is how",
+    "     a reasoning tier got selected and thought for five minutes.",
+    "  2. A prompt giving exact file paths and forbidding directory search. When the find",
+    "     tool hits a context deadline the agent falls back to recursive list_dir and burns",
+    "     context without bound - that, not permissions, was the token burn.",
+    "Both are already in the GEMPRO seat in seats.example.jsonc.",
+    "",
+    "Delete the _README key before use if you prefer; the CLI ignores unknown keys, but it",
+    "is noise in a config you will read again."
+  ],
+
+  "permissions": {
+    "allow": [
+      "command(git)",
+      "command(rg)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

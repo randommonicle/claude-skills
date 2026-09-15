@@ -206,6 +206,59 @@ test('prefers the executable shim over an identically-named POSIX one', (s) => {
   return true;
 });
 
+// The second envelope shape: agy returns ONE JSON object on stdout with the reply
+// inside it, no -o file, and a structured denied_actions array. A transport that only
+// understands codex's JSONL would read every agy turn as an empty reply and park a seat
+// that answered perfectly well.
+function stageEnvelope(s) {
+  const seatsPath = join(s.root, 'exchange', 'seats.jsonc');
+  const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
+  seats.GEM = {
+    command: process.execPath,
+    promptVia: 'stdin',
+    start: [FAKE, '-p', '{prompt}', '--output-format', 'json'],
+    continue: [FAKE, '-p', '{prompt}', '--conversation', '{thread}', '--output-format', 'json'],
+    outputFormat: 'envelope',
+    replyPath: 'response',
+    threadIdPath: 'conversation_id',
+    usagePath: 'usage',
+    deniedPath: 'denied_actions',
+    grounding: 'repo-read',
+    timeoutMs: 30000,
+  };
+  writeFileSync(seatsPath, JSON.stringify(seats), 'utf8');
+}
+
+test('reads a single-envelope seat, taking the reply from the envelope not a file', (s) => {
+  stageEnvelope(s);
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  if (r.code !== 0) return 'exit ' + r.code + ' :: ' + r.out.slice(0, 200);
+  if (!/^## \[GEM round 1\]$/m.test(r.md)) return 'no section';
+  if (!/guard at src\/a\.ts:12/.test(r.md)) return 'reply not taken from the envelope';
+  if (!/<!-- seat: GEM \| thread: 01a0a4d5-/.test(r.md)) return 'thread id not read from the envelope';
+  if (!/usage: in=21425/.test(r.md)) return 'usage not read from the envelope';
+  return true;
+});
+
+test('uses the structured denied_actions field rather than parsing stderr', (s) => {
+  stageEnvelope(s);
+  const r = runSeat(s.review, 'GEM', 'denied', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  if (/## \[GEM round 1\]/.test(r.md)) return 'appended a section for a denied turn';
+  // The fake emits NO stderr in envelope-denied mode, so naming the tool proves the
+  // structured field was read and not a stderr regex.
+  if (!/RunCommand/.test(r.md)) return 'did not name the denied tool from denied_actions: ' + r.md.slice(-200);
+  return true;
+});
+
+test('an envelope timeout is still a timeout, with no denied_actions to mislead it', (s) => {
+  stageEnvelope(s);
+  const r = runSeat(s.review, 'GEM', 'timeout', [], { FAKE_SEAT_SHAPE: 'envelope' });
+  if (/## \[GEM round 1\]/.test(r.md)) return 'appended a section for a timed-out turn';
+  if (!/timed out/.test(r.md)) return 'not reported as a timeout: ' + r.md.slice(-200);
+  if (!/in=195056/.test(r.md)) return 'spend on the failed turn not recorded';
+  return true;
+});
+
 test('the seat is told not to write the file itself', (s) => {
   const r = spawnSync(process.execPath, [RUN, s.review, 'GPT', '--dry-run'], { encoding: 'utf8' });
   if (!/do NOT write the review file/i.test(r.stdout)) return 'seat is not told the record is written for it';

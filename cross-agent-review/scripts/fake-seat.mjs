@@ -28,6 +28,27 @@ process.stdin.on('end', () => {
 
   if (mode === 'missing-binary') process.exit(127);
 
+  // agy's shape: ONE envelope on stdout, the reply inside it, no -o file, and a
+  // structured denied_actions array on a denial (but never on a timeout - verified
+  // against a real run on 2026-09-15).
+  if (process.env.FAKE_SEAT_SHAPE === 'envelope') {
+    const env = { conversation_id: thread, status: 'SUCCESS', num_turns: isResume ? 2 : 1, usage };
+    if (mode === 'denied') {
+      env.response = '';
+      env.denied_actions = [{ action: 'unsandboxed', display_name: 'RunCommand' }];
+    } else if (mode === 'timeout') {
+      env.response = '';
+      env.usage = { ...usage, input_tokens: 195056 };
+      process.stderr.write('[agy] print timeout after 5m30s with turn in progress; returning partial output\n');
+    } else if (mode === 'empty') {
+      env.response = '';
+    } else {
+      env.response = 'The guard at src/a.ts:12 is present four lines above where the report says it is missing.\n';
+    }
+    process.stdout.write(JSON.stringify(env) + '\n');
+    process.exit(0);
+  }
+
   emit({ type: 'thread.started', thread_id: thread });
   emit({ type: 'turn.started' });
 

@@ -46,13 +46,51 @@
     "timeoutMs": 600000
   }
 
+  ,
+
   // ---------------------------------------------------------------------------
-  // FORWARD: agy (Gemini via Antigravity) is NOT configured here yet. Four tool-using
-  // headless turns failed on 2026-09-15 - two permission auto-denials (read_file, then
-  // unsandboxed for the same task) and two print timeouts, one of which spent 195,056
-  // input tokens and returned an empty response. Only no-tool turns succeeded.
-  // Blocked on: does --output-format stream-json preserve partial output on timeout?
-  // If it does, a timed-out turn yields the work done instead of nothing, and the seat
-  // becomes viable. See docs/DESIGN_agent-bus_2026-09-15.md and the research note.
+  // Gemini via the Antigravity CLI. Working as of 2026-09-15, but ONLY with the setup
+  // below - four earlier attempts failed on permission denials and 5-minute timeouts.
   // ---------------------------------------------------------------------------
+  "GEMPRO": {
+    "command": "agy",
+
+    // agy takes the prompt on ARGV, not stdin (--input-format stream-json expects NDJSON,
+    // which is a different invocation shape). run-seat refuses above ~30,000 characters
+    // rather than letting spawn fail ENAMETOOLONG and look like an unanswered seat.
+    "promptVia": "argv",
+    "start":    ["-p", "{prompt}", "--output-format", "json", "--new-project", "--print-timeout", "150s"],
+    "continue": ["-p", "{prompt}", "--conversation", "{thread}", "--output-format", "json", "--print-timeout", "150s"],
+
+    // ONE envelope on stdout, not a JSONL stream. The reply is in it; there is no -o file.
+    "outputFormat":  "envelope",
+    "replyPath":     "response",
+    "threadIdPath":  "conversation_id",
+    "usagePath":     "usage",
+    "deniedPath":    "denied_actions",
+
+    // The anti-wander rule, and the single biggest cost lever measured on 2026-09-15.
+    // When find hits a context deadline this agent falls back to recursive list_dir and
+    // burns context without bound: 195,056 input tokens for an empty reply. Telling it
+    // to use exact paths took the same class of task to 27,320 tokens in 40 seconds.
+    "promptSuffix": "Use the exact file paths given to you. Do NOT search or list directories to find files, and do not fall back to listing directories if a search fails - ask for the path instead.",
+
+    "grounding": "repo-read",
+    "timeoutMs": 200000
+  }
+
+  // THREE THINGS OUTSIDE THIS FILE make the seat work. Without them a tool-using turn
+  // took >5 minutes and returned an empty reply after 195,056 input tokens:
+  //  1. ~/.gemini/antigravity-cli/settings.json must exist with a permissions block.
+  //     With no file the CLI runs permissions=<nil> toolPermission=request-review and
+  //     auto-denies every shell command. Verified: creating it flips the startup log to
+  //     permissions=&{Allow:[...]}. Use command(git) style rules - the stderr advice to
+  //     add unsandboxed(...) is STALE, the binary says that rule form was removed.
+  //  2. --new-project, above. Without it the CLI resumes the project's persisted model
+  //     from conversation_summaries.db and ignores --model, which is how a reasoning
+  //     tier got selected and span for five minutes.
+  //  3. The PROMPT must give exact paths and forbid directory search. When find hits a
+  //     context deadline the agent falls back to recursive list_dir and burns context
+  //     without bound - that, not permissions, was the 195k tokens.
+  // With all three: 40 seconds, 27,320 input tokens, correct answer.
 }

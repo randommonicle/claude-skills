@@ -82,7 +82,7 @@ function readState(md, handle) {
 // Everything a seat is shown, in one string. The exchange file is included verbatim so
 // that what the seat saw and what the record shows are the same text - a CLI seat and a
 // human-driven one are then reading exactly the same thing.
-function compose({ md, handle, round, ask, reviewPath }) {
+function compose({ md, handle, round, ask, reviewPath, suffix }) {
   return `You are taking part in an adversarial cross-agent review, debate method.
 
 YOUR HANDLE: ${handle}
@@ -107,7 +107,7 @@ Rules: every contested claim carries a \`path:line\` citation to the primary sou
 a concrete query result. A claim with no citation is dismissible. Concede any point the
 evidence refutes; a verified concession outranks an unverified defence. The repository
 is READ ONLY - cite it, never change it. Write \`[[CONVERGED]]\` if you agree and the
-debate is done.`;
+debate is done.${suffix ? '\n\n' + suffix : ''}`;
 }
 
 // Windows: an npm-installed CLI on PATH is a .cmd shim, and spawnSync cannot execute one
@@ -142,11 +142,16 @@ function resolveCommand(command) {
   return null;
 }
 
-function run(cfg, argv, prompt, timeoutMs) {
+function run(cfg, argv, prompt, timeoutMs, cwd) {
   const resolved = resolveCommand(cfg.command);
   if (!resolved) return { status: null, stdout: '', stderr: '', spawnError: `NOTFOUND: ${cfg.command} is not on PATH` };
+  // The child's working directory is load-bearing, not cosmetic: agy has no --cd flag and
+  // decides workspace membership from the process cwd, and workspace membership is what
+  // decides whether its file reads are auto-allowed or auto-denied. codex takes -C as
+  // well; setting both agrees rather than conflicts.
   const r = spawnSync(resolved.file, [...resolved.prefix, ...argv], {
     input: cfg.promptVia === 'stdin' ? prompt : undefined,
+    cwd,
     encoding: 'utf8',
     timeout: timeoutMs,
     maxBuffer: 64 * 1024 * 1024,
@@ -170,12 +175,41 @@ function pickEvent(stdout, spec) {
   return undefined;
 }
 
+// Two shapes in the wild, and a seat declares which it speaks. codex streams JSONL
+// events and writes the reply to a -o file; agy returns ONE envelope on stdout carrying
+// the reply, the conversation id, usage and - for a denial, though not for a timeout -
+// a structured denied_actions array.
+function readOutputs(res, cfg, replyFile) {
+  if (cfg.outputFormat === 'envelope') {
+    let env = {};
+    try { env = JSON.parse(res.stdout); } catch {}
+    return {
+      reply: String(env[cfg.replyPath ?? 'response'] ?? ''),
+      thread: env[cfg.threadIdPath ?? 'conversation_id'] ?? '',
+      usage: env[cfg.usagePath ?? 'usage'] ?? {},
+      denied: env[cfg.deniedPath ?? 'denied_actions'] ?? null,
+    };
+  }
+  return {
+    reply: existsSync(replyFile) ? readFileSync(replyFile, 'utf8') : '',
+    thread: pickEvent(res.stdout, cfg.threadIdFrom) ?? '',
+    usage: pickEvent(res.stdout, cfg.usageFrom) ?? {},
+    denied: null,
+  };
+}
+
 // One message per failure mode. status and exit code are both known liars: on this
 // machine a print timeout AND a permission denial each returned status "SUCCESS" with
 // an empty response and exit code 0. An empty reply is the only honest signal that the
 // seat did not answer; stderr says which failure it was.
-function classify({ res, reply }) {
+function classify({ res, reply, denied }) {
   if (res.spawnError) return { ok: false, reason: `the ${'CLI'} could not be started (${res.spawnError})` };
+  // A structured denial beats parsing stderr, and agy ships one. Timeouts have no
+  // equivalent field on either CLI, so stderr stays the only signal for those.
+  if (Array.isArray(denied) && denied.length) {
+    const names = denied.map((d) => d.display_name ?? d.action).join(', ');
+    return { ok: false, reason: `a tool permission was auto-denied (${names})` };
+  }
   const err = res.stderr.toLowerCase();
   if (/print timeout|turn in progress/.test(err)) return { ok: false, reason: 'the turn timed out with work still in progress' };
   if (/permission .*auto-denied|cannot prompt for/.test(err)) {
@@ -206,11 +240,25 @@ if (st.answeredOpenRound) die(`${handle} has already answered the open round (ro
 
 const round = st.nextRound;
 const ask = flag('--ask', 'Answer the open round. Address the points put to you directly.');
-const prompt = compose({ md, handle, round, ask, reviewPath });
+const prompt = compose({ md, handle, round, ask, reviewPath, suffix: cfg.promptSuffix });
 
 if (argv.includes('--dry-run')) {
   process.stdout.write(prompt);
   process.exit(0);
+}
+
+// A seat whose CLI takes the prompt on argv has a hard ceiling: measured on this machine
+// at 32,700 characters, roughly 8,000 tokens, shared with every other flag. Past it spawn
+// fails ENAMETOOLONG, which with no status channel is indistinguishable from "the seat
+// did not answer" - so the exchange would record a parked seat and never say why. Refuse
+// before spending anything, and name the actual limit.
+const ARGV_BUDGET = 30000;
+if ((cfg.promptVia ?? 'argv') === 'argv' && prompt.length > ARGV_BUDGET) {
+  die(
+    `the composed prompt is ${prompt.length} characters and ${handle} takes it on argv, ` +
+      `which fails above about ${ARGV_BUDGET} on this platform. Give this seat a stdin ` +
+      `transport ("promptVia": "stdin"), or shorten the exchange.`,
+  );
 }
 
 const tmp = mkdtempSync(join(tmpdir(), 'seat-'));
@@ -221,12 +269,13 @@ const subst = (s) =>
    .replace('{cwd}', cwd).replace('{sandbox}', cfg.sandbox ?? 'read-only');
 
 const template = st.thread ? cfg.continue : cfg.start;
-const res = run(cfg, template.map(subst), prompt, cfg.timeoutMs ?? 600000);
-const reply = existsSync(replyFile) ? readFileSync(replyFile, 'utf8') : '';
-const verdict = classify({ res, reply });
+const res = run(cfg, template.map(subst), prompt, cfg.timeoutMs ?? 600000, cwd);
+const outs = readOutputs(res, cfg, replyFile);
+const reply = outs.reply;
+const verdict = classify({ res, reply, denied: outs.denied });
 
-const thread = pickEvent(res.stdout, cfg.threadIdFrom) ?? st.thread;
-const usage = pickEvent(res.stdout, cfg.usageFrom) ?? {};
+const thread = outs.thread || st.thread;
+const usage = outs.usage;
 const usageStr = `in=${usage.input_tokens ?? '?'} out=${usage.output_tokens ?? '?'}`;
 rmSync(tmp, { recursive: true, force: true });
 
