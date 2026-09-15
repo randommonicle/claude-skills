@@ -103,6 +103,18 @@ code discussion and citations only; never personal data, credentials, secrets, o
   denial each returned `status: "SUCCESS"` with an empty reply and exit code 0), and a turn that did
   not answer gets a **visible failure note** in the file instead of a section, so "this seat was cut
   off" never reads as "this seat had nothing to add".
+  Ridden to convergence on 2026-09-15 (GPT via codex and GEMPRO via agy, three rounds, both seats
+  resuming their threads; the record is `docs/REVIEW_run-seat-guards_2026-09-15.md`). What that ride
+  fixed in the seat config: pass `--cwd <repo root>` so an agy seat's file reads are inside a
+  workspace and auto-allowed; give exact paths and forbid shell (the shipped `promptSuffix` does, and a
+  denied command ends the turn with nothing at 80k tokens); and treat the exchange file as a **shared
+  budget**, because an argv seat receives the whole file and is refused above 30,000 characters, which
+  a three-round, two-seat review with 4,000-character sections reaches at round three. Measured cost of
+  a review turn: agy 80-95k input tokens and 1.5-2.5 minutes, codex 400-600k gross (mostly cache
+  reads, recorded as `cached_input`) and 1.5-3.5 minutes. The metadata line also carries
+  `seat_turns`, the CLI's own count of turns on the thread (`-` for codex); when it disagrees with
+  `file_turns`, the section is recorded with a visible warning that the thread holds a turn the file
+  never received.
 - **Human arms the external side.** Each external chat is kicked off with its handle (below). Antigravity
   can also run a background daemon that watches the dir and wakes the agent; optional.
 - **Optional but powerful: live read-only evidence.** If a read-only data source is connected (Supabase
