@@ -50,7 +50,13 @@
     "runaway list_dir. Reading it costs no model tokens.",
     "",
     "Delete the _README key before use if you prefer; the CLI ignores unknown keys, but it",
-    "is noise in a config you will read again."
+    "is noise in a config you will read again.",
+    "",
+    "THE CLI RE-SERIALISES THIS FILE ON ITS FIRST RUN (verified agy 1.2.3 on the bengr",
+    "machine, 2026-09-15): < and & come back as \\u003c and \\u0026, the empty deny and ask",
+    "arrays are dropped, _README and the allow rules survive. Same meaning, different",
+    "bytes. So never byte-compare the installed copy against this template after the",
+    "first run; the proof that it loaded is the permissions= line in the startup log."
   ],
 
   "permissions": {
