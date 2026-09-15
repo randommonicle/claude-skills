@@ -294,3 +294,31 @@ could name the command. Not measured.
 
 **7. Next actions.** Push the four commits and this section (ask). The transcript is under
 `docs/` on the operator's decision (2026-09-15, 21:00 BST).
+
+## 14. The three leftovers, bengr machine, 2026-09-15 late
+
+All three closed, each on its own commit, local until asked.
+
+- **A denial carries no command text** (`4f1a093`). Measured with one deliberate `echo`:
+  `denied_actions` is `[{ action: "command", display_name: "RunCommand" }]` and nothing more;
+  the command is not on stderr and not in the CLI log. The failure note can name the tool,
+  never the command. Recorded beside `deniedPath`; the fake's denial shape corrected. The
+  GEMPRO `promptSuffix` now says only `git` and `rg` are allowed headlessly and anything
+  else ends the turn with nothing.
+- **`lint-after-edit` was silent on every Windows project, not only red in its suite**
+  (`60f3c56`). `resolveBin` prefers `eslint.cmd` on win32 and `run()` spawned it with no
+  shell; Node refuses that (EINVAL since 20.12), so the hook skipped silently on both of the
+  operator's machines while wired in `settings.json`. **Verified** by a direct probe (EINVAL
+  bare, runs through `cmd.exe /d /s /c`). `run()` routes a `.cmd` through `cmd.exe` with the
+  arguments still an array, refuses paths carrying cmd metacharacters, and quotes so that a
+  path with a space survives `/s` (the outer wrap is load-bearing for every case, mutation-
+  checked). The suite's sh stubs, which cmd.exe could not run either, are node scripts now
+  with the `.cmd` shim npm writes on win32; 16 green here, 7 red against the unfixed hook
+  with the production shape. The §6.3 item and the test's FORWARD are closed. Not re-run on
+  POSIX; both machines are Windows.
+- **The skill text** (`aeb2be6`, `f406a4e`): what a new session needs to drive the transport
+  (`--cwd` at the repo root, exact paths and no shell, the 30,000-character shared budget,
+  measured cost per turn, the `seat_turns` warning), and a description that no longer says
+  the second agent must be one the user drives.
+
+Still open: §6.2 only (the 06:30 run, 2026-09-16).
