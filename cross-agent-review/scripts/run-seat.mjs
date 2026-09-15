@@ -242,6 +242,29 @@ const round = st.nextRound;
 const ask = flag('--ask', 'Answer the open round. Address the points put to you directly.');
 const prompt = compose({ md, handle, round, ask, reviewPath, suffix: cfg.promptSuffix });
 
+// The prompt reaches the seat by exactly one channel, and that is checked before anything
+// is spent. The shipped 2026-09-15 code substituted every placeholder except {prompt},
+// so the agy seat was handed those eight characters as its whole prompt; it spent 73,030
+// input tokens working out what they meant and the record called that a slow review
+// turn. Twenty tests were green because the one envelope fixture said stdin.
+//
+// Both templates are checked at every turn, and before --dry-run: they are static config,
+// so a continue template that would be refused at round 2 is refused before round 1 is
+// paid for, and a dry run cannot say "fine" for a seat that could never be invoked. Both
+// were raised by the first GEMPRO review turn the transport completed (2026-09-15).
+const viaArgv = (cfg.promptVia ?? 'argv') === 'argv';
+for (const name of ['start', 'continue']) {
+  const t = cfg[name];
+  if (!Array.isArray(t)) die(`${handle} has no ${name} template`);
+  const has = t.some((a) => a.includes('{prompt}'));
+  if (viaArgv && !has) {
+    die(`${handle} takes the prompt on argv but its ${name} template has no {prompt}, so the seat would never receive it`);
+  }
+  if (!viaArgv && has) {
+    die(`${handle} takes the prompt on stdin but its ${name} template also lists {prompt}; the prompt goes by one channel, not two`);
+  }
+}
+
 if (argv.includes('--dry-run')) {
   process.stdout.write(prompt);
   process.exit(0);
@@ -261,22 +284,7 @@ if ((cfg.promptVia ?? 'argv') === 'argv' && prompt.length > ARGV_BUDGET) {
   );
 }
 
-// The prompt reaches the seat by exactly one channel, and that is checked before anything
-// is spent. The shipped 2026-09-15 code substituted every placeholder except {prompt},
-// so the agy seat was handed those eight characters as its whole prompt; it spent 73,030
-// input tokens working out what they meant and the record called that a slow review
-// turn. Twenty tests were green because the one envelope fixture said stdin.
 const template = st.thread ? cfg.continue : cfg.start;
-const which = st.thread ? 'continue' : 'start';
-const viaArgv = (cfg.promptVia ?? 'argv') === 'argv';
-const hasPlaceholder = template.some((a) => a.includes('{prompt}'));
-if (viaArgv && !hasPlaceholder) {
-  die(`${handle} takes the prompt on argv but its ${which} template has no {prompt}, so the seat would never receive it`);
-}
-if (!viaArgv && hasPlaceholder) {
-  die(`${handle} takes the prompt on stdin but its ${which} template also lists {prompt}; the prompt goes by one channel, not two`);
-}
-
 const tmp = mkdtempSync(join(tmpdir(), 'seat-'));
 const replyFile = join(tmp, 'reply.txt');
 const cwd = flag('--cwd', dirname(resolve(reviewPath)));

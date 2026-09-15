@@ -269,6 +269,38 @@ test('an argv seat whose template has no {prompt} is refused before anything is 
   return true;
 });
 
+test('--dry-run refuses a misconfigured seat instead of printing a prompt for it', (s) => {
+  stageEnvelope(s);
+  const seatsPath = join(s.root, 'exchange', 'seats.jsonc');
+  const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
+  seats.GEM.start = [FAKE, '--output-format', 'json'];
+  writeFileSync(seatsPath, JSON.stringify(seats), 'utf8');
+  const r = spawnSync(process.execPath, [RUN, s.review, 'GEM', '--dry-run'], { encoding: 'utf8' });
+  // A dry run that says "fine" for a seat that cannot be invoked is the false assurance
+  // the GEMPRO review turn of 2026-09-15 called out (its claim 3).
+  if (r.status !== 2) return 'exit ' + r.status + ', expected 2 :: ' + (r.stdout + r.stderr).slice(0, 200);
+  if (/YOUR HANDLE/.test(r.stdout)) return 'printed a prompt for a seat that would never receive it';
+  if (!/never receive/.test(r.stderr)) return 'refusal does not say why: ' + r.stderr.slice(0, 200);
+  return true;
+});
+
+test('a continue template missing {prompt} is refused at round 1, before the first spend', (s) => {
+  stageEnvelope(s);
+  const seatsPath = join(s.root, 'exchange', 'seats.jsonc');
+  const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
+  seats.GEM.continue = [FAKE, '--conversation', '{thread}', '--output-format', 'json'];
+  writeFileSync(seatsPath, JSON.stringify(seats), 'utf8');
+  const dump = join(s.root, 'prompt-dump.json');
+  // Round 1 would run fine on the start template and be paid for; round 2 would then be
+  // refused. Both templates are static config, so the refusal belongs at round 1.
+  const r = runSeat(s.review, 'GEM', 'success', [], { FAKE_SEAT_SHAPE: 'envelope', FAKE_SEAT_PROMPT_DUMP: dump });
+  if (r.code !== 2) return 'exit ' + r.code + ', expected 2 :: ' + r.out.slice(0, 200);
+  if (!/continue template/.test(r.out)) return 'refusal does not name the continue template: ' + r.out.slice(0, 200);
+  if (existsSync(dump)) return 'round 1 was spent on a seat doomed at round 2';
+  if (/## \[GEM round 1\]/.test(r.md)) return 'a section was appended';
+  return true;
+});
+
 test('a stdin seat whose template also lists {prompt} is refused', (s) => {
   const seatsPath = join(s.root, 'exchange', 'seats.jsonc');
   const seats = JSON.parse(readFileSync(seatsPath, 'utf8'));
