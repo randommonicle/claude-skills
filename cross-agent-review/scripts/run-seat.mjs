@@ -246,7 +246,7 @@ const prompt = compose({ md, handle, round, ask, reviewPath, suffix: cfg.promptS
 // is spent. The shipped 2026-09-15 code substituted every placeholder except {prompt},
 // so the agy seat was handed those eight characters as its whole prompt; it spent 73,030
 // input tokens working out what they meant and the record called that a slow review
-// turn. Twenty tests were green because the one envelope fixture said stdin.
+// turn. Seventeen tests were green because the one envelope fixture said stdin.
 //
 // Both templates are checked at every turn, and before --dry-run: they are static config,
 // so a continue template that would be refused at round 2 is refused before round 1 is

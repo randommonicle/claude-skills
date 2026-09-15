@@ -8,7 +8,7 @@
 // 4-7, the LESSONS_LEARNED 13 shape), a version that loses the thread id so a later
 // session cannot resume (case 2), a version with no anti-double-turn guard (case 8), and
 // a version that hands an argv seat the literal string "{prompt}" instead of the prompt
-// (the shipped 2026-09-15 code did exactly that, green at 20 cases, because the only
+// (the shipped 2026-09-15 code did exactly that, green at 17 cases, because the only
 // envelope fixture took its prompt on stdin).
 // Run: node scripts/run-seat.test.mjs
 import { spawnSync } from 'node:child_process';
