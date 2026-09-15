@@ -163,6 +163,7 @@ function run(cfg, argv, stdinInput, timeoutMs, cwd) {
     stdout: r.stdout ?? '',
     stderr: r.stderr ?? '',
     spawnError: r.error ? String(r.error.code ?? r.error.message) : '',
+    timeoutMs,
   };
 }
 
@@ -205,6 +206,13 @@ function readOutputs(res, cfg, replyFile) {
 // an empty response and exit code 0. An empty reply is the only honest signal that the
 // seat did not answer; stderr says which failure it was.
 function classify({ res, reply, denied }) {
+  // spawnSync reports its own kill at timeoutMs as an ETIMEDOUT spawn error. That seat
+  // DID start; it ran out of the transport's time, which is a different fact from a
+  // binary that could not be launched, and it was reported as the latter until the
+  // 2026-09-15 review (probed: "could not be started (ETIMEDOUT)").
+  if (res.spawnError === 'ETIMEDOUT') {
+    return { ok: false, reason: `the turn exceeded the transport timeout of ${Math.round(res.timeoutMs / 1000)}s and was killed` };
+  }
   if (res.spawnError) return { ok: false, reason: `the ${'CLI'} could not be started (${res.spawnError})` };
   // A structured denial beats parsing stderr, and agy ships one. Timeouts have no
   // equivalent field on either CLI, so stderr stays the only signal for those.

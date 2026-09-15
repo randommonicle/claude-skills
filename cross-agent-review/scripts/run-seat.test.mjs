@@ -124,6 +124,21 @@ test('a timed-out turn still records the tokens it spent', (s) => {
   return true;
 });
 
+test('a seat killed at the transport timeout is reported as a timeout, not a launch failure', (s) => {
+  // GEMPRO's round-1 finding in the 2026-09-15 review: spawnSync reports ETIMEDOUT as
+  // r.error, and classify() read every spawn error as "could not be started". The three
+  // timeout cases were green only because the fake mimics agy's SOFT timeout on stderr
+  // with exit 0; none of them reached the hard kill. Probed: a seat sleeping past a
+  // 500ms timeoutMs was recorded as "the CLI could not be started (ETIMEDOUT)".
+  reseat(s, (seats) => { seats.GPT.timeoutMs = 300; });
+  const r = runSeat(s.review, 'GPT', 'hang');
+  if (/## \[GPT round 1\]/.test(r.md)) return 'appended a section for a killed turn';
+  if (/could not be started/.test(r.md)) return 'a hard timeout was reported as a launch failure: ' + r.md.slice(-200);
+  if (!/exceeded the transport timeout/.test(r.md)) return 'not reported as a hard timeout: ' + r.md.slice(-200);
+  if (r.code !== 1) return 'exit ' + r.code + ', expected 1';
+  return true;
+});
+
 test('a permission denial is named as such, not as a timeout', (s) => {
   const r = runSeat(s.review, 'GPT', 'denied');
   if (/## \[GPT round 1\]/.test(r.md)) return 'appended a section for a denied turn';
