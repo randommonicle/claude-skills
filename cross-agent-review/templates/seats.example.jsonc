@@ -49,19 +49,24 @@
   ,
 
   // ---------------------------------------------------------------------------
-  // Gemini via the Antigravity CLI. CONFIGURED BUT NOT YET PROVEN ON A REAL REVIEW TURN.
+  // Gemini via the Antigravity CLI. TRANSPORT PROVEN; NOT YET PROVEN ON A REAL REVIEW TURN.
   //
   // What is verified: with the setup below, a SIMPLE task (read one named file, return a
   // token) completes in 40 seconds for 27,320 input tokens - against >5 minutes and
   // 195,056 tokens for an empty reply before it. That is a real fix to a real problem.
+  // And through run-seat.mjs itself, on the bengr machine 2026-09-15 evening: a
+  // tool-free ask ("reply with exactly this token") came back ANSWERED with the exact
+  // token in 26.9 seconds for 18,000 input tokens, thread id recorded. That is the
+  // first section this seat has ever had appended by the transport.
   //
-  // What is NOT verified: a real review turn. Ridden through run-seat.mjs on 2026-09-15
-  // with a small exchange file, it was STILL IN PROGRESS at the 150s print-timeout,
-  // having spent 73,030 input tokens, and produced no section. The transport recorded it
-  // honestly as a failure note and left the round open, which is correct behaviour and
-  // not a working seat. The turn was mid-flight rather than stuck, so a longer
-  // print-timeout may finish it - untested. Until someone rides it to a completed
-  // section, treat GEMPRO as experimental and prefer GPT.
+  // What is NOT verified: a real review turn. The earlier ride recorded here - "still
+  // in progress at the 150s print-timeout after 73,030 input tokens, no section" - was
+  // NOT a review turn. run-seat.mjs at that commit substituted every placeholder except
+  // {prompt}, so agy was handed the literal string "{prompt}" as its whole prompt and
+  // spent 73,030 tokens working out what it meant. Fixed in 64871d5, with a pre-flight
+  // refusal for the shape. So nothing is yet known about how long a
+  // review turn takes or what it costs on this seat. Until someone rides one to a
+  // completed section, treat GEMPRO as experimental and prefer GPT.
   // ---------------------------------------------------------------------------
   "GEMPRO": {
     "command": "agy",

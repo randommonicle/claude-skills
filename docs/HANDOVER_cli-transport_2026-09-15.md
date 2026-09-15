@@ -134,3 +134,49 @@ been promoted rather than parked in this note:
 where the real CLI failed; the ride caught each). **class:** a fixture that differs from the
 real thing in the one dimension the code under test actually branches on — absolute versus
 PATH-resolved command, no-tool versus tool-using turn.
+
+## 11. Correction from the bengr machine, 2026-09-15 evening
+
+Written after the desktop app restart that put `agy` on this process's PATH. Every check
+in the note above passes here (clone level with `origin/main` at `7de222c`, settings file
+present, scheduled task Ready with next run 2026-09-16 06:30, status file `current`,
+`session-recon` silent). One finding changes §3, §4, §6 and §8.
+
+**§4 was misread. The GEMPRO seat never received a prompt.** `run-seat.mjs` at `7de222c`
+substituted `{thread}`, `{replyFile}`, `{cwd}` and `{sandbox}` into a seat's argv template
+and never `{prompt}`, and `run()` delivered the prompt on stdin only. The GEMPRO block is
+`promptVia: "argv"` with `-p "{prompt}"`, so agy was handed the eight-character string
+`{prompt}` as its entire prompt: no exchange file, no ask, no anti-wander suffix.
+**Verified** by driving an echo seat through the unchanged script: argv was
+`["-p","{prompt}","--output-format","json","--new-project"]` and stdin was empty. So
+"still in progress at the 150s print-timeout after 73,030 input tokens" was agy working
+out what `{prompt}` meant. Nothing is yet known about a real review turn on this seat.
+
+The suite was green because the one envelope fixture said `promptVia: 'stdin'` while
+listing `{prompt}` on argv, so the argv branch was never exercised. That is §10's class
+a fourth time, and LESSONS 15 itself cites the 73,030 figure as a viability measurement
+it was not. Also: the suite at `7de222c` has 17 cases, not the 20 stated in §4.
+
+**Landed here, local only, not pushed:** `64871d5`. `{prompt}` substituted last and through
+a function, since the prompt is untrusted text and a string replacement would expand `$&`
+(`cross-agent-review/scripts/run-seat.mjs:289`); two pre-flight refusals before any spend,
+an argv seat with no `{prompt}` in its active template and a stdin seat with one
+(`run-seat.mjs:272-278`); the envelope fixture switched to argv; `fake-seat.mjs:33-41`
+dumps what arrived on each channel; three new cases (`run-seat.test.mjs:239`, `:257`,
+`:272`), each **verified** red on `7de222c` before the fix. 20 cases green.
+
+**Ridden after the fix, verified:** one tool-free turn through `run-seat.mjs` against the
+real `agy 1.2.3` with the shipped GEMPRO block unedited, `--cwd` at this repo. ANSWERED
+with the exact token in 26.9s, 18,000 input / 199 output tokens, thread id recorded. The
+first GEMPRO section the transport has appended. It proves the spawn by PATH name, the
+substitution, and the envelope read against the real CLI. It does not prove a review turn.
+
+**§8 revised.** Action 1 (the 300s retest) was going to time the wrong invocation and is
+now a meaningful test for the first time; unrun, it is a multi-minute spend. Action 2 is
+done on this machine: settings file copied 19:09 BST, task registered 19:05 BST and
+proven with `LastTaskResult 0` and a `current` status file. Action 3 unchanged.
+
+**Promoted, not left here:** LESSONS candidate raised with the operator (a fourth instance
+of entry 15's third shape, plus entry 15's own second paragraph resting on the misread
+figure); DECISIONS candidate raised (the prompt reaches a seat by exactly one channel,
+refused at pre-flight).
