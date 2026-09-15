@@ -49,8 +49,19 @@
   ,
 
   // ---------------------------------------------------------------------------
-  // Gemini via the Antigravity CLI. Working as of 2026-09-15, but ONLY with the setup
-  // below - four earlier attempts failed on permission denials and 5-minute timeouts.
+  // Gemini via the Antigravity CLI. CONFIGURED BUT NOT YET PROVEN ON A REAL REVIEW TURN.
+  //
+  // What is verified: with the setup below, a SIMPLE task (read one named file, return a
+  // token) completes in 40 seconds for 27,320 input tokens - against >5 minutes and
+  // 195,056 tokens for an empty reply before it. That is a real fix to a real problem.
+  //
+  // What is NOT verified: a real review turn. Ridden through run-seat.mjs on 2026-09-15
+  // with a small exchange file, it was STILL IN PROGRESS at the 150s print-timeout,
+  // having spent 73,030 input tokens, and produced no section. The transport recorded it
+  // honestly as a failure note and left the round open, which is correct behaviour and
+  // not a working seat. The turn was mid-flight rather than stuck, so a longer
+  // print-timeout may finish it - untested. Until someone rides it to a completed
+  // section, treat GEMPRO as experimental and prefer GPT.
   // ---------------------------------------------------------------------------
   "GEMPRO": {
     "command": "agy",
