@@ -113,16 +113,37 @@ What helps, roughly in order:
 Asking Claude to be brief helps much less than people expect. The reply is a small part of the
 total; the conversation and the attachments are the large part.
 
-## What must never go in
+## Sensitive material: what must never go in, and what to do about the rest
 
-Separate from anything about efficiency, and not negotiable:
+Separate from anything about efficiency. There are two rules here doing two different jobs, and
+the difference matters.
 
-- **No bank account numbers, sort codes or payment card details.** Redact them before attaching
-  anything that contains them. If you have already sent any, that is a data incident: stop, do not
-  carry on in that conversation, and tell **Simon McKeag, Data Protection Manager** straight away.
-  Telling Claude does not deal with it.
+**Rule 1: never send it deliberately. This one is absolute.**
+
+- **No bank account numbers, sort codes or payment card details** pasted in, and no document
+  attached *in order to* work on those details.
 - **No payroll, HR or salary data.**
 - **Nothing subject to legal professional privilege.**
+
+**Rule 2: a document you genuinely need does not become unusable because a bank detail appears in
+it somewhere.** Invoices, remittance advices and service charge packs often carry one. You have
+two routes, and either is acceptable:
+
+- **Redact it and send the document**, where that is quick to do.
+- **Where redacting is not practical**, such as a long statement or a scanned pack, send it and
+  say so in your first message: *"this pack contains bank details; do not reproduce them or refer to
+  them."* Then note on the matter file that you did. Claude will not repeat them back or carry
+  them into anything it drafts.
+
+Be clear about what route 2 does and does not achieve. It stops those details reaching a letter,
+a report or a summary. It does not unsend them: they are still in that conversation. So it is a
+sensible working compromise for material you actually need, and it is not a reason to relax about
+what you attach. Prefer redaction where you reasonably can.
+
+**If details go in that should not have**, whether pasted by mistake or inside a document nobody
+checked, that is a data incident. Stop, do not carry on in that conversation,
+and tell **Simon McKeag, Data Protection Manager** straight away. Telling Claude does not deal
+with it.
 
 Remember which party is which, because it changes the advice: our **clients** are the Resident
 Management Companies, Right to Manage companies, freeholders and landlord clients who instruct us.

@@ -139,6 +139,28 @@ Still open:
   settings page. It does not cover skills already present when it is turned on, so turning it on
   after this upload will not scan this skill. Turn it on first if it is going on at all.
 
+## Decisions recorded against this skill
+
+**Sensitive material in attachments. Decided 2026-09-16.** Owner: **Simon McKeag, Data
+Protection Manager**, relayed by Ben Graham. The question was whether a flat prohibition on
+bank and card details should block staff from attaching a document that happens to contain one,
+and whether total redaction should be a precondition of using the tool at all.
+
+The decision is the conservative option that does neither: deliberate sending stays absolutely
+prohibited, and a document that is genuinely needed can be sent either redacted or, where
+redacting is impractical, with an instruction at the top of the conversation not to reproduce the
+details, noted on the matter file.
+
+The skill states plainly what that second route does and does not achieve. It keeps the details
+out of anything Claude drafts. **It does not unsend them** - they remain in that conversation, so
+it is a mitigation and not a cure, and redaction is still preferred where it is reasonably
+practical. That distinction is on the face of the skill deliberately: a control staff believe is
+stronger than it is, is worse than one they understand.
+
+This is recorded here because it is a data protection decision reflected in the skill, not one
+the skill invented. If the DPM's position changes, this section and the "Sensitive material"
+section of `working-lean/SKILL.md` change together.
+
 ## Suggested addition to the organisation instructions — not applied
 
 A skill only loads when its description matches what someone is doing. The always-on habits have
