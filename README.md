@@ -1,50 +1,64 @@
 # claude-skills
 
-## Start here
-
-This is a set of rules and checks for [Claude Code](https://claude.com/claude-code), the AI
-coding tool. Claude reads each one automatically at the moment it is about to do the thing
-that rule covers (write a test, push code, change a database, send something to an AI model),
-and each one exists because that mistake has already happened once on a real project. You do
-not run anything by hand; once installed, the rules load themselves.
-
-Three kinds of thing live here:
-
-- **Skills**: short playbooks Claude reads at the right moment. The table below lists them.
-- **Hooks**: small scripts that run around Claude's actions. One asks you before any push. One
-  runs your project's linter on a file Claude has just edited. One fetches your repo's state at
-  the start of a session so Claude is not working from a stale picture.
-- **Norms**: six one-line rules that apply in every session.
-
-**To install on a new machine**, about five minutes:
-
-1. Install Claude Code, `git` and [Node.js](https://nodejs.org/). For the live repo checks,
-   also the [GitHub CLI](https://cli.github.com/) and run `gh auth login`.
-2. In a Claude Code session run `/plugin marketplace add randommonicle/claude-skills`, then
-   `/plugin install ash@ash-skills`.
-3. Check it worked: `node ~/.claude/skills/hooks/check-index.mjs` prints `ok: ...`. If skills are
-   present but nothing ever fires, the hooks are the part that did not install; see
-   [Install on a new machine](#install-on-a-new-machine) below.
-4. Optional, for the two-model code review (`cross-agent-review`, where Claude has Gemini and GPT
-   argue over a change): install the `agy` and `codex` command-line tools and copy one settings
-   file. The steps are in [cross-agent-review/SKILL.md](cross-agent-review/SKILL.md) and the
-   comments of [cross-agent-review/templates/](cross-agent-review/templates/).
-
-**What you will notice afterwards**: a confirmation prompt before every push; a line about your
-repo's state at the start of each session; a lint report when Claude edits a JavaScript or
-TypeScript file in a project that has a linter; and Claude visibly loading a skill before it
-writes a test, a migration or a call to an AI model.
-
-**Where things are**: the skills in the table below; hooks in [hooks/HOOKS.md](hooks/HOOKS.md);
-what went wrong on real jobs and what was learned in [LESSONS_LEARNED.md](LESSONS_LEARNED.md);
-standing choices and why in [DECISIONS.md](DECISIONS.md). The rest of this page is the
-engineering detail.
-
 ## What this is
 
-Personal, version-controlled [Claude Code](https://claude.com/claude-code) skills, synced to `~/.claude/skills/`. Installed at the **user level**, so they apply to every project on this machine automatically (no per-project setup).
+A set of guardrails for [Claude Code](https://claude.com/claude-code), the AI coding tool. Each
+one is a short rule that Claude loads by itself, at the moment it is about to do the thing that
+rule covers. Almost every one exists because that mistake already shipped on a real project.
 
-**If you have arrived here from outside:** these are engineering guardrails, not prompts or personas. Each skill is a short playbook that loads when Claude is about to do the specific thing it guards, and almost every one exists because a real defect shipped without it. They were distilled from the lessons-learned corpora of four production repos, one of them a regulated UK property-management platform, so the examples are concrete and some are domain-specific. You are welcome to install the lot, fork it, or read a few and steal the ideas. Start with [`verify-the-effect`](verify-the-effect/SKILL.md) and [`prove-it-can-fail`](prove-it-can-fail/SKILL.md), which are the two that change the most behaviour for the least reading. **This repository is licensed under Apache-2.0** (see the `LICENSE` file). The three `unslop-*` skills are forks and carry their upstream's terms, recorded in their own `UPSTREAM.md`.
+They are not prompts or personas. They came out of the lessons-learned records of four production
+codebases, one of them a regulated UK property-management platform, so the examples are concrete
+and a few are specific to that domain. Install the lot, fork it, or read two and steal the ideas.
+The two that change the most behaviour for the least reading are
+[`verify-the-effect`](verify-the-effect/SKILL.md), which says never call something done because a
+command exited without error, and [`prove-it-can-fail`](prove-it-can-fail/SKILL.md), which says a
+test that cannot go red is not a test.
+
+**Three kinds of thing live here.**
+
+- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 44.
+- **Hooks**: small scripts that run automatically around what Claude does. One stops and asks you
+  before Claude uploads any code to GitHub. One checks a file Claude has just edited for mistakes,
+  using whatever checker that project already uses. One looks up what has changed in your project
+  since you last worked on it, so Claude is not working from an out-of-date picture.
+- **Norms**: six one-line rules that apply in every session, listed in [NORMS.md](NORMS.md).
+
+It installs once per machine and applies to every project on it. You never run any of it by hand.
+
+**This repository is licensed under Apache-2.0** (see the `LICENSE` file). The three `unslop-*`
+skills are forks and carry their upstream's terms, recorded in their own `UPSTREAM.md`.
+
+## Install
+
+About five minutes.
+
+1. Install Claude Code, [git](https://git-scm.com/) and [Node.js](https://nodejs.org/). For the
+   checks that read your project's state, also the [GitHub CLI](https://cli.github.com/), then
+   run `gh auth login`.
+2. In a Claude Code session, run `/plugin marketplace add randommonicle/claude-skills`, then
+   `/plugin install ash@ash-skills`.
+3. Check it worked: `/plugin` should list the installed plugin, and asking Claude to do something
+   a skill guards (say, write a test) should visibly load that skill.
+4. Optional, for the two-model code review (`cross-agent-review`, where Claude has Gemini and GPT
+   argue over a change): install the `agy` and `codex` command-line tools and copy one settings
+   file. Steps in [cross-agent-review/SKILL.md](cross-agent-review/SKILL.md).
+
+The manual route, what each hook does, and what to know before installing are in
+[Install on a new machine](#install-on-a-new-machine) further down.
+
+**What changes afterwards**: a confirmation prompt before Claude uploads anything; a note about
+your project's state at the start of each session; a report when Claude edits a JavaScript or
+TypeScript file in a project that has a checker configured; and Claude visibly loading a named
+rule before it writes a test, changes a database, or calls an AI model.
+
+**Where things are**: the skills in the table below; what each hook does in
+[hooks/HOOKS.md](hooks/HOOKS.md); what went wrong on real jobs in
+[LESSONS_LEARNED.md](LESSONS_LEARNED.md); standing choices in [DECISIONS.md](DECISIONS.md); how
+the library gates itself in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); house rules for changing
+it in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Skills are installed at the **user level**, so they apply to every project on the machine with no
+per-project setup.
 
 The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 44 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
@@ -101,36 +115,6 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **cross-agent-review** | process | Adversarially review a scoped change/design/finding by debating one or more independent AI agents (Gemini via the agy CLI or GPT via the codex CLI, driven by Claude itself with no pasting; or a chat you drive; several seats at once) over a shared file relay, grounded in live read-only evidence; converge or two positions. |
 | **skill-library-builder** | process | Turn a repo into a project-specific skill library; skills encode mechanical steps, not awareness. |
 | **ai-surface-discipline / unslop-ui / unslop-text / unslop-code** | see rows above / forks | The three **unslop-\*** skills are forks of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches — see each skill's `UPSTREAM.md`. |
-
-## The rating system
-
-Tier and layer assignments are measured, not declared: the fire-log hook records every skill invocation to `FIRE_LOG.jsonl` (gitignored, machine-local); every new LESSONS_LEARNED entry in any repo ends with "skill that should have prevented this: X / none — new candidate" (the misses log, plus a "class:" line when a first instance is plainly broader than itself); a prune pass runs when a skill is added. Promotion ladder: hub bullet → leaf → norm → hook. Norm-backed, hub-routed, and rare-event-high-consequence skills are exempt from zero-fires demotion. `hooks/audit-fires.mjs` turns both halves of the measurement into one report (`node hooks/audit-fires.mjs --repo <path>...`): fires per skill, never-fired skills tagged with the layer that explains the zero, and misses per skill. The fire log cannot see the norms, the hooks, or knowledge applied without loading a skill, so a zero there is a question, not a verdict; the 2026-07-29 activation audit (docs/AUDIT_2026-07-29_activation.md) is the worked example of reading it wrong and then right.
-
-## The index gate
-
-One fact, the skill count, was stated in four places (the README table, the README prose, `plugin.json`, `marketplace.json`) with nothing asserting any of them, and it drifted: `1d780cb` deleted a skill on promotion to a hook and updated the table row only, so both manifests shipped wrong by one until a later addition made them accidentally right. `hooks/check-index.mjs` closes it, run by `.github/workflows/check-index.yml` on every push and PR (free, this repo is public):
-
-```bash
-node hooks/check-index.mjs
-```
-
-It asserts the **set** in both directions, which is the load-bearing half, plus each skill's frontmatter `name` against its directory, a non-empty description, and all three stated counts. It is a CI gate rather than a hook because the drift was caused by a **deletion**, which no Write or Edit hook can see. `hooks/check-index.test.mjs` proves it can go red: fourteen cases, each mutating one thing and pinning the substring that identifies its own defect, including a regression case named for `1d780cb`. Run against real history the gate reds with three problems at `1d780cb` and two at `385755d`, tracking the partial fix exactly.
-
-The same workflow's second job runs **every** hook suite (`hooks/*.test.mjs`) on ubuntu, and that job is why it is worth having. `lint-after-edit.test.mjs` built `#!/bin/sh` linter stubs until 2026-09-15, so its six "fires" cases could not execute on the Windows machine this library is maintained from, and before the job existed they were not executed on Linux either. Six cases guarding nothing look identical to six cases passing, and here they hid a hook that was silent on every Windows project; the stubs are node scripts now and the suite runs on both platforms. Every suite runs even after one fails, so a red run reports the whole picture rather than the first fault.
-
-## The archive gate
-
-Each `*/*.skill` file is a committed zip of its skill directory (`SKILL.md`, `references/*`, `scripts/*`; `README.md`, `UPSTREAM.md` and `.gitkeep` are deliberately not bundled). Nothing regenerated one on edit and nothing diffed one against the tree, so the two drifted silently: LESSONS_LEARNED entry 9 records three archives shipping a scanner their own `UPSTREAM.md` said was patched, because a stale package has no reader until something installs it, and then it installs the past. `hooks/check-archives.mjs` closes it, run by the same workflow on every push and PR:
-
-```bash
-node hooks/check-archives.mjs
-```
-
-It reads each archive's members with a stdlib-only zip reader (no dependencies) and asserts the **set** against the directory in both directions — every bundled file present in the archive, every archive member still on disk — plus each shared file's content, normalising CRLF so a checkout's line endings are never mistaken for drift. It reds naming every stale, missing or orphaned member. Like the index gate it is a whole-tree gate, not a Write/Edit hook, because an archive going stale is a non-edit to a second file the edit never touched. `hooks/check-archives.test.mjs` proves it can go red: ten cases each mutating one thing and pinning its own substring, including one in the shape of entry 9's incident (a script patched on disk but not repacked). When it reds, `node hooks/pack-skill.mjs <skill-dir>` (or `--all`) rebuilds the archive deterministically, so the fix is one command.
-
-Domain skill packs do not live here (DECISIONS.md, 2026-09-14). `hooks/install-marketing-pack.mjs <target-repo>` installs a stripped, pinned subset of `coreyhaines31/marketingskills` into a repo's own `.claude/skills/` with an `UPSTREAM.md` listing every cut, and refuses to overwrite a same-named skill it did not install; `hooks/install-marketing-pack.test.mjs` proves each cut and each refusal against a fixture pack.
-
-[LESSONS_LEARNED.md](LESSONS_LEARNED.md) holds field notes from applying these skills on real jobs: what broke, what the skills caught, and what only a human pass caught.
 
 ## Install on a new machine
 
@@ -204,9 +188,3 @@ Then copy the NORMS.md block into `~/.claude/CLAUDE.md` and install the hooks pe
 [hooks/HOOKS.md](hooks/HOOKS.md). This mode is for editing the skills; a machine on this
 mode must NOT also install the plugin.
 
-## Conventions
-
-- A forked/edited skill carries an `UPSTREAM.md` recording its source repo, source commit, and our local patches. **When pulling an upstream update, re-apply the patches listed there** so our fixes are not lost.
-- Our own original skills don't need an `UPSTREAM.md`.
-- Every leaf description carries a "does not fire on" line; no two leaves share their primary trigger vocabulary; soft cap ~60 words per description.
-- Adding a leaf updates its hub's routing table in the same commit.

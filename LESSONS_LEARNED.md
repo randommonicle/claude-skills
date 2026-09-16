@@ -733,3 +733,54 @@ challenged whether this one met it.
 **class:** a review's general constraint answered with a specific better artefact,
 so the constraint is never tested; the second artefact is defended with tests of
 its behaviour while the objection was to its existence.
+
+## 18. The doc named the hazard, the manifest shipped it, and nothing compared them
+
+**What happened.** On 2026-09-16 a cross-agent review was pointed at the public
+README looking for stale facts. The GPT seat returned six, five of them ordinary
+documentation drift. The fourth was not documentation drift.
+
+`README.md` said `push-gate` intercepts every `git push`. `hooks/hooks.json`
+registered `push-gate.mjs` and `sql-surgery-warn.mjs` under `"matcher": "Bash"`.
+`hooks/HOOKS.md:42-43` states, in the section covering the manual install, why
+that wiring uses `Bash|PowerShell`: the Windows desktop harness exposes a
+separate `PowerShell` tool carrying the same `tool_input.command`, and a
+`Bash`-only matcher lets a push through it. So the repository documented the
+exact hazard, and the plugin manifest shipped it. Every plugin user on Windows
+desktop had no push gate and no destructive-SQL gate on the PowerShell path, and
+this machine's live `~/.claude/settings.json` carried the same narrow matcher.
+
+Fed both event shapes directly, `push-gate.mjs` returns `ASK` for `Bash` and
+`ASK` for `PowerShell`. The script was never the problem; only the matcher decides
+whether it is invoked. A runtime probe through the PowerShell tool completed with
+no prompt, and was recorded as INCONCLUSIVE rather than as evidence, because the
+session ran in bypassPermissions, which would mask an ask on either path. The
+finding rests on the manifest and on HOOKS.md, not on that probe.
+
+**The lesson.** The manual wiring and the plugin wiring were two copies of one
+fact, and only one of them was ever reasoned about. The prose copy got the
+analysis, including the hazard and the reason, and the executable copy was
+written once and never revisited. `blast-radius-grep` names this shape, the unit
+of change being the fact rather than the file someone handed you, and it did not
+fire because nobody was changing that fact; it had been wrong since it was
+written. Nothing compared the two copies, so being documented did not make it
+true.
+
+Second, the gap was found by a review commissioned for something else. The
+instruction was "check every claim in the README against the repo", and checking
+a claim about a safety control against the thing that implements it is how a
+documentation review becomes a security finding. A review scoped to prose that is
+allowed to read the code will do this; one handed only the prose cannot.
+
+`hooks/check-index.test.mjs` now asserts the wiring of both command gates.
+Narrowing the matcher back reds two cases with the matcher printed.
+
+**skill that should have prevented this:** enforce-invariants-in-build (the rule
+lived in HOOKS.md prose and nothing in the build compared it to hooks.json; asked
+"what fails if the manifest contradicts the doc", the answer was "nothing") /
+blast-radius-grep, which owns the duplicated-fact shape but is written around
+changing one, not around auditing one that was born wrong.
+
+**class:** a rule stated correctly in documentation and contradicted by the
+manifest that implements it, where no check compares the two, so the documentation
+reads as assurance that the control exists.
