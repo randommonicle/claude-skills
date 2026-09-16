@@ -345,7 +345,8 @@ would cut both the payload and the token cost per round; designed nowhere yet, a
 
 **README** (`3ff658c`): a plain-English "Start here" section (what it is, three kinds of thing,
 five-minute install, what changes afterwards, where things are) and two stale sentences
-corrected. **Deferred to a fresh session: the pass over every remaining section for a lay
+corrected. **SUPERSEDED 2026-09-16 by `661aac8`**, see `docs/HANDOVER_context-economy_2026-09-16.md`;
+this had been **deferred to a fresh session: the pass over every remaining section for a lay
 reader**, which the operator asked for; it is 160 lines of dense engineering prose and this
 session was in the yellow band when the ask arrived.
 
