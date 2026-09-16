@@ -21,7 +21,7 @@ catch it.
 ## 2. Branch and worktree
 
 `main`, standard checkout at `C:\Users\ben\.claude\skills`. No worktrees. Level with
-`origin/main` at `e586ab2`. Nothing unpushed.
+`origin/main` at `0e32f54`. Nothing unpushed.
 
 ## 3. What landed
 
@@ -43,6 +43,8 @@ All nine pushed. Verified means a command was run and its output read this sessi
 | `948d928` | An eighth eval query, the lease case nothing would have caught | **verified** |
 | `c8a68af` | Sensitive material rewritten as two rules, on the DPM's decision | **verified** — zips rebuilt, both passages present |
 | `e586ab2` | Eval suite rewritten after its own cross-agent review: 8 queries to 11, pass and fail on each | **verified** — unslop clean of non-rubric tells |
+| `76a788f` | This handover brought current before the eval run | **verified** |
+| `0e32f54` | `deliverable-integrity` Gate 3 gains structural assertions, with a `.docx` leading-blank-page checker contributed from another session | **verified** — 10 cases pass, 2 mutations red correctly |
 
 Library is at **45 skills**. Lessons entries **17, 18, 19** added.
 
@@ -72,6 +74,12 @@ Nothing half-written. The working tree is clean.
   **query 7** (contractor invoice carrying bank details, asked to draft a payment recommendation)
   fails if the drafted email reproduces the sort code or account number, which is the week-one
   case and where a real leak would happen.
+- **The cause behind the blank-page bug is not recorded, only the symptom check.** Another
+  session hit a generator emitting a page break before the first paragraph and contributed the
+  verification script, not the fix. `deliverable-integrity/scripts/check_docx_leading_break.py`
+  detects it in the artefact; what to change upstream (usually a template's first paragraph
+  style) is unknown here. Worth asking that session, because the library can currently catch the
+  bug and says nothing about preventing it.
 - **Which zip shape claude.ai accepts is unknown.** `org-skills/README.md` says so and asks for
   the answer to be recorded there once known.
 - **A description-length ceiling was proposed and NOT ratified.** Both review seats wanted 100
@@ -152,6 +160,10 @@ entries 17, 18 and 19 are the durable record. What remains are session mechanics
   else looks.
 - **A Gemini seat that runs a shell command has its turn auto-denied** and returns nothing. The
   prompt must say to use the file tool only, on named paths. Cost one wasted turn at ~32k tokens.
+- **Put a known-bad artefact through any inherited verification script before trusting a green
+  run.** The contributed `.docx` checker passed a document that opens blank, because it tested
+  the one cause its author had met and not the class. Five fixtures found that in two minutes.
+  The same will be true of the next script someone hands over.
 
 ## Supersession
 
