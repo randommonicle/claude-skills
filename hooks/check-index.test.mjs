@@ -345,6 +345,35 @@ check(
   }
 }
 
+// The plugin's own wiring, asserted. hooks/HOOKS.md:42-43 states that the
+// Windows desktop harness exposes a `PowerShell` tool carrying the same
+// `tool_input.command`, so a `Bash`-only matcher lets a push through it. That
+// rule lived in prose for the manual install while hooks.json shipped the narrow
+// matcher, and a README review on 2026-09-16 found the gate absent on the
+// PowerShell path for every plugin user. Fed both event shapes, push-gate.mjs
+// returns ASK for each: the script was never the problem, only the matcher that
+// decides whether it runs. enforce-invariants-in-build - a rule asserted in a doc
+// and contradicted by a manifest is a comment, not a control.
+{
+  const wiring = JSON.parse(readFileSync(join(dirname(CHECK), 'hooks.json'), 'utf8'));
+  const commandGates = ['push-gate.mjs', 'sql-surgery-warn.mjs'];
+  for (const gate of commandGates) {
+    const group = (wiring.hooks.PreToolUse ?? []).find((g) =>
+      (g.hooks ?? []).some((h) => String(h.command).includes(gate)),
+    );
+    const matcher = group?.matcher ?? '';
+    const tools = matcher.split('|').map((t) => t.trim());
+    if (tools.includes('Bash') && tools.includes('PowerShell')) {
+      console.log(`PASS  ${gate} is wired for both Bash and PowerShell`);
+    } else {
+      failed++;
+      console.log(`FAIL  ${gate} is wired for both Bash and PowerShell`);
+      console.log(`        matcher is ${JSON.stringify(matcher)}; a command gate that misses`);
+      console.log(`        the PowerShell tool is absent on the Windows desktop path`);
+    }
+  }
+}
+
 if (failed > 0) {
   console.log(`\n${failed} case${failed === 1 ? '' : 's'} failed`);
   process.exit(1);

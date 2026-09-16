@@ -144,24 +144,28 @@ prerequisite first.
 **What installing changes about your sessions**, stated plainly because none of it is obvious
 afterwards and one item can interrupt you:
 
-- **Eight hooks are wired**, listed in [hooks/HOOKS.md](hooks/HOOKS.md). Two are gates that ask
-  for confirmation rather than warn: `push-gate` intercepts every `git push`, `gh pr merge` and
+- **Nine command hooks are wired**, listed in [hooks/HOOKS.md](hooks/HOOKS.md). Two are gates that
+  ask for confirmation rather than warn: `push-gate` intercepts `git push`, `gh pr merge` and
   remote branch deletion, and `sql-surgery-warn` intercepts destructive SQL in an execution
-  context. If you do not want a confirmation prompt on every push, do not install the plugin
+  context. Both match the `Bash` and `PowerShell` tools, which is load-bearing on Windows desktop:
+  a `Bash`-only matcher leaves both gates absent on the PowerShell path, and shipped that way
+  until 2026-09-16. If you do not want a confirmation prompt on every push, do not install the plugin
   mode; take the skills only.
 - **A SessionStart hook runs `git fetch` and `gh pr list`** in your repo at the start of every
   session, and injects the result as context. That is network activity in your repo, on your
   credentials, without a prompt.
 - **`skill-fire-log.mjs` appends the skill name, its arguments and your cwd** to
-  `~/.claude/skills/FIRE_LOG.jsonl` every time a skill loads. It is local-only and gitignored,
-  nothing is transmitted anywhere, and no hook in this library makes a network call. Delete the
-  file or remove the hook if you would rather not keep it.
+  `~/.claude/skills/FIRE_LOG.jsonl` every time a skill loads, and unrecognised event shapes to
+  `FIRE_LOG_DEBUG.jsonl` beside it. Both are local-only and gitignored, and nothing in them is
+  transmitted anywhere. The only network activity any hook performs is the `git fetch` and
+  `gh pr list` named above, on your own credentials. Delete the files or remove the hook if you
+  would rather not keep them.
 - **The six norms are injected into every session** as instructions, per [NORMS.md](NORMS.md).
 
 Two modes — pick ONE per machine (both at once double-registers every skill and double-fires
 every hook):
 
-**Plugin (recommended — skills + hooks + norms in one step, auto-updates on every push):**
+**Plugin (recommended — skills, hooks and norms in one step):**
 
 ```
 /plugin marketplace add randommonicle/claude-skills
@@ -186,13 +190,14 @@ installed plugin, and asking Claude to do something a skill guards (say, write a
 visibly load the relevant skill. If skills are present but nothing ever fires, the hooks are the
 part that did not install.
 
-**To remove it:** `/plugin uninstall ash@ash-skills`, then delete
-`~/.claude/skills/FIRE_LOG.jsonl` and `SURGERY_LOG.jsonl` if you want the local logs gone.
+**To remove it:** `/plugin uninstall ash@ash-skills`, then delete `FIRE_LOG.jsonl`,
+`FIRE_LOG_DEBUG.jsonl` and `SURGERY_LOG.jsonl` from `~/.claude/skills/` if you want the local
+logs gone.
 
 **Direct clone (the maintainer's dev machine only):**
 
 ```bash
-git clone <this-repo-url> ~/.claude/skills
+git clone https://github.com/randommonicle/claude-skills.git ~/.claude/skills
 ```
 
 Then copy the NORMS.md block into `~/.claude/CLAUDE.md` and install the hooks per
