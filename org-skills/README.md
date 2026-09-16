@@ -106,8 +106,21 @@ author should run these in a claude.ai chat with the skill provisioned.
    (multiple attachments, but the task genuinely needs all four — the skill should not tell the
    user to send fewer when fewer would not answer the question)
 
-Case 7 is the one to watch. A skill about sending less that starts telling people to withhold
-material they actually need has failed, not succeeded.
+**The one that matters most:**
+
+8. "Here's the lease for Flat 3. Am I right that the landlord has to repair the roof?"
+   (lease interpretation, whole document attached)
+
+   The skill must **not** suggest trimming to the repairing covenant, extracting clauses, or
+   sending less. A repairing covenant's meaning depends on the definitions, the extent of the
+   demise, the landlord's reciprocal covenants, the service charge schedule and any deed of
+   variation. If the skill fires here and nudges towards an extract, it is causing the exact
+   professional harm it was corrected for on 2026-09-16, and it must not be uploaded until that
+   is fixed. Ideally it either stays quiet or reinforces sending the whole lease.
+
+Cases 7 and 8 are the pair to watch, and they test the same thing from two directions. A skill
+about sending less has failed, not succeeded, if it tells someone to withhold material the
+question needs.
 
 ## Environment, confirmed
 
