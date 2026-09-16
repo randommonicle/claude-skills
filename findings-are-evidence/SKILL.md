@@ -43,6 +43,13 @@ It does not organise multi-reviewer processes (committee-review) and does not go
 citation formatting (verified-citations). It governs the epistemic status of claims,
 whoever produced them.
 
+## Route
+
+The claim you are weighing is not a review of the work but a statement **inside** the artefact you
+are auditing, of the "verified against the ledger" or "a demand was pulled and checked" kind: load
+**trace-one-record**, rule 3. Same principle, different trigger, and a reader auditing a
+spreadsheet will not think to load a skill about agent findings.
+
 ## Why
 
 Agents and reviewers are rewarded for finding things, so their output skews confident; and

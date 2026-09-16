@@ -784,3 +784,71 @@ changing one, not around auditing one that was born wrong.
 **class:** a rule stated correctly in documentation and contradicted by the
 manifest that implements it, where no check compares the two, so the documentation
 reads as assurance that the control exists.
+
+## 19. Two correct figures, one wrong total, and a tick where the question should have been
+
+**What happened.** On a live UK property-management matter in September 2026, a
+cash forecast issued to a client board added an overdue-balances figure to an
+unpaid-levy figure and presented the sum as the amount owed. The overdue report
+already contained the levy. The total was overstated by 71% of the true figure
+and was labelled in the document as the figure to use. A client director found it
+the next morning.
+
+Both inputs were individually correct and each traced cleanly to its own source.
+The addition was right. The defect lived in the relationship between two correct
+figures, which is reachable by no per-figure check and no internal-consistency
+check.
+
+A session was asked to find the error before the document issued and did not. Its
+own account of four misses is the substance of this entry, and it wrote the skill
+proposal that became `trace-one-record`.
+
+- **A ticked sum stood in for a check.** Its working recorded `a + b = c ✓`. The
+  arithmetic was right; whether the two should be added was never asked.
+- **A stated check was treated as a performed check.** The document said a demand
+  had been pulled and checked. That claim was *true and irrelevant*: the demand
+  did carry no levy line, which shows the levy was not demanded again, not that
+  unpaid levy sits outside the account balance. A true premise supporting a false
+  inference is the hardest kind to catch, because checking the premise confirms it.
+- **A conclusion was drawn from truncated search output.** A repository-wide sweep
+  for the withdrawn figure matched the right line in a second issued document and
+  printed a 168-character slice that stopped just before the figure. The visible
+  fragment read as an unrelated point, and the conclusion written was that the
+  blast radius was contained to one document. It was not. That conclusion went
+  into a client-facing correction that would have fixed one document and left the
+  same wrong figure standing in another. The same run also died partway through
+  and was not re-run.
+- **A reconciliation that tied validated a broken extraction.** A case-sensitive
+  match on `'Payment received'` silently dropped every row written
+  `'Payment Received'`. A *different* reconciliation tied to the penny and was
+  taken as proof the parse was sound; that window happened to contain none of the
+  affected rows. It surfaced by accident, from a per-unit analysis run for an
+  unrelated question.
+
+**The lesson.** The two things a careful reviewer does by reflex, checking the
+arithmetic and validating each figure against its own source, both pass on a
+double count. Neither is a check on composition. The only check that reaches it is
+tracing one record end to end through both sources, which takes about two minutes
+and which nobody did until a client did.
+
+The third miss is a different failure and belongs to a different skill. The sweep
+was correctly scoped and correctly written; the agent then hid its own evidence
+with a display slice and reasoned from the fragment. A search that matched is not
+a search that was read, and a run that errored is not a run.
+
+The fourth carries a general warning about cross-checking: agreement on the axis
+you aggregated on is not evidence of completeness, because a window that ties may
+hold none of the rows being dropped. Check on a second axis or do not claim the
+extraction is sound.
+
+Client figures, names and identifiers are deliberately absent here; this
+repository is public. The matter's own record lives in that engagement's handover.
+
+**skill that should have prevented this:** none - new candidate, now
+`trace-one-record`. Misses 1, 2 and 4 are its rules 5, 3 and 6. Miss 3 had an
+owner, `blast-radius-grep`, and the rule was right while the search was run badly,
+so that skill gained a completion gate in the same commit.
+
+**class:** a total derived by combining figures from two reports, systems or dates
+where the overlap between them was assumed rather than established by inspecting a
+single record end to end.
