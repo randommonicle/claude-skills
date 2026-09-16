@@ -96,6 +96,29 @@ function skillsOnDisk(root) {
     .sort();
 }
 
+// A frontmatter value as YAML would resolve it, for the five shapes that reach
+// a SKILL.md. Each of these was a real defect found by an adversarial code
+// review on 2026-09-16, and each let the gate reach a wrong verdict silently.
+//
+//   description: ""              was stored as the two quote characters, which
+//                                are truthy, so the presence check passed on an
+//                                empty description.
+//   description: # not yet       was stored as the comment text, same effect.
+//   name: "alpha-skill"          kept its quotes and then failed the directory
+//                                comparison, rejecting valid YAML.
+//
+// A comment introducer is ` #` after whitespace, per YAML; a `#` inside a word
+// is not one. No current frontmatter contains ` #` (checked across all 44).
+function scalar(value) {
+  if (value === '' || value.startsWith('#')) return '';
+  const quoted = value.match(/^"((?:[^"\\]|\\.)*)"\s*(?:#.*)?$/) || value.match(/^'((?:[^']|'')*)'\s*(?:#.*)?$/);
+  if (quoted) {
+    return value[0] === '"' ? quoted[1].replace(/\\(.)/g, '$1') : quoted[1].replace(/''/g, "'");
+  }
+  const comment = value.search(/\s#/);
+  return (comment >= 0 ? value.slice(0, comment) : value).trim();
+}
+
 // Only the leading frontmatter block, so a fenced example inside the body can
 // never be read as the skill's own metadata.
 //
@@ -104,14 +127,14 @@ function skillsOnDisk(root) {
 // value is on the indented lines below it. Reading the indicator as the value
 // made `unslop-code`, `unslop-text` and `unslop-ui` present a description of the
 // literal string ">-", which is truthy, so the presence check below passed over
-// three descriptions it had never read. Measured 2026-09-16: the same blindness
-// scored those three at 1 word each in a census, hiding the library's three
-// longest descriptions (165, 151, 132 words). A check that cannot go red for the
-// case it exists to catch is not a check (prove-it-can-fail).
+// three descriptions it had never read. A check that cannot go red for the case
+// it exists to catch is not a check (prove-it-can-fail).
 //
-// Scope: consecutive indented lines, folded to one space-joined string. A blank
-// line inside a block scalar ends it here, which no current skill does and which
-// a reader would see as a truncated description rather than a silent pass.
+// A blank line inside a block scalar is a paragraph break, NOT the end of it.
+// Ending there truncated the value at the first blank line and reported what was
+// left as if it were the whole thing, which is the exact shape no-silent-data-drop
+// exists to stop, inside the gate that enforces it. The scalar ends at the first
+// non-blank line that is not indented.
 function frontmatter(text) {
   const match = text.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
@@ -124,10 +147,20 @@ function frontmatter(text) {
     const value = raw.trim();
     if (/^[>|][-+]?$/.test(value)) {
       const folded = [];
-      while (i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) folded.push(lines[++i].trim());
-      fields[key] = folded.join(' ');
+      while (i + 1 < lines.length) {
+        if (lines[i + 1].trim() === '') {
+          let j = i + 2;
+          while (j < lines.length && lines[j].trim() === '') j++;
+          if (j >= lines.length || !/^\s+\S/.test(lines[j])) break;
+          i++;
+          continue;
+        }
+        if (!/^\s+\S/.test(lines[i + 1])) break;
+        folded.push(lines[++i].trim());
+      }
+      fields[key] = folded.join(' ').trim();
     } else {
-      fields[key] = value;
+      fields[key] = scalar(value);
     }
   }
   return fields;

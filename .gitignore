@@ -31,5 +31,3 @@ exchange/**
 !exchange/kickoffs/
 !exchange/kickoffs/**
 
-# read-head-supply.mjs per-session state; machine-local, self-pruning at 7 days
-.read-head-state/

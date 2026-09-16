@@ -282,6 +282,69 @@ check(
   'ok',
 );
 
+// The five YAML shapes an adversarial code review found the parser resolving
+// wrongly on 2026-09-16. Each let the gate reach a verdict on a value YAML does
+// not hold. The empty-quoted and comment-only cases are the dangerous pair: both
+// are falsy in YAML and both were stored as truthy strings, so the presence
+// check passed over a description that is not there.
+check(
+  'an empty quoted description is caught, not passed by its quote characters',
+  (root) => patch(join(root, 'gamma-skill', 'SKILL.md'), /description: .*\n/, 'description: ""\n'),
+  { contains: ['gamma-skill/SKILL.md has no description'] },
+);
+
+check(
+  'a description that is only a comment is caught',
+  (root) => patch(join(root, 'gamma-skill', 'SKILL.md'), /description: .*\n/, 'description: # not written yet\n'),
+  { contains: ['gamma-skill/SKILL.md has no description'] },
+);
+
+check(
+  'a double-quoted name is unquoted before the directory comparison',
+  (root) => patch(join(root, 'beta-skill', 'SKILL.md'), 'name: beta-skill', 'name: "beta-skill"'),
+  'ok',
+);
+
+check(
+  'a single-quoted name is unquoted before the directory comparison',
+  (root) => patch(join(root, 'beta-skill', 'SKILL.md'), 'name: beta-skill', "name: 'beta-skill'"),
+  'ok',
+);
+
+check(
+  'a block scalar starting with a blank line still reads its description',
+  (root) =>
+    patch(
+      join(root, 'gamma-skill', 'SKILL.md'),
+      /description: .*\n/,
+      'description: >-\n  \n  The gamma description, after a blank first line.\n',
+    ),
+  'ok',
+);
+
+// The internal-blank case cannot be pinned through the CLI: the gate reports
+// whether a description EXISTS, never its content, so a truncated-but-non-empty
+// value looks identical to a whole one from outside. Asserting it through
+// check() would have been a case that cannot go red. Instead, probe the shipped
+// parser directly. This is the only place in the suite that reaches inside the
+// module, and it is here because no-silent-data-drop is precisely about content
+// that disappears without changing any outward signal.
+{
+  const src = readFileSync(CHECK, 'utf8');
+  const segment = src.slice(src.indexOf('function scalar(value)'), src.indexOf('function indexedNames('));
+  const load = new Function(`${segment}\nreturn frontmatter;`);
+  const frontmatter = load();
+  const doc = '---\nname: a\ndescription: >-\n  First paragraph.\n\n  Second paragraph.\n---\n';
+  const got = frontmatter(doc).description;
+  if (got === 'First paragraph. Second paragraph.') {
+    console.log('PASS  a blank line inside a block scalar does not drop what follows it');
+  } else {
+    failed++;
+    console.log('FAIL  a blank line inside a block scalar does not drop what follows it');
+    console.log(`        got ${JSON.stringify(got)}`);
+  }
+}
+
 if (failed > 0) {
   console.log(`\n${failed} case${failed === 1 ? '' : 's'} failed`);
   process.exit(1);

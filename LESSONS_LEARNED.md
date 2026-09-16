@@ -676,3 +676,60 @@ is outside what that skill checks.
 class: a failure attributed to the component under test when the harness never
 delivered the input; the failure matched the prior, so its mechanism went
 unexamined. Sibling of 15 one axis over.
+
+## 17. The review said measure before warning, and the reply was a better warning
+
+**What happened.** On 2026-09-16 a `context-economy` skill was written, and with
+it a hook to mechanise its weakest rule. The first design warned when the summed
+lines of several partial reads exceeded a file's own length: "one read would have
+been cheaper". A two-model review (Gemini via agy, GPT via codex) refuted it in
+round one. Content read late is re-sent on fewer turns than content read early,
+so four late slices routinely beat one early whole-file read. The message was
+false in the common case, not simply unproven. Both seats said the same thing
+afterwards, in the same words, twice: **measure the failure rate before shipping
+any warning.**
+
+An adversarial Opus pass over their converged position then broke the shared
+premise underneath it. All three parties had reasoned that a hook cannot see what
+a read omitted. A hook can open the file; `lint-after-edit.mjs` already does, and
+`HOOKS.md:120` says so. It also found a recorded instance of the failure the
+review had declared unreachable, entry 14 above, which nobody had looked for.
+
+So a second hook was built. It supplied a file's first five lines whenever a read
+started below them, asserted nothing, was tested with nine cases and three
+mutations, and was committed. It was not measured. A second adversarial round,
+with the code seat given the source rather than the description, returned four
+reproducible defects in it inside one turn: it read whole files to take five
+lines; a `\r`-only file defeated the five-line bound entirely and returned 3,894
+characters; a failed read wrote its own state first and so suppressed every later
+retry; and the head of any file reached model context unrequested, which is a
+prompt-injection surface and not a bug in the code but the shape of the design.
+The same seat found five more defects in the parser fix shipped beside it,
+including a block scalar silently truncated at its first blank line, inside the
+gate that enforces `no-silent-data-drop`. All nine reproduced under probe.
+Reverted in the same session it landed.
+
+**The lesson.** "Measure first" was heard as an objection to *that* warning
+rather than a rule about *any* control, so the reply was a better-argued control
+instead of a measurement. The tell was available and ignored: the new design was
+fitted to exactly one incident, a five-line window derived from entry 14's line 4
+and the minimum height of a YAML frontmatter block, which is two points and a
+line of best fit through noise. A control fitted to one instance predicts that
+instance. The mutation tests proved the hook did what it was designed to do and
+said nothing about whether the design should exist, which is the question that
+was open. Adversarial value came from splitting the work by strength: the code
+seat got the source and returned nine defects; the doctrine seat got the prose
+and found that the skill told the reader to do arithmetic about spend sixty
+lines after stating an agent has no instrument for its own spend.
+
+**skill that should have prevented this:** prove-it-can-fail (the suite could go
+red on the implementation and had no case that could go red on the premise; asked
+"what does this print if the design is wrong", the answer was "all cases passed")
+/ findings-are-evidence (both seats' "measure first" was consumed as a comment on
+one design rather than re-derived as the constraint it was). earn-every-line came
+closest and did not fire: a present need existed for *a* control, so nothing
+challenged whether this one met it.
+
+**class:** a review's general constraint answered with a specific better artefact,
+so the constraint is never tested; the second artefact is defended with tests of
+its behaviour while the objection was to its existence.

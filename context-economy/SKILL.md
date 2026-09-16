@@ -200,17 +200,21 @@ are the cases where following the skill costs more than ignoring it.
 
 - **Exploratory questions: read wide first.** Rule 1 assumes you know which slice. When you do
   not, a grep hit plus 60 lines of context is how you miss the definition, the variation or the
-  guard clause that changes the meaning. Narrow once you know what you are looking for, not
-  before. The recorded instance is `LESSONS_LEARNED.md` entry 14: two wrong conclusions in one
+  guard clause that changes the meaning. The test is not how the task feels, because all
+  debugging feels exploratory until it is solved. It is whether you can name what you expect to
+  find before you read. If you can name it, slice. If you are reading to find out what is there,
+  read wide, and read from the top of the file rather than from the middle. The recorded instance is `LESSONS_LEARNED.md` entry 14: two wrong conclusions in one
   evening, pushed three times inside the hour, because the state that would have corrected both
   sat at line 4 and every read started below it.
 - **Slicing is not free, and past a point it loses.** Each slice is its own turn, and every turn
   re-sends the whole prefix. Six greps across six turns of a 30k conversation cost 180k; one 40k
   read costs 40k. There is a crossover and it arrives sooner than it feels like it does.
-- **Content read late is re-sent fewer times than content read early.** This cuts the other way
-  and is the reason the first version of the read-ledger hook was scrapped: four late slices
-  genuinely can beat one early whole-file read, so "fewer reads" is not a proxy for "fewer
-  tokens". Do the arithmetic for the session you are actually in.
+- **Content read late is re-sent fewer times than content read early.** This cuts the other way:
+  four late slices genuinely can beat one early whole-file read, so "fewer reads" is not a proxy
+  for "fewer tokens". Do not try to compute the trade-off in your head mid-session. The
+  section below says you have no instrument for your own spend, and that applies here too.
+  Take it as a reason to distrust both "I sliced so I saved" and "I read it all so I was
+  thorough", and read `/context` if the answer actually matters.
 - **A subagent summary is not evidence.** It returns 1-2k tokens with the reasoning discarded.
   Load **findings-are-evidence** before acting on one; isolation buys context, not trust.
 - **`/clear` throws away context that had value.** Re-establishing it costs tokens and your time.
@@ -220,15 +224,18 @@ are the cases where following the skill costs more than ignoring it.
 
 ## Mechanics
 
-Two of this skill's rules fire where a description cannot match, so they are hooks rather than
-prose. `hooks/read-head-supply.mjs` returns the first five lines of any file read from an offset
-below them, once per file per session: it supplies what the slice excluded and asserts nothing
-about whether the read was wrong, because a claim that it was would be false in the common case.
+One of this skill's rules is carried by a hook, because a description cannot match the moment:
 `hooks/check-index.mjs` reads every skill's `description`, including the folded-YAML form three
 skills use, which it could not parse until 2026-09-16.
 
-What is deliberately NOT mechanised: whether the content a slice omitted actually mattered. No
-event carries it. That judgement is yours, and this skill's largest gap.
+**Premature narrowing has no mechanical control, and one was tried and withdrawn.** A hook that
+returned a file's first lines whenever a read started below them was built, tested and reverted
+on 2026-09-16: it read whole files to take five lines, leaked an entire file on `
+`-only line
+endings, suppressed its own retry after a failed read, and put the head of any file into model
+context unrequested, which is a prompt-injection surface rather than a bug in it. The window was
+also fitted to a single incident: a read starting at line 20 omits lines 6-19 just as completely.
+Recorded so the next person reaches for something better rather than rebuilding this one.
 
 ## Routes
 
