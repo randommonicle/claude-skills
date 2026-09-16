@@ -95,16 +95,22 @@ author should run these in a claude.ai chat with the skill provisioned.
 Case 7 is the one to watch. A skill about sending less that starts telling people to withhold
 material they actually need has failed, not succeeded.
 
-## What still needs checking
+## Environment, confirmed
 
-- **ASH's Cowork state.** A search summary said Cowork is off by default on Enterprise at launch
-  and on by default from 10 September 2026 unless disabled, and on by default on Team. This was
-  not confirmed against a primary page. Check the admin console rather than relying on it.
-- **Whether user-created skills are on.** If they are switched off, staff rely entirely on
-  provisioned and built-in skills, which raises the bar on this one being right.
+Confirmed by Ben Graham (AI Lead) on 2026-09-16, from the admin console rather than from
+documentation:
+
+- **Cowork is on for ASH.** The earlier search-summary claim about default states is moot.
+- **User-created skills are enabled.** Staff can write their own, so this skill competes for
+  triggers with whatever they create. If recall degrades later, that is the first place to look.
+- **Organisation-wide skill upload is available and has been used before.** The path and the
+  owner-only restriction are not new ground.
+
+Still open:
+
 - **Skill and plugin security scanning.** Available to Enterprise organisations at the same
   settings page. It does not cover skills already present when it is turned on, so turning it on
-  after this upload will not scan this skill.
+  after this upload will not scan this skill. Turn it on first if it is going on at all.
 
 ## Suggested addition to the organisation instructions — not applied
 
