@@ -22,3 +22,14 @@ turnstile-spin/
 web-perf/
 workers-best-practices/
 wrangler/
+
+# cross-agent-review: scaffolding travels, transcripts and local seat state do not
+exchange/**
+!exchange/README.md
+!exchange/PROTOCOL.md
+!exchange/TEMPLATE_REVIEW.md
+!exchange/kickoffs/
+!exchange/kickoffs/**
+
+# read-head-supply.mjs per-session state; machine-local, self-pruning at 7 days
+.read-head-state/

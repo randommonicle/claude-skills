@@ -254,6 +254,34 @@ check(
   }
 }
 
+// Block-scalar descriptions. Three shipped skills (unslop-code, unslop-text,
+// unslop-ui) write `description: >-` with the text on indented lines below.
+// Before 2026-09-16 the parser read the indicator `>-` as the value, which is
+// truthy, so the presence check passed over a description it had never read.
+// The empty case below is the one that goes red against the old parser; the
+// populated case pins that the fix did not break the normal folded shape.
+check(
+  'an empty folded description is caught, not passed by the >- indicator',
+  (root) =>
+    patch(
+      join(root, 'gamma-skill', 'SKILL.md'),
+      /description: .*\n/,
+      'description: >-\n',
+    ),
+  { contains: ['gamma-skill/SKILL.md has no description'] },
+);
+
+check(
+  'a populated folded description passes',
+  (root) =>
+    patch(
+      join(root, 'gamma-skill', 'SKILL.md'),
+      /description: .*\n/,
+      'description: >-\n  Does the gamma thing across several lines.\n  Triggers on gamma work.\n',
+    ),
+  'ok',
+);
+
 if (failed > 0) {
   console.log(`\n${failed} case${failed === 1 ? '' : 's'} failed`);
   process.exit(1);

@@ -98,13 +98,37 @@ function skillsOnDisk(root) {
 
 // Only the leading frontmatter block, so a fenced example inside the body can
 // never be read as the skill's own metadata.
+//
+// Block scalars are handled because three shipped skills use them. A value of
+// `>-` (or `|`, `>`, `|-`, `>+`, `|+`) is a YAML indicator, not the value: the
+// value is on the indented lines below it. Reading the indicator as the value
+// made `unslop-code`, `unslop-text` and `unslop-ui` present a description of the
+// literal string ">-", which is truthy, so the presence check below passed over
+// three descriptions it had never read. Measured 2026-09-16: the same blindness
+// scored those three at 1 word each in a census, hiding the library's three
+// longest descriptions (165, 151, 132 words). A check that cannot go red for the
+// case it exists to catch is not a check (prove-it-can-fail).
+//
+// Scope: consecutive indented lines, folded to one space-joined string. A blank
+// line inside a block scalar ends it here, which no current skill does and which
+// a reader would see as a truncated description rather than a silent pass.
 function frontmatter(text) {
   const match = text.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
   const fields = {};
-  for (const line of match[1].split('\n')) {
-    const field = line.match(/^([A-Za-z_-]+):\s*(.*)$/);
-    if (field) fields[field[1]] = field[2].trim();
+  const lines = match[1].split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const field = lines[i].match(/^([A-Za-z_-]+):\s*(.*)$/);
+    if (!field) continue;
+    const [, key, raw] = field;
+    const value = raw.trim();
+    if (/^[>|][-+]?$/.test(value)) {
+      const folded = [];
+      while (i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) folded.push(lines[++i].trim());
+      fields[key] = folded.join(' ');
+    } else {
+      fields[key] = value;
+    }
   }
   return fields;
 }

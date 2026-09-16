@@ -37,6 +37,12 @@
         "hooks": [
           { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lint-after-edit.mjs\"", "timeout": 20 }
         ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/read-head-supply.mjs\"", "timeout": 10 }
+        ]
       }
     ]
   }
