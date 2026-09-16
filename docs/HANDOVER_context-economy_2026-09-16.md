@@ -2,9 +2,11 @@
 
 **Diagnoses in this note are unverified unless marked.**
 
-**Context reading: 49%, the operator's own reading from the desktop UI at the point he called
-the wrap.** `/context` is not invocable from this harness (desktop Code tab), so no reading was
-taken by the session itself. Band: yellow.
+**Context reading: 52%, the operator's own reading from the desktop UI, taken after the handover
+was first drafted at 49%.** `/context` is not invocable from this harness (desktop Code tab), so
+no reading was taken by the session itself and none is estimated. Band: **yellow** (50-65%), so
+the standing rule applies: small commits with explicit scope cuts, and no new work units taken
+beyond what is already listed under next actions.
 
 ## 1. Session goal
 
