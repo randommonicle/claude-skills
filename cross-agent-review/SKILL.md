@@ -112,9 +112,14 @@ code discussion and citations only; never personal data, credentials, secrets, o
   a three-round, two-seat review with 4,000-character sections reaches at round three. That ceiling
   is Windows' command line, and stdin is not the way round it for agy: its stream-json input drops a
   line over about 23,500 bytes silently (measured), so the answer to a long exchange is shorter
-  sections or fewer seats, not a bigger budget. Measured cost of
-  a review turn: agy 80-95k input tokens and 1.5-2.5 minutes, codex 400-600k gross (mostly cache
-  reads, recorded as `cached_input`) and 1.5-3.5 minutes. The metadata line also carries
+  sections or fewer seats, not a bigger budget. **A turn's cost is
+  set by the breadth of its reading assignment, not by the seat.** Six turns measured 2026-09-16:
+  agy ran 46k input tokens on a two-file doctrine assignment and 155k then 253k when told to read
+  a codebase, against the 80-95k recorded here from 2026-09-15; codex ran 126k, 300k and 560k
+  gross (mostly cache reads, recorded as `cached_input`). Both seats span roughly 5x on the same
+  model. Naming the exact files a seat should read is therefore the largest cost lever in this
+  skill, and it is the same instruction that improves the findings. Budget 1.5-3.5 minutes a turn
+  either way. The metadata line also carries
   `seat_turns`, the CLI's own count of turns on the thread (`-` for codex); when it disagrees with
   `file_turns`, the section is recorded with a visible warning that the thread holds a turn the file
   never received.
@@ -166,6 +171,41 @@ token burn, and routes every finding through Claude's verification.
 - End early with a `[[CONVERGED]]` token. If NOT converged by the cap, each side writes a one-paragraph
   `[[POSITION - <HANDLE>]]` and the user adjudicates. A documented disagreement is a valid outcome.
 - Whoever closes leaves the LAST section as its own, so a future session does not read a reply as owed.
+
+## Sharpening a round: assignment, framing, and the pass after convergence
+
+Three levers, all measured on 2026-09-16 over two rounds against the same target.
+
+**Give each seat the files its model is best at, and name them exactly.** A round that handed the
+GPT seat five source files ("read all five, fully") and the Gemini seat two prose files returned
+nine reproducible code defects from one and a contradiction inside the skill's own prose from the
+other. The same two seats, both pointed at the whole change the round before, returned overlapping
+design opinions. Splitting by strength is not politeness: it is what stops two seats spending
+their budget on the same reading. It is also the cost lever above, since a seat reads what you
+name and wanders when you do not.
+
+**Say "assume it is broken and find where", not "review this".** The first round of a design
+review is properly a design review and produces argument. When the artefact is written and
+committed, change the framing explicitly: an approval is worth nothing, a reproducible defect is
+worth everything, and a seat that genuinely finds nothing in its area should say so rather than
+manufacture a finding. That sentence is load-bearing in both directions. Describing the code in
+prose gets you opinions about the description; giving paths and requiring `file:line` gets you
+bugs.
+
+**Then attack the convergence.** `[[CONVERGED]]` is the most dangerous state this protocol
+produces, because agreement between independent models reads as proof and is often a shared blind
+spot. Run one more adversarial pass whose brief is the converged position itself, with the
+verified facts supplied so it spends its budget attacking rather than re-deriving. On 2026-09-16
+that pass broke three of five converged conclusions: it showed the premise all three parties had
+reasoned from was false and the repo's own docs said so; it found a recorded incident of the
+failure the round had declared unreachable; and it caught that the census used to close the debate
+had been produced by the very parser defect the same debate had just identified. A conclusion that
+survives this is worth acting on. One that does not was never evidence.
+
+**What this does not fix.** A seat that has agreed with you is not a seat that has checked. Both
+seats accepted a census in one round that neither had verified, and one of them had produced its
+own wrong version of it. The hub still re-derives every load-bearing number itself, before and
+after convergence.
 
 ## Disciplines that make it trustworthy
 
