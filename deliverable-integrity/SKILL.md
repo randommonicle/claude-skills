@@ -1,6 +1,6 @@
 ---
 name: deliverable-integrity
-description: Three gates for AI-rewritten claims, owner-only facts, and machine-parsed output in any generated document. Claims: diff an AI rewrite claim by claim against the source — the original wins unless the owner confirms. Gaps: facts the generator does not hold render as loud allowlisted placeholder tokens, never plausible guesses. Parsing: re-extract the document's text and assert required strings present, banned glyphs absent. Does not fire on code citations in engineering docs (verified-citations) or on style-level AI-tell removal (unslop-text).
+description: Three gates for AI-rewritten claims, owner-only facts, and machine-parsed output in any generated document, plus the structural assertions a text diff cannot see, such as a document that opens on a blank page. Claims: diff an AI rewrite claim by claim against the source — the original wins unless the owner confirms. Gaps: facts the generator does not hold render as loud allowlisted placeholder tokens, never plausible guesses. Parsing: re-extract the document's text and assert required strings present, banned glyphs absent. Does not fire on code citations in engineering docs (verified-citations) or on style-level AI-tell removal (unslop-text).
 ---
 
 # Deliverable integrity
@@ -32,6 +32,35 @@ not look at. Any document destined for machine consumption gets verified by re-e
 its text and asserting: required strings present, banned strings absent, no glyphs outside
 the expected range — fail the build otherwise. The manual version: select all, copy, paste
 into Notepad. What Notepad shows is what the parser sees.
+
+### Structure counts as parsing, not just text
+
+Re-extracting the text catches a wrong word. It does not catch a document that is structurally
+wrong while every word in it is right, and the reader sees the structure first.
+
+The worked case: a generator emitted a page break before the first paragraph, so **every**
+document it produced opened on a blank page. Nothing in the text was wrong. A recipient sees an
+apparently empty document, and for a client-facing report that is the whole first impression.
+
+```bash
+python deliverable-integrity/scripts/check_docx_leading_break.py out/*.docx
+```
+
+Exit 0 when every file opens on content, 1 when any opens on a break, and it names which of the
+two causes it found because they need different fixes upstream.
+
+**The check that was contributed could not catch half its own subject, and that is the reusable
+lesson.** It tested for a page-break run (`w:type="page"`) and not for `<w:pageBreakBefore/>`,
+which is what a paragraph style with "page break before" sets and is at least as common. Measured
+against fixtures on 2026-09-16, it passed a document that opens blank. When you inherit a
+verification script, put a known-bad artefact through it before you trust a green run: a check
+written from one instance of a bug tends to detect that instance and not the class
+(**prove-it-can-fail**).
+
+Generalise past `.docx`. For any generated artefact, assert the structural properties a reader
+meets before the words: a PDF's page count against what the content implies, a spreadsheet's
+first populated row, an email's first rendered line, a CSV's header row surviving the writer.
+These are cheap to assert and invisible to a text diff.
 
 ## What this skill does not do
 

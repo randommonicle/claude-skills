@@ -101,7 +101,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **context-economy** | hub (context window) | Every token in the window is re-sent on every later turn: read slices not files, cap output before it lands, keep the cache prefix stable, clear rather than compact between unrelated tasks. Provider mechanics in its `references/`. |
 | **outbound-side-effect-idempotency** | leaf | Choose which failure harms the recipient less; claim states, not read-then-write pre-checks. |
 | **substantiate-outward-claims** | leaf | Customer-facing certification/statistic claims need a primary source or explicit attribution. |
-| **deliverable-integrity** | leaf | Generated documents: claim-by-claim rewrite diff, loud placeholders for owner-only facts, re-extract-and-assert for parsers. |
+| **deliverable-integrity** | leaf | Generated documents: claim-by-claim rewrite diff, loud placeholders for owner-only facts, re-extract-and-assert for parsers, and structural assertions a text diff cannot see (ships a .docx leading-blank-page checker). |
 | **server-side-authority** | leaf | Derive paths/ids server-side; column-scope RLS self-updates; RLS-or-revoke every table; escape admin output. |
 | **reproduce-the-real-build** | leaf (micro) | Run the exact production build locally; prove toolchain fixes from tracked manifests alone. |
 | **date-parse-utc-safe** | leaf (micro) | Parse date-only strings as explicit local components; UTC runtimes render the previous day. |
