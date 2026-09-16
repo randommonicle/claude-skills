@@ -1,0 +1,121 @@
+# Organisational skills (claude.ai chat and Cowork)
+
+Source of truth for skills uploaded to the ASH organisation on claude.ai. These are **not** Claude
+Code skills and are not installed by this plugin.
+
+## Why they live one level down
+
+Anthropic's enterprise guidance states plainly that *"Custom Skills do not sync across surfaces.
+Skills uploaded to the API are not available on claude.ai or in Claude Code, and vice versa. Each
+surface requires separate uploads and management"*, and recommends holding the source files in Git
+as the single source of truth. So these are versioned here and uploaded by hand.
+
+They sit at `org-skills/<name>/SKILL.md` rather than at the repository root so that the Claude Code
+plugin loader and `hooks/check-index.mjs` do not treat them as library skills. The two halves of
+that claim rest on very different evidence, so they are stated separately.
+
+**`check-index.mjs`: verified.** Its `skillsOnDisk()` enumerates with `readdirSync(root)` and keeps
+only entries where `root/<name>/SKILL.md` exists, so a second level cannot be reached. This was
+established by reading the function, not by inferring it from a passing run. It reported
+`ok: 44 skills` on 2026-09-16 with `working-lean` present and never named it.
+
+**The plugin loader: unconfirmed.** In the authoring session on 2026-09-16, writing
+`context-economy/SKILL.md` registered that skill immediately, and writing
+`org-skills/working-lean/SKILL.md` did not register anything. That is one uncontrolled observation,
+not a controlled test: the harness appears to rescan on its own schedule rather than on file
+creation, and a live-session rescan is not the same code path as `"skills": "./"` in `plugin.json`
+on a fresh `/plugin install`. **Check this on the next fresh install on a new machine.**
+
+Either way the symptom is the same and it is cheap to spot: if `working-lean` ever appears in a
+Claude Code session's skill list, the loader recurses and this directory must move out of the
+repository.
+
+## Current skills
+
+| Skill | Audience | Purpose |
+|---|---|---|
+| [working-lean](working-lean/SKILL.md) | All ASH staff | Keep each conversation to one matter and send only the material that bears on it, for accuracy as much as for allowance. |
+
+## Packaging and upload
+
+Uploads are `.zip` files containing a `SKILL.md`. Only **organisation owners** can add or remove
+organisation-wide skills.
+
+From the repository root:
+
+```bash
+powershell -NoProfile -Command "Compress-Archive -Path 'org-skills/working-lean' -DestinationPath 'org-skills/working-lean.zip' -Force"
+```
+
+Then upload at **claude.ai > Organization settings > Skills**
+(`https://claude.ai/admin-settings/skills`).
+
+**Unconfirmed, and the one thing to watch on first upload:** the support article says a `.zip`
+"containing a SKILL.md file" without stating whether `SKILL.md` must sit at the zip root or inside
+a folder. The command above produces the folder shape (`working-lean/SKILL.md`), which matches the
+on-disk convention. If the upload is rejected, re-zip flat:
+
+```bash
+powershell -NoProfile -Command "Compress-Archive -Path 'org-skills/working-lean/*' -DestinationPath 'org-skills/working-lean-flat.zip' -Force"
+```
+
+The `.zip` files are build artefacts, not source. Do not commit them.
+
+## Before uploading: evaluation queries
+
+Anthropic's enterprise guidance asks for 3-5 representative queries per skill covering
+should-trigger, should-not-trigger and ambiguous cases, and says **authors should not be their own
+reviewers**. This skill was drafted by Claude in a Claude Code session, so someone other than its
+author should run these in a claude.ai chat with the skill provisioned.
+
+**Should trigger:**
+
+1. "I've attached the full lease for Flat 12 — can you tell me who's responsible for the windows?"
+   (large document, narrow question)
+2. "This chat's got really long and it keeps mixing up the two blocks. What should I do?"
+   (long-conversation symptoms)
+3. "I've hit my limit again and I've barely asked anything today. Why?"
+   (usage question)
+4. "I'm setting up a Cowork task — should I point it at the whole client folder?"
+   (Cowork scoping)
+
+**Should not trigger:**
+
+5. "What's the consultation threshold for qualifying works?"
+   (ordinary domain question, no context-size dimension)
+6. "Draft a letter to the RMC directors about the cyclical decorations."
+   (ordinary drafting task)
+
+**Ambiguous, judgement call either way:**
+
+7. "Summarise these four service charge accounts."
+   (multiple attachments, but the task genuinely needs all four — the skill should not tell the
+   user to send fewer when fewer would not answer the question)
+
+Case 7 is the one to watch. A skill about sending less that starts telling people to withhold
+material they actually need has failed, not succeeded.
+
+## What still needs checking
+
+- **ASH's Cowork state.** A search summary said Cowork is off by default on Enterprise at launch
+  and on by default from 10 September 2026 unless disabled, and on by default on Team. This was
+  not confirmed against a primary page. Check the admin console rather than relying on it.
+- **Whether user-created skills are on.** If they are switched off, staff rely entirely on
+  provisioned and built-in skills, which raises the bar on this one being right.
+- **Skill and plugin security scanning.** Available to Enterprise organisations at the same
+  settings page. It does not cover skills already present when it is turned on, so turning it on
+  after this upload will not scan this skill.
+
+## Suggested addition to the organisation instructions — not applied
+
+A skill only loads when its description matches what someone is doing. The always-on habits have
+no trigger moment, so they belong in the organisation instructions rather than here. This
+paragraph is offered for Ben to decide on, not added by anyone else:
+
+> Keep each conversation to one matter and start a fresh one when the subject changes: the whole
+> conversation is re-sent with every message, so a long mixed thread is both slower and less
+> accurate. Attach the pages that bear on the question rather than the whole document, and in
+> Cowork point at a folder scoped to the task.
+
+The first two clauses are the efficiency point. The third is already an ASH rule for data
+protection reasons and is repeated here only because it happens to be the same instruction.
