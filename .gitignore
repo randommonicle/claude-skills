@@ -31,3 +31,6 @@ exchange/**
 !exchange/kickoffs/
 !exchange/kickoffs/**
 
+
+# org-skill upload artefacts, rebuilt from source on demand
+org-skills/*.zip

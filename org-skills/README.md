@@ -41,25 +41,39 @@ repository.
 Uploads are `.zip` files containing a `SKILL.md`. Only **organisation owners** can add or remove
 organisation-wide skills.
 
-From the repository root:
+**Do not use `Compress-Archive` on its own.** On Windows PowerShell 5.1 it writes entry paths with
+a **backslash** (`working-lean\SKILL.md`). The ZIP specification requires forward slashes, and a
+server-side extractor is entitled to reject it or to treat the whole thing as one oddly-named file
+at the root. Measured on this machine 2026-09-16. It is only safe for a flat zip, where there is
+no separator at all.
+
+Build both shapes from the repository root:
 
 ```bash
-powershell -NoProfile -Command "Compress-Archive -Path 'org-skills/working-lean' -DestinationPath 'org-skills/working-lean.zip' -Force"
+powershell -NoProfile -Command "Set-Location '.'; Add-Type -AssemblyName System.IO.Compression.FileSystem; \$out=(Join-Path (Get-Location).Path 'org-skills\working-lean.zip'); if (Test-Path \$out) { [System.IO.File]::Delete(\$out) }; \$zip=[System.IO.Compression.ZipFile]::Open(\$out,'Create'); \$e=\$zip.CreateEntry('working-lean/SKILL.md','Optimal'); \$s=[System.IO.File]::OpenRead((Resolve-Path 'org-skills\working-lean\SKILL.md').Path); \$d=\$e.Open(); \$s.CopyTo(\$d); \$d.Dispose(); \$s.Dispose(); \$zip.Dispose()"
 ```
-
-Then upload at **claude.ai > Organization settings > Skills**
-(`https://claude.ai/admin-settings/skills`).
-
-**Unconfirmed, and the one thing to watch on first upload:** the support article says a `.zip`
-"containing a SKILL.md file" without stating whether `SKILL.md` must sit at the zip root or inside
-a folder. The command above produces the folder shape (`working-lean/SKILL.md`), which matches the
-on-disk convention. If the upload is rejected, re-zip flat:
 
 ```bash
 powershell -NoProfile -Command "Compress-Archive -Path 'org-skills/working-lean/*' -DestinationPath 'org-skills/working-lean-flat.zip' -Force"
 ```
 
-The `.zip` files are build artefacts, not source. Do not commit them.
+Always list the entries before uploading, because this is exactly the step that fails silently:
+
+```bash
+powershell -NoProfile -Command "Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path 'org-skills/working-lean.zip').Path).Entries | ForEach-Object { \$_.FullName }"
+```
+
+Expected: `working-lean/SKILL.md`, with a forward slash. A backslash means re-read the warning above.
+
+Then upload at **claude.ai > Organization settings > Skills**
+(`https://claude.ai/admin-settings/skills`).
+
+**Which shape, still unconfirmed.** The support article says a `.zip` "containing a SKILL.md file"
+without stating whether `SKILL.md` sits at the zip root or inside a folder. Try
+`working-lean.zip` (folder shape, matches the on-disk convention and the Skills API). If it is
+rejected, try `working-lean-flat.zip`. Record which one worked here, so the next skill skips this.
+
+The `.zip` files are build artefacts and are gitignored, so they cannot be committed by accident.
 
 ## Before uploading: evaluation queries
 
