@@ -65,6 +65,12 @@ function windowState() {
   const driver = (text.match(/^DRIVER\s+(\S+)/m) || [])[1];
   if (!driver) return { open: false, why: 'lease file has no DRIVER line' };
   if (driver === 'none') return { open: false, why: 'lease says DRIVER none: the run has ended' };
+  // `pending` is the ARMED-BUT-UNCLAIMED state (see the relay prompt's Step 1). The
+  // lease has been written by the operator, but no driver has taken it yet. Nothing
+  // may be published in that gap: a push needs an owner who can be held to it, and
+  // the whole point of the state is that there is not one yet.
+  if (driver === 'pending')
+    return { open: false, why: 'lease says DRIVER pending: armed but unclaimed, no driver owns this run yet' };
 
   const ends = (text.match(/^WINDOW-ENDS\s+(\S+)/m) || [])[1];
   if (!ends) return { open: false, why: 'lease file has no WINDOW-ENDS line, so no window is open' };

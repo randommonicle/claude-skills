@@ -78,6 +78,15 @@ if ($driver -eq 'none') {
   Write-Log 'DONE' "DRIVER none: the run ended cleanly, nothing to watch"
   exit 0
 }
+# `pending` is ARMED BUT UNCLAIMED: the operator has written the lease, no driver has
+# taken it yet. Without this state there is no lease value that both hands a run to the
+# relay and leaves this watchdog quiet. A fresh HEARTBEAT makes the relay stand down; a
+# stale one lands here as a false ALERT; a missing one lands below as a FAULT. So the
+# arming lease says `pending`, and nothing is being watched until a driver claims it.
+if ($driver -eq 'pending') {
+  Write-Log 'ARMED' "DRIVER pending: armed but unclaimed, no driver to watch yet"
+  exit 0
+}
 
 try { $beat = [datetime]::Parse($hb.Groups[1].Value) } catch {
   Write-Log 'FAULT' "HEARTBEAT '$($hb.Groups[1].Value)' is not a parseable timestamp"

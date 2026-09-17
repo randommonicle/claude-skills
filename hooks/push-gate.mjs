@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // PreToolUse hook, matcher: Bash|PowerShell. Mechanical enforcement of confirm-before-push:
 // any push, PR merge, or remote branch deletion gets permissionDecision "ask",
-// forcing the per-action prompt regardless of session permission mode.
+// forcing the per-action prompt. NOTE: "ask" does NOT hold in bypassPermissions;
+// see the 2026-09-17 SECOND finding below for the measurement and for the lease
+// check that covers the unattended case with "deny".
 // One of the library's two fail-closed-by-intent gates (proposal doc, Layer 0;
 // the other is sql-surgery-warn, promoted 2026-07-29).
 // On script error it exits 0 (cannot match what it cannot parse) — the skill
@@ -33,7 +35,42 @@
 // it does not strip quoted strings generally, because `powershell -c "gh pr
 // merge 1"` is a real nested command and must stay caught. Only commit-message
 // bodies are removed, which is where prose actually lives.
+// 2026-09-17, SECOND finding, and it inverts the header above. The claim that an
+// ask fires "regardless of session permission mode" is FALSE, verified with a
+// control. In bypassPermissions a hook `ask` is auto-approved and the command
+// runs. A hook `deny` does hold. The confound worth recording: the first two
+// tests used `git push` and `gh pr merge --help`, and settings.local.json holds
+// 1,277 allow rules including Bash(git push *) and Bash(gh pr *), so neither
+// proved anything. The decisive case was `git --no-pager push --zzz-not-a-flag`,
+// matched by no allow rule, which executed anyway with no prompt.
+//
+// This matters because an unattended run is told `gh pr merge` is "fully gated".
+// Under bypass it was not gated at all, so the only protection on main was the
+// driver choosing to comply. Hence the lease check below: when an unattended run
+// genuinely owns the lease, these commands are DENIED rather than asked, which is
+// the one decision that holds in every mode. Attended sessions are unchanged and
+// still get the ask, because a human can answer it.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
 import { spawnSync } from 'node:child_process';
+
+const LEASE = process.env.PROPOS_LEASE_FILE || join(homedir(), '.claude', 'propos-overnight-heartbeat.txt');
+
+// Is an unattended driver holding the lease right now? Anything unreadable,
+// missing, `none` or `pending` means no: fall back to the ask, which is the
+// attended behaviour and the safe default for an interactive session. This can
+// only ever make the gate STRICTER, never looser.
+function unattendedDriver() {
+  try {
+    const text = readFileSync(LEASE, 'utf8');
+    const driver = (text.match(/^DRIVER\s+(\S+)/m) || [])[1];
+    if (!driver || driver === 'none' || driver === 'pending') return null;
+    return driver;
+  } catch {
+    return null;
+  }
+}
 
 // A value-taking git global option (-C <path>, -c <k>=<v>, --git-dir[=]<p>,
 // --work-tree[=]<p>, --namespace, --exec-path, --super-prefix, --config-env),
@@ -156,6 +193,27 @@ process.stdin.on('end', () => {
       }
     }
     if (hit) {
+      // An unattended driver cannot answer an ask, and in bypassPermissions an ask
+      // is not even posed. Deny is the only decision that holds in both modes, so
+      // that is what a live lease gets. safe-push.mjs remains the one legitimate
+      // door for a branch push and is deliberately not matched by any pattern here.
+      const driver = unattendedDriver();
+      if (driver) {
+        process.stdout.write(
+          JSON.stringify({
+            hookSpecificOutput: {
+              hookEventName: 'PreToolUse',
+              permissionDecision: 'deny',
+              permissionDecisionReason:
+                `confirm-before-push: DENIED. An unattended run holds the lease (driver ${driver}), ` +
+                `so there is nobody to answer a prompt.\n\nMatched: "${hit}"\n\n` +
+                'Nothing merges to main unattended. To push a non-protected branch use the one door: ' +
+                'node ~/.claude/skills/hooks/safe-push.mjs <worktree-path> <branch-name>',
+            },
+          }),
+        );
+        process.exit(0);
+      }
       process.stdout.write(
         JSON.stringify({
           hookSpecificOutput: {

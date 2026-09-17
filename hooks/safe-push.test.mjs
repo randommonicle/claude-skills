@@ -54,6 +54,9 @@ const CASES = [
   [3, [repo, 'feature/main'], OPEN, 'a protected segment inside the branch path'],
   [4, [repo, 'fix/real-branch'], null, 'no lease file: no run is in progress'],
   [4, [repo, 'fix/real-branch'], `HEARTBEAT x\nDRIVER none\nWINDOW-ENDS ${future}\n`, 'DRIVER none: the run ended'],
+  // `pending` is armed-but-unclaimed. Everything else about this lease is valid,
+  // including an open window, so only the driver state can be refusing it.
+  [4, [repo, 'fix/real-branch'], `HEARTBEAT x\nDRIVER pending\nWINDOW-ENDS ${future}\n`, 'DRIVER pending: armed but no driver owns the run'],
   [4, [repo, 'fix/real-branch'], `HEARTBEAT x\nDRIVER relay-test\n`, 'no WINDOW-ENDS line'],
   [4, [repo, 'fix/real-branch'], `HEARTBEAT x\nDRIVER relay-test\nWINDOW-ENDS ${past}\n`, 'the window has closed'],
   [4, [repo, 'fix/real-branch'], `HEARTBEAT x\nDRIVER relay-test\nWINDOW-ENDS not-a-date\n`, 'WINDOW-ENDS is unparseable'],

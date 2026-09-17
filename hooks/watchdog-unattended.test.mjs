@@ -45,6 +45,10 @@ const lease = (hb, driver = 'relay-x') =>
 const CASES = [
   ['IDLE',    () => run(null),                                    'no lease file at all'],
   ['DONE',    () => run(lease('2026-09-17T01:59:00', 'none')),     'DRIVER none means the run ended'],
+  // The arming state. The heartbeat here is 409 minutes stale, which for any real
+  // driver is a RESTART, so this case can only pass if `pending` is recognised.
+  // Without it there is no lease value that arms the relay and leaves this quiet.
+  ['ARMED',   () => run(lease('2026-09-16T19:11:00', 'pending')),  'DRIVER pending is armed but unclaimed, not a stall'],
   ['OK',      () => run(lease('2026-09-17T01:40:00')),             'heartbeat 20m old is healthy'],
   ['OK',      () => run(lease('2026-09-17T01:16:00')),             '44m is still under the 45m threshold'],
   ['ALERT',   () => run(lease('2026-09-17T01:15:00')),             '45m exactly is the boundary and DOES escalate'],
@@ -56,10 +60,15 @@ const CASES = [
   ['FAULT',   () => run('DRIVER x\nIN-FLIGHT y\n'),                'missing HEARTBEAT line is a fault, not silence'],
 ];
 
+// Counted, not typed. The total used to be the literal 11 while CASES grew past it,
+// so adding a case silently made the summary lie. A tally that cannot track what it
+// summarises is the same defect as a "before" value typed into a verification query.
 let fails = 0;
+let ran = 0;
 for (const [want, fn, label] of CASES) {
+  ran++;
   const { out } = fn();
-  const got = ['FAULT', 'RESTART', 'ALERT', 'DEFER', 'DONE', 'IDLE', 'OK'].find((l) =>
+  const got = ['FAULT', 'RESTART', 'ALERT', 'DEFER', 'DONE', 'ARMED', 'IDLE', 'OK'].find((l) =>
     new RegExp(`\\s${l}\\s`).test(out),
   ) ?? '(none)';
   const ok = got === want;
@@ -75,10 +84,11 @@ for (const [want, fn, label] of CASES) {
   writeFileSync(join(repo, 'index.lock'), '');
   const { out } = run(lease('2026-09-16T19:11:00'), { gitRoot: join(work, 'repo') });
   const ok = /\sDEFER\s/.test(out);
+  ran++;
   if (!ok) fails++;
   console.log(`${ok ? 'ok  ' : 'FAIL'}  want=DEFER   got=${ok ? 'DEFER' : '(not DEFER)'}  index.lock present defers the restart`);
 }
 
 try { rmSync(work, { recursive: true, force: true }); } catch {}
-console.log(`\n${11 - fails}/11 passed`);
+console.log(`\n${ran - fails}/${ran} passed`);
 process.exit(fails ? 1 : 0);
