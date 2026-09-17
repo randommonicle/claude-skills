@@ -123,6 +123,24 @@ function stripMessageBodies(cmd) {
     /(^|\s)(-m|--message|-F|--body|--notes)\s+("[^"]*"|'[^']*')/g,
     (_m, lead, flag) => `${lead}${flag}${MSG_PLACEHOLDER}`,
   );
+  // A SEARCH PATTERN IS NOT A COMMAND. Found 2026-09-17 by the unattended
+  // pre-flight, replaying 530 real commands: this read-only pipeline was blocked
+  //     git -C $W diff -- <file> | grep -v "0.6\|push-gate\|gh pr merge\|..."
+  // because the text "gh pr merge" appears in a grep pattern. It is the same
+  // class as the 2026-09-16 incident (prose read as a command) which the message
+  // stripping above was written for, and the pre-flight is exactly how it was
+  // meant to be caught: the corpus was real, so the shape was real.
+  //
+  // Scope is deliberately as narrow as the -m rule, and for the same reason. Only
+  // the FIRST quoted argument after a grep-family command and its flags is
+  // removed, so `grep "x" && gh pr merge 1` still leaves the merge fully visible,
+  // and `powershell -c "gh pr merge 1"` is untouched because the command is not
+  // grep. Quote matching stays naive for the reason given above: stopping short
+  // of a string's true end leaves MORE visible to the gate, which fails closed.
+  s = s.replace(
+    /(^|[\s|;(])((?:grep|egrep|fgrep|rg|findstr|Select-String)(?:\s+-{1,2}[A-Za-z][\w-]*)*)\s+("[^"]*"|'[^']*')/g,
+    (_m, lead, head) => `${lead}${head}${MSG_PLACEHOLDER}`,
+  );
   return s;
 }
 
