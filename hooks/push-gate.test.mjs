@@ -13,6 +13,16 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'push-gate.mjs');
+// 2026-09-17: the ask now appends `Matched: "<fragment>"` so the first question on
+// any prompt - real command, or prose matched by mistake as on 2026-09-16 - can be
+// answered from the prompt itself. Three cases below asserted `r === ORIGINAL_REASON`
+// to mean "no freshness block was appended". That equality now also forbids the
+// Matched line, which is not what those cases are guarding, so they assert the real
+// invariant instead: the original reason, no freshness block, and nothing
+// interpolated from cwd.
+const noFreshness = (r) =>
+  r.startsWith(ORIGINAL_REASON) && !r.includes('Freshness') && !r.includes('INJECTED');
+
 const ORIGINAL_REASON =
   'confirm-before-push: pushes, PR merges and remote branch deletion need per-action confirmation. Branch deletion also needs the preflight (gh pr list --head/--base, git log main..branch).';
 
@@ -91,7 +101,7 @@ try {
       'gated push, non-git cwd: asks with the original reason, no freshness block',
       plain,
       'git push origin main',
-      (r) => r === ORIGINAL_REASON,
+      noFreshness,
     ],
     [
       'gh pr merge still asks',
@@ -103,7 +113,7 @@ try {
       'shell-shaped cwd: still asks, original reason, nothing interpolated',
       `${plain}" ; echo INJECTED ; echo "`,
       'git push origin main',
-      (r) => r === ORIGINAL_REASON,
+      noFreshness,
     ],
     // Global options between `git` and `push` are still a push. `git -C` is the
     // idiom parallel-work-recon mandates in worktrees; on 2026-09-14 it walked
@@ -134,7 +144,7 @@ try {
       'stacked options, quoted paths with spaces: asks',
       plain,
       'git -C "C:/a b/c" --git-dir="C:/a b/c/.git" --work-tree "C:/a b/c" push --force',
-      (r) => r === ORIGINAL_REASON,
+      noFreshness,
     ],
   ];
 
