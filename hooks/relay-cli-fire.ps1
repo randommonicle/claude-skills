@@ -51,6 +51,9 @@ param(
   [string]$Repo = 'C:\Users\ben\Projects\PropOS',
   [string]$LeaseFile = (Join-Path $env:USERPROFILE '.claude\propos-overnight-heartbeat.txt'),
   [string]$LogFile = (Join-Path $env:USERPROFILE '.claude\relay-cli-fire.log'),
+  # Where the running driver's process-tree root is recorded, so a later fire can kill
+  # it. Beside the lease, not in TEMP, because it must outlive a reboot's temp sweep.
+  [string]$PidFile = (Join-Path $env:USERPROFILE '.claude\propos-overnight-driver.pid'),
   [string]$Cli = (Join-Path $env:APPDATA 'npm\claude.cmd'),
   [int]$MaxTurns = 0,
   [switch]$VerifyOnly
@@ -63,6 +66,71 @@ function Write-Log([string]$level, [string]$msg) {
   $line = "{0}  {1,-9} {2}" -f $now.ToString('yyyy-MM-ddTHH:mm:ss'), $level, $msg
   try { Add-Content -Path $LogFile -Value $line -Encoding utf8 } catch { }
   Write-Output $line
+}
+
+# ------------------------------------------------- terminating a driver that hung
+# WHY THIS EXISTS, measured rather than assumed. A reviewer challenged the claim that
+# a hung driver is bounded by the scheduled task's ExecutionTimeLimit. A controlled
+# probe on 2026-09-18 settled it against that claim: a task with a one-minute limit
+# spawned a child, the limit expired, the task returned to Ready, and THE CHILD WAS
+# STILL RUNNING. Task Scheduler terminates the registered process, not the tree.
+#
+# So the launcher's own `cmd.exe` dies at the limit while the CLI and its node
+# descendants survive as orphans, the scheduler admits the next fire, and a
+# replacement driver starts ALONGSIDE the hung one. Nothing else on this machine kills
+# it: the heartbeat watchdog is alert-only, and even armed it targets `claude`, the
+# desktop app.
+#
+# Hence: record the tree root, and kill it before starting a replacement.
+#
+# PID REUSE IS GUARDED. Windows recycles process ids, so the start time is recorded
+# alongside and must match to the second before anything is killed. Without that, a
+# stale file could name a pid now belonging to something else entirely.
+function Save-DriverPid([int]$processId) {
+  try {
+    $p = Get-Process -Id $processId -ErrorAction Stop
+    $payload = '{0}|{1}' -f $processId, $p.StartTime.ToString('o')
+    [IO.File]::WriteAllText($PidFile, $payload, (New-Object Text.UTF8Encoding $false))
+  } catch { }
+}
+
+function Clear-DriverPid {
+  try { if (Test-Path $PidFile) { Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue } } catch { }
+}
+
+function Stop-StaleDriver {
+  if (-not (Test-Path $PidFile)) { Write-Log 'TAKEOVER' 'no recorded driver process to stop'; return }
+  $raw = ''
+  try { $raw = (Get-Content $PidFile -Raw).Trim() } catch { }
+  $parts = $raw -split '\|'
+  if ($parts.Count -ne 2) { Write-Log 'FAULT' "driver pid file is malformed ('$raw'); not killing anything"; Clear-DriverPid; return }
+
+  $oldPid = 0
+  if (-not [int]::TryParse($parts[0], [ref]$oldPid)) { Write-Log 'FAULT' "driver pid '$($parts[0])' is not a number"; Clear-DriverPid; return }
+
+  $proc = $null
+  try { $proc = Get-Process -Id $oldPid -ErrorAction Stop } catch { }
+  if (-not $proc) { Write-Log 'TAKEOVER' "recorded driver pid $oldPid is already gone"; Clear-DriverPid; return }
+
+  # The identity check. A pid that exists but started at a different moment is a
+  # DIFFERENT process that happens to have inherited the number.
+  $want = $parts[1]
+  $got = ''
+  try { $got = $proc.StartTime.ToString('o') } catch { }
+  if ($got -ne $want) {
+    Write-Log 'FAULT' "pid $oldPid exists but started $got, not $want; it is a different process and will NOT be killed"
+    Clear-DriverPid
+    return
+  }
+
+  # /T for the tree, because the thing that actually hangs is a node descendant.
+  try {
+    $null = & taskkill /T /F /PID $oldPid 2>&1
+    Write-Log 'TAKEOVER' "killed the stale driver process tree at pid $oldPid"
+  } catch {
+    Write-Log 'FAULT' "could not kill stale driver pid ${oldPid}: $($_.Exception.Message)"
+  }
+  Clear-DriverPid
 }
 
 # ---------------------------------------------------------------- pre-flight
@@ -167,8 +235,10 @@ if (Test-Path $LeaseFile) {
         exit 0
       }
       Write-Log 'TAKEOVER' ("driver {0} heartbeat {1:N0}m old, firing a replacement" -f $driver, $age)
+      Stop-StaleDriver
     } catch {
       Write-Log 'TAKEOVER' "heartbeat unparseable, firing a replacement"
+      Stop-StaleDriver
     }
   }
 } else {
@@ -186,14 +256,40 @@ $cliOut = Join-Path $env:TEMP ("relay-cli-out-{0}.txt" -f ([guid]::NewGuid().ToS
 $turns = if ($MaxTurns -gt 0) { " --max-turns $MaxTurns" } else { '' }
 
 Write-Log 'FIRE' "starting a CLI turn in $Repo"
-Push-Location $Repo
+
+# Streams are redirected by Start-Process directly; there is no cmd wrapper and no
+# pipeline. The first attempt wrapped `type prompt | claude -p ...` in a .cmd and
+# launched that, which works under `& cmd /c` but NOT under Start-Process: the CLI
+# returned "Input must be provided either through stdin or as a prompt argument when
+# using --print", so the prompt never reached it. Start-Process is required for the pid,
+# so the pipeline had to go instead.
+$cliErr = Join-Path $env:TEMP ("relay-cli-err-{0}.txt" -f ([guid]::NewGuid().ToString('N')))
+$cliArgs = @('-p', '--permission-mode', 'bypassPermissions', '--dangerously-skip-permissions')
+if ($MaxTurns -gt 0) { $cliArgs += @('--max-turns', "$MaxTurns") }
+
 try {
-  $inner = 'type "' + $PromptFile + '" | "' + $Cli + '" -p --permission-mode bypassPermissions --dangerously-skip-permissions' + $turns + ' > "' + $cliOut + '" 2>&1'
-  & cmd /c $inner
-  $code = $LASTEXITCODE
-  $out = if (Test-Path $cliOut) { Get-Content $cliOut -Raw } else { '' }
+  $proc = Start-Process -FilePath $Cli -ArgumentList $cliArgs `
+                        -RedirectStandardInput $PromptFile `
+                        -RedirectStandardOutput $cliOut `
+                        -RedirectStandardError $cliErr `
+                        -PassThru -WindowStyle Hidden -WorkingDirectory $Repo
+  # Touching .Handle caches it, WITHOUT which .ExitCode comes back empty after
+  # WaitForExit and every fire logs "CLI exited ," with no code. Caught by the first
+  # smoke of this path: the run had succeeded and the launcher could not say so.
+  $null = $proc.Handle
+  Save-DriverPid $proc.Id
+  Write-Log 'FIRE' "driver process tree root is pid $($proc.Id)"
+  $proc.WaitForExit()
+  $code = $proc.ExitCode
+  if ($null -eq $code) { $code = -1; Write-Log 'FAULT' 'the CLI exit code could not be read; treating as failure' }
+  $out = ''
+  if (Test-Path $cliOut) { $out += Get-Content $cliOut -Raw }
+  if (Test-Path $cliErr) { $out += "`n" + (Get-Content $cliErr -Raw) }
 } finally {
-  Pop-Location
+  # Cleared on ANY exit from here, so a later fire does not try to kill a pid that
+  # finished normally and whose number has since been recycled.
+  Clear-DriverPid
+  try { Remove-Item -LiteralPath $cliErr -Force -ErrorAction SilentlyContinue } catch { }
 }
 
 Write-Log 'END' "CLI exited $code, $($out.Length) chars of output"

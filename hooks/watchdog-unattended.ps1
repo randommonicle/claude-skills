@@ -46,6 +46,7 @@ param(
   [string]$Aumid = 'Claude_pzs8sxrjxfjjc!Claude',
   [string]$Now,
   [switch]$NoRestart,
+  [int]$NotifierTimeoutMs = 60000,
   [switch]$NoAlert
 )
 
@@ -125,16 +126,24 @@ function Send-Alert([string]$subject, [string]$body) {
   $notifier = Join-Path $PSScriptRoot 'notify-owner.ps1'
   if (-not (Test-Path $notifier)) { Write-Log 'FAULT' "notifier missing at $notifier"; return }
   try {
-    $out = & powershell -NoProfile -File $notifier -Subject $subject -Body $body 2>&1
-    $code = $LASTEXITCODE
-    if ($code -eq 0) {
-      Write-Log 'ALERT' "notifier said: $out"
+    # Bounded: a blocked COM call or an Outlook security prompt would otherwise hang
+    # this watchdog with neither success nor failure recorded.
+    $p = Start-Process -FilePath 'powershell' -PassThru -WindowStyle Hidden -ArgumentList @(
+      '-NoProfile', '-File', $notifier, '-Subject', $subject, '-Body', $body)
+    $null = $p.Handle
+    if (-not $p.WaitForExit($NotifierTimeoutMs)) {
+      try { $p.Kill() } catch { }
+      Write-Log 'FAULT' "NOT SENT, the notifier did not return within $([int]($NotifierTimeoutMs/1000))s and was killed. Will retry at the next sweep."
+    } elseif ($p.ExitCode -eq 0) {
+      # "Queued", not "delivered": exit 0 means Outlook accepted the item. It can still
+      # sit in an outbox or bounce, and this has no way to know.
+      Write-Log 'ALERT' 'queued with Outlook. Acceptance, not delivery.'
       $script:alertDelivered = $true
     } else {
-      Write-Log 'FAULT' "NOT DELIVERED, notifier exited $code and said: $out. Will retry at the next sweep."
+      Write-Log 'FAULT' "NOT SENT, notifier exited $($p.ExitCode). Will retry at the next sweep."
     }
   } catch {
-    Write-Log 'FAULT' "NOT DELIVERED, notifier threw: $($_.Exception.Message). Will retry at the next sweep."
+    Write-Log 'FAULT' "NOT SENT, notifier threw: $($_.Exception.Message). Will retry at the next sweep."
   }
 }
 

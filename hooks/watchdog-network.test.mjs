@@ -116,9 +116,9 @@ function check(label, ok, detail = '') {
   const r = fireOnce();
   const out = (r.stdout || '') + (r.stderr || '');
 
-  const saidNotDelivered = /NOT DELIVERED/.test(out);
-  check('a notifier that exits non-zero is logged as NOT DELIVERED', saidNotDelivered,
-    saidNotDelivered ? '' : out.replace(/\s+/g, ' ').slice(0, 160));
+  const saidNotSent = /NOT SENT/.test(out);
+  check('a notifier that exits non-zero is logged as NOT SENT', saidNotSent,
+    saidNotSent ? '' : out.replace(/\s+/g, ' ').slice(0, 160));
 
   let alerted = null;
   try { alerted = JSON.parse(readFileSync(state, 'utf8')).alerted; } catch {}
@@ -127,6 +127,26 @@ function check(label, ok, detail = '') {
 
   check('it does not claim to have notified the owner', !/notified the owner/.test(out),
     /notified the owner/.test(out) ? 'it said it notified the owner anyway' : '');
+
+  // The wording itself is under test. Exit 0 means Outlook ACCEPTED the item; the
+  // message can still sit in an outbox or bounce. A log that says "notified" when it
+  // means "queued" is the same class of lie as the bug this replaced, so the success
+  // path must not use the stronger word.
+  const stubOk = join(work, 'ok-notifier.ps1');
+  writeFileSync(stubOk, 'Write-Output "SENT"\nexit 0\n');
+  const state2 = join(work, 'state-alertok.json');
+  const log2 = join(work, 'log-alertok.txt');
+  const fireOk = () =>
+    spawnSync('powershell',
+      ['-NoProfile', '-File', SCRIPT, '-StateFile', state2, '-LogFile', log2,
+       '-ForceDown', '-NoRemediate', '-Notifier', stubOk],
+      { encoding: 'utf8' });
+  fireOk();
+  const ok2 = fireOk();
+  const out2 = (ok2.stdout || '') + (ok2.stderr || '');
+  check('a successful send is recorded as QUEUED, not as delivered',
+    /queued with Outlook/i.test(out2) && !/\bdelivered\b/i.test(out2),
+    out2.match(/(queued[^\r\n]*|delivered[^\r\n]*)/i)?.[0] ?? 'neither word found');
 }
 
 // 4. The outage clock is measured from the first fire that saw it, not from this one.

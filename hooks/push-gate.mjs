@@ -94,13 +94,27 @@ const GIT_GLOBAL_OPT =
 
 // Any write method, long or short form. `-X DELETE` was the only shape covered until
 // 2026-09-18; `--method DELETE` walked straight past it.
-const GH_WRITE_METHOD = String.raw`(?:-X|--method)\s+(?:DELETE|PATCH|POST|PUT)`;
+const GH_WRITE_METHOD = String.raw`(?:-X|--method)[=\s]+(?:DELETE|PATCH|POST|PUT)`;
+
+// Both binaries, both spellings. The first pass at this added `.exe` to git and forgot
+// gh, which the same reviewer caught on the next round.
+const GIT = String.raw`git(?:\.exe)?`;
+const GH = String.raw`gh(?:\.exe)?`;
+
+// Stay inside ONE command. `[\s\S]*` let a ref READ in one command pair up with an
+// unrelated write method in another, so `gh api .../git/refs/heads/main; gh api -X POST
+// .../issues` was denied although neither half writes a ref.
+const SAME_CMD = String.raw`[^;&|\r\n]*`;
+
+// An alias is only interesting when what it expands to publishes. Gating every inline
+// alias denied `git -c alias.lg=log lg --oneline`, which is a read.
+const PUBLISHING = String.raw`(?:push|send-pack)`;
 
 const GATED = [
   // includes --force and push-based remote branch deletion; `git -C <path> push`
   // (the parallel-work-recon idiom) walked past the bare `git\s+push` on 2026-09-14.
   // `git.exe` walked past it too until 2026-09-18.
-  new RegExp(String.raw`\bgit(?:\.exe)?(?:\s+${GIT_GLOBAL_OPT})*\s+push\b`),
+  new RegExp(String.raw`\b${GIT}(?:\s+${GIT_GLOBAL_OPT})*\s+push\b`),
 
   // Everything below was found by an independent reviewer on 2026-09-18, against a
   // gate whose author had just written that it was "the only mechanical protection for
@@ -109,25 +123,31 @@ const GATED = [
   // residual limit is stated in the header rather than pretended away.
 
   // Plumbing that publishes without ever containing the word "push".
-  new RegExp(String.raw`\bgit(?:\.exe)?(?:\s+${GIT_GLOBAL_OPT})*\s+send-pack\b`),
+  new RegExp(String.raw`\b${GIT}(?:\s+${GIT_GLOBAL_OPT})*\s+send-pack\b`),
 
-  // An alias defined inline is a push under another name: `git -c alias.zz=push zz`.
-  // The -c value is matched as a global option, so the subcommand is no longer "push".
-  /\bgit(?:\.exe)?\s+(?:-c|--config-env)(?:=|\s+)["']?alias\./i,
+  // An alias is a push under another name, but only if it EXPANDS to one. Both the
+  // inline form and the persisted form, because creating the alias is the step this
+  // can see; using a pre-existing one is not (see the header).
+  new RegExp(String.raw`\b${GIT}\s+(?:-c|--config-env)(?:=|\s+)["']?alias\.[\w.-]+=["']?${PUBLISHING}\b`, 'i'),
+  new RegExp(String.raw`\b${GIT}\s+config\s+(?:--\S+\s+)*alias\.[\w.-]+\s+["']?${PUBLISHING}\b`, 'i'),
 
-  /\bgh\s+pr\s+merge\b/,
+  new RegExp(String.raw`\b${GH}\s+pr\s+merge\b`),
 
   // ...and the same merge through the REST API, which `gh pr merge` does not cover.
-  /\bgh\s+api\b[\s\S]*\/pulls\/[^\s"']*\/merge\b/i,
-  /\bgh\s+api\b[\s\S]*\/merges\b/i,
+  // A WRITE METHOD IS REQUIRED: `gh api /repos/o/r/pulls/333/merge` with no method is
+  // the READ that asks whether a PR was merged, and denying it was a false positive.
+  new RegExp(String.raw`\b${GH}\s+api\b${SAME_CMD}${GH_WRITE_METHOD}${SAME_CMD}\/pulls\/[^\s"']*\/merge\b`, 'i'),
+  new RegExp(String.raw`\b${GH}\s+api\b${SAME_CMD}\/pulls\/[^\s"']*\/merge${SAME_CMD}${GH_WRITE_METHOD}`, 'i'),
+  new RegExp(String.raw`\b${GH}\s+api\b${SAME_CMD}${GH_WRITE_METHOD}${SAME_CMD}\/merges\b`, 'i'),
 
   // Any write method against a ref: delete it, or force main to an arbitrary sha.
   // Both orderings, because the method can precede or follow the path on the line.
-  new RegExp(String.raw`\bgh\s+api\b[\s\S]*${GH_WRITE_METHOD}[\s\S]*\/git\/refs\/`, 'i'),
-  new RegExp(String.raw`\bgh\s+api\b[\s\S]*\/git\/refs\/[\s\S]*${GH_WRITE_METHOD}`, 'i'),
+  new RegExp(String.raw`\b${GH}\s+api\b${SAME_CMD}${GH_WRITE_METHOD}${SAME_CMD}\/git\/refs\/`, 'i'),
+  new RegExp(String.raw`\b${GH}\s+api\b${SAME_CMD}\/git\/refs\/${SAME_CMD}${GH_WRITE_METHOD}`, 'i'),
 
-  // Defining a gh alias is the same trick as the git one.
-  /\bgh\s+alias\s+set\b/i,
+  // A gh alias, again only when what it expands to merges. `gh alias set prs "pr list"`
+  // is read-only setup and was a false positive.
+  new RegExp(String.raw`\b${GH}\s+alias\s+set\s+\S+\s+["'][^"']*\bpr\s+merge\b`, 'i'),
 ];
 
 const REASON =

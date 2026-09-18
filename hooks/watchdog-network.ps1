@@ -51,6 +51,7 @@ param(
   # Testing only: point at a stub that exits non-zero, to prove a failed delivery does
   # not suppress the retry. Defaults to the real notifier beside this script.
   [string]$Notifier = '',
+  [int]$NotifierTimeoutMs = 60000,
   [int]$TimeoutMs = 4000,
   [string]$Now,
   [switch]$ForceDown,
@@ -233,14 +234,27 @@ if (-not $state.alerted -and -not $NoAlert) {
       # failed send was recorded as delivered and never retried. Worse than the sibling
       # watchdog's version of the same bug, which at least logged what the notifier said.
       # Found by an independent reviewer, not by the author.
-      $out = & powershell -NoProfile -File $notifier -To $to `
-        -Subject "PropOS: this machine has lost its route to the internet" `
-        -Body "Machine: $env:COMPUTERNAME`r`nDown since: $($state.outageStart)`r`nLocal remedies attempted: $($state.remediations)`r`nAdapter restart: see the log for whether this account was permitted to.`r`n`r`nAn unattended run cannot push or fetch while this lasts. Details in watchdog-network.log on the machine." 2>&1
-      if ($LASTEXITCODE -eq 0) {
-        Write-Log 'ALERT' 'notified the owner (once per outage)'
+      # Bounded, because a blocked COM call or an Outlook security prompt would
+      # otherwise hang this watchdog indefinitely with neither success nor failure
+      # recorded, which is the quietest failure in the whole chain.
+      $body = "Machine: $env:COMPUTERNAME`r`nDown since: $($state.outageStart)`r`nLocal remedies attempted: $($state.remediations)`r`nAdapter restart: see the log for whether this account was permitted to.`r`n`r`nAn unattended run cannot push or fetch while this lasts. Details in watchdog-network.log on the machine."
+      $p = Start-Process -FilePath 'powershell' -PassThru -WindowStyle Hidden -ArgumentList @(
+        '-NoProfile', '-File', $notifier, '-To', $to,
+        '-Subject', 'PropOS: this machine has lost its route to the internet',
+        '-Body', $body)
+      $null = $p.Handle
+      if (-not $p.WaitForExit($NotifierTimeoutMs)) {
+        try { $p.Kill() } catch { }
+        Write-Log 'FAULT' "NOT SENT, the notifier did not return within $([int]($NotifierTimeoutMs/1000))s and was killed. Will retry at the next sweep."
+      } elseif ($p.ExitCode -eq 0) {
+        # DELIBERATE WORDING. Exit 0 means Outlook ACCEPTED the item, not that it
+        # reached the owner: the message can sit in an outbox, bounce, or be rejected
+        # later, and this has no way to know. Saying "notified" would be the same class
+        # of lie as the bug this replaced.
+        Write-Log 'ALERT' 'queued with Outlook (once per outage). Acceptance, not delivery.'
         $delivered = $true
       } else {
-        Write-Log 'FAULT' "NOT DELIVERED, notifier exited $LASTEXITCODE and said: $out. Will retry at the next sweep."
+        Write-Log 'FAULT' "NOT SENT, notifier exited $($p.ExitCode). Will retry at the next sweep."
       }
     } catch {
       Write-Log 'FAULT' "NOT DELIVERED, notifier threw: $($_.Exception.Message). Will retry at the next sweep."
