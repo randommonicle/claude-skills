@@ -48,6 +48,9 @@ param(
   [string]$StateFile = (Join-Path $env:USERPROFILE '.claude\watchdog-network.state'),
   [string]$AdapterName = '',
   [int]$MaxRemediationsPerOutage = 3,
+  # Testing only: point at a stub that exits non-zero, to prove a failed delivery does
+  # not suppress the retry. Defaults to the real notifier beside this script.
+  [string]$Notifier = '',
   [int]$TimeoutMs = 4000,
   [string]$Now,
   [switch]$ForceDown,
@@ -185,9 +188,13 @@ if (-not $adapter) {
 }
 
 if ($NoRemediate) {
+  # Falls THROUGH to the alert rather than exiting. -NoRemediate means "decide and log,
+  # do not act", and the alert is a decision. Exiting here made the alert path
+  # unreachable in the suite, which is how the notifier's delivery result went
+  # unchecked until 2026-09-18: the one branch that mattered had no test that could
+  # reach it.
   Write-Log 'RESTART' "(suppressed by -NoRemediate) would restart adapter '$adapter'"
-  exit 0
-}
+} else {
 
 try {
   Restart-NetAdapter -Name $adapter -Confirm:$false -ErrorAction Stop
@@ -206,29 +213,47 @@ try {
   Write-Log 'NOPERM' "cannot restart '$adapter' from this account: $($_.Exception.Message). An administrator must re-register this task with -RunLevel Highest; see NETWORK-WATCHDOG.md"
 }
 
+}
+
 # --------------------------------------------------------------------------- tell someone
 # Once per outage, and only after the local remedies are exhausted. If the link is
 # still down the mail sits in Outlook's outbox and leaves when the link returns,
 # which is late but is still the difference between knowing and not knowing.
 if (-not $state.alerted -and -not $NoAlert) {
-  $notifier = Join-Path $PSScriptRoot 'notify-owner.ps1'
+  $delivered = $false
+  $notifier = if ($Notifier) { $Notifier } else { Join-Path $PSScriptRoot 'notify-owner.ps1' }
   $configPath = Join-Path $env:USERPROFILE '.claude\notify-owner.config.json'
   if ((Test-Path $notifier) -and (Test-Path $configPath)) {
     try {
       $to = (Get-Content $configPath -Raw | ConvertFrom-Json).to
       # Operational facts only: this may reach an address outside the corporate estate.
-      $null = & powershell -NoProfile -File $notifier -To $to `
+      #
+      # THE RESULT IS CHECKED. Until 2026-09-18 this discarded the notifier's output to
+      # $null, logged "notified the owner" unconditionally, and set alerted = true, so a
+      # failed send was recorded as delivered and never retried. Worse than the sibling
+      # watchdog's version of the same bug, which at least logged what the notifier said.
+      # Found by an independent reviewer, not by the author.
+      $out = & powershell -NoProfile -File $notifier -To $to `
         -Subject "PropOS: this machine has lost its route to the internet" `
-        -Body "Machine: $env:COMPUTERNAME`r`nDown since: $($state.outageStart)`r`nLocal remedies attempted: $($state.remediations)`r`nAdapter restart: see the log for whether this account was permitted to.`r`n`r`nAn unattended run cannot push or fetch while this lasts. Details in watchdog-network.log on the machine."
-      Write-Log 'ALERT' 'notified the owner (once per outage)'
+        -Body "Machine: $env:COMPUTERNAME`r`nDown since: $($state.outageStart)`r`nLocal remedies attempted: $($state.remediations)`r`nAdapter restart: see the log for whether this account was permitted to.`r`n`r`nAn unattended run cannot push or fetch while this lasts. Details in watchdog-network.log on the machine." 2>&1
+      if ($LASTEXITCODE -eq 0) {
+        Write-Log 'ALERT' 'notified the owner (once per outage)'
+        $delivered = $true
+      } else {
+        Write-Log 'FAULT' "NOT DELIVERED, notifier exited $LASTEXITCODE and said: $out. Will retry at the next sweep."
+      }
     } catch {
-      Write-Log 'FAULT' "notifier threw: $($_.Exception.Message)"
+      Write-Log 'FAULT' "NOT DELIVERED, notifier threw: $($_.Exception.Message). Will retry at the next sweep."
     }
   } else {
     Write-Log 'FAULT' 'notifier or its config is missing, so nobody was told'
   }
-  $state.alerted = $true
-  Save-State
+  # Only a delivery that actually happened suppresses the retry. An outage during which
+  # the owner could not be reached must keep trying, not go quiet.
+  if ($delivered) {
+    $state.alerted = $true
+    Save-State
+  }
 }
 
 exit 0

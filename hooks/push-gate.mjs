@@ -4,6 +4,19 @@
 // forcing the per-action prompt. NOTE: "ask" does NOT hold in bypassPermissions;
 // see the 2026-09-17 SECOND finding below for the measurement and for the lease
 // check that covers the unattended case with "deny".
+//
+// WHAT THIS GATE IS NOT, stated here because on 2026-09-18 it was described in a
+// handover as "the only mechanical protection for main" and that reading is too
+// strong. It is a COMMAND-TEXT CLASSIFIER. It matches shapes, and a shape it has not
+// been taught walks through. An independent review that day found eight routes past
+// it; six are now patterns below and asserted in push-gate-bypass-routes.test.mjs.
+// TWO REMAIN OPEN AND CANNOT BE CLOSED HERE:
+//   bash deploy.sh          (the push lives in a file this never sees)
+//   C=push; git $C origin main   (the subcommand is assembled by the shell)
+// Closing those needs enforcement somewhere this gate cannot reach: GitHub branch
+// protection on the server, or a credential that simply cannot write to main. Until
+// one of those exists, treat this as a guard against mistakes, not against a
+// determined or confused agent, and do not write that it is complete.
 // One of the library's two fail-closed-by-intent gates (proposal doc, Layer 0;
 // the other is sql-surgery-warn, promoted 2026-07-29).
 // On script error it exits 0 (cannot match what it cannot parse) — the skill
@@ -79,12 +92,42 @@ function unattendedDriver() {
 const GIT_GLOBAL_OPT =
   String.raw`(?:-[Cc]\s+(?:"[^"]*"|'[^']*'|\S+)|--(?:git-dir|work-tree|namespace|exec-path|super-prefix|config-env)(?:=|\s+)(?:"[^"]*"|'[^']*'|\S+)|--?[A-Za-z][\w-]*)`;
 
+// Any write method, long or short form. `-X DELETE` was the only shape covered until
+// 2026-09-18; `--method DELETE` walked straight past it.
+const GH_WRITE_METHOD = String.raw`(?:-X|--method)\s+(?:DELETE|PATCH|POST|PUT)`;
+
 const GATED = [
   // includes --force and push-based remote branch deletion; `git -C <path> push`
-  // (the parallel-work-recon idiom) walked past the bare `git\s+push` on 2026-09-14
-  new RegExp(String.raw`\bgit(?:\s+${GIT_GLOBAL_OPT})*\s+push\b`),
+  // (the parallel-work-recon idiom) walked past the bare `git\s+push` on 2026-09-14.
+  // `git.exe` walked past it too until 2026-09-18.
+  new RegExp(String.raw`\bgit(?:\.exe)?(?:\s+${GIT_GLOBAL_OPT})*\s+push\b`),
+
+  // Everything below was found by an independent reviewer on 2026-09-18, against a
+  // gate whose author had just written that it was "the only mechanical protection for
+  // main". It was, and it had six ways round it. A command-text classifier can never be
+  // complete; these close the routes a driver might plausibly reach for, and the
+  // residual limit is stated in the header rather than pretended away.
+
+  // Plumbing that publishes without ever containing the word "push".
+  new RegExp(String.raw`\bgit(?:\.exe)?(?:\s+${GIT_GLOBAL_OPT})*\s+send-pack\b`),
+
+  // An alias defined inline is a push under another name: `git -c alias.zz=push zz`.
+  // The -c value is matched as a global option, so the subcommand is no longer "push".
+  /\bgit(?:\.exe)?\s+(?:-c|--config-env)(?:=|\s+)["']?alias\./i,
+
   /\bgh\s+pr\s+merge\b/,
-  /\bgh\s+api\b.*-X\s+DELETE.*\/git\/refs\//,
+
+  // ...and the same merge through the REST API, which `gh pr merge` does not cover.
+  /\bgh\s+api\b[\s\S]*\/pulls\/[^\s"']*\/merge\b/i,
+  /\bgh\s+api\b[\s\S]*\/merges\b/i,
+
+  // Any write method against a ref: delete it, or force main to an arbitrary sha.
+  // Both orderings, because the method can precede or follow the path on the line.
+  new RegExp(String.raw`\bgh\s+api\b[\s\S]*${GH_WRITE_METHOD}[\s\S]*\/git\/refs\/`, 'i'),
+  new RegExp(String.raw`\bgh\s+api\b[\s\S]*\/git\/refs\/[\s\S]*${GH_WRITE_METHOD}`, 'i'),
+
+  // Defining a gh alias is the same trick as the git one.
+  /\bgh\s+alias\s+set\b/i,
 ];
 
 const REASON =

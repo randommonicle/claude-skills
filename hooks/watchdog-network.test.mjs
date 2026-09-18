@@ -13,7 +13,7 @@
 // Remediation is suppressed throughout (-NoRemediate -NoAlert): flushing the real DNS
 // cache and bouncing the real adapter are not things a suite may do.
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -89,7 +89,47 @@ function check(label, ok, detail = '') {
   check('a NEW outage after a recovery gets a fresh budget', got7.includes('FLUSH') && !got7.includes('CAPPED'), got7.join(','));
 }
 
-// 3. The outage clock is measured from the first fire that saw it, not from this one.
+// 3. A FAILED alert must not mark itself delivered. Until 2026-09-18 this script
+//    discarded the notifier's output, logged "notified the owner" unconditionally and
+//    set alerted = true, so Outlook COM could fail at 2am and the run would record the
+//    alert as sent and never retry. The alert is the whole safety net for an unattended
+//    weekend, so a net that reports success when it failed is worse than none.
+{
+  const stub = join(work, 'failing-notifier.ps1');
+  writeFileSync(stub, 'Write-Output "FAIL: pretend Outlook is not there"\nexit 1\n');
+  const state = join(work, 'state-alertfail.json');
+  const log = join(work, 'log-alertfail.txt');
+  const cleanRoot = join(work, 'alertfail-root');
+  mkdirSync(cleanRoot, { recursive: true });
+
+  // -NoAlert is deliberately NOT passed here: the alert path is what is under test.
+  // TWO fires on one state file, because the alert only happens once the local remedies
+  // are spent: fire 1 flushes and waits, fire 2 reaches stage 2 and therefore the alert.
+  const fireOnce = () =>
+    spawnSync(
+      'powershell',
+      ['-NoProfile', '-File', SCRIPT, '-StateFile', state, '-LogFile', log,
+       '-ForceDown', '-NoRemediate', '-Notifier', stub],
+      { encoding: 'utf8' },
+    );
+  fireOnce();
+  const r = fireOnce();
+  const out = (r.stdout || '') + (r.stderr || '');
+
+  const saidNotDelivered = /NOT DELIVERED/.test(out);
+  check('a notifier that exits non-zero is logged as NOT DELIVERED', saidNotDelivered,
+    saidNotDelivered ? '' : out.replace(/\s+/g, ' ').slice(0, 160));
+
+  let alerted = null;
+  try { alerted = JSON.parse(readFileSync(state, 'utf8')).alerted; } catch {}
+  check('a failed alert does NOT set alerted, so it retries', alerted === false || alerted === undefined,
+    `alerted=${JSON.stringify(alerted)}`);
+
+  check('it does not claim to have notified the owner', !/notified the owner/.test(out),
+    /notified the owner/.test(out) ? 'it said it notified the owner anyway' : '');
+}
+
+// 4. The outage clock is measured from the first fire that saw it, not from this one.
 {
   fire('clock', { now: '2026-09-18T10:00:00' });
   const later = fire('clock', { now: '2026-09-18T10:40:00' });

@@ -108,15 +108,33 @@ if (Test-Path $StateFile) { try { $prevLevel = (Get-Content $StateFile -Raw).Tri
 $level = if ($ageMin -ge $RestartAfterMinutes) { 'RESTART' } else { 'ALERT' }
 $key = "$level|$($hb.Groups[1].Value)"
 
+# Sets $script:alertDelivered. It does NOT return a value, because Write-Log writes to
+# the output stream, so anything this function "returned" would arrive at the caller
+# mixed in with log lines.
+#
+# WHY THE DELIVERY RESULT IS NOW CHECKED. Until 2026-09-18 this captured the notifier's
+# output, logged it, and told the caller nothing. The caller then wrote the state key
+# that suppresses repeats REGARDLESS. So Outlook COM could fail at 2am, no mail would
+# arrive, the run would record the alert as delivered, and it would never try again.
+# The alert is the entire safety net for an unattended weekend; a safety net that
+# reports success when it has failed is worse than none, because it is trusted.
+# Found by an independent reviewer on 2026-09-18, not by the author.
 function Send-Alert([string]$subject, [string]$body) {
-  if ($NoAlert) { Write-Log 'ALERT' "(suppressed by -NoAlert) $subject"; return }
+  $script:alertDelivered = $false
+  if ($NoAlert) { Write-Log 'ALERT' "(suppressed by -NoAlert) $subject"; $script:alertDelivered = $true; return }
   $notifier = Join-Path $PSScriptRoot 'notify-owner.ps1'
   if (-not (Test-Path $notifier)) { Write-Log 'FAULT' "notifier missing at $notifier"; return }
   try {
     $out = & powershell -NoProfile -File $notifier -Subject $subject -Body $body 2>&1
-    Write-Log 'ALERT' "notifier said: $out"
+    $code = $LASTEXITCODE
+    if ($code -eq 0) {
+      Write-Log 'ALERT' "notifier said: $out"
+      $script:alertDelivered = $true
+    } else {
+      Write-Log 'FAULT' "NOT DELIVERED, notifier exited $code and said: $out. Will retry at the next sweep."
+    }
   } catch {
-    Write-Log 'FAULT' "notifier threw: $($_.Exception.Message)"
+    Write-Log 'FAULT' "NOT DELIVERED, notifier threw: $($_.Exception.Message). Will retry at the next sweep."
   }
 }
 
@@ -128,7 +146,14 @@ if ($prevLevel -eq $key) {
   # the recipient may be an address outside the corporate estate.
   Send-Alert "PropOS unattended run: no heartbeat for ${ageMin}m" `
     ("Machine: $env:COMPUTERNAME`r`nDriver: $driver`r`nHeartbeat age: ${ageMin} minutes`r`nStage: $level`r`n`r`nLast IN-FLIGHT line:`r`n$what`r`n`r`nThe run has stopped making progress. Details are in the queue file on the machine.")
-  try { Set-Content -Path $StateFile -Value $key -Encoding utf8 } catch { }
+  # The state key is what suppresses the repeat. Write it ONLY on a delivery that
+  # actually succeeded, so a failed send is retried at the next sweep instead of being
+  # silently marked done.
+  if ($script:alertDelivered) {
+    try { Set-Content -Path $StateFile -Value $key -Encoding utf8 } catch { }
+  } else {
+    Write-Log 'FAULT' 'escalation NOT recorded because the alert did not reach the owner; it will be attempted again'
+  }
 }
 
 if ($level -ne 'RESTART') { exit 0 }

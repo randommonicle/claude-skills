@@ -26,9 +26,16 @@
 
   THE DENY MUST STILL HOLD. `--dangerously-skip-permissions` turns off the permission
   system; it must NOT turn off hooks, because push-gate's deny is the only mechanical
-  thing protecting `main` during a run. `-VerifyOnly` checks exactly that and refuses
-  to fire if the deny is not returned. Nothing should ever schedule this script
-  without having seen -VerifyOnly pass on this machine.
+  thing protecting `main` during a run.
+
+  WHAT -VerifyOnly ACTUALLY CHECKS, corrected 2026-09-18 after a reviewer read the
+  code rather than this comment. It invokes push-gate.mjs DIRECTLY and asserts the
+  deny. That proves the hook still denies; it does NOT prove the CLI honours hooks,
+  because the CLI is not involved in the check at all. The integration question is
+  answered by `relay-cli-hooktest.ps1`, which drives a real CLI turn and reads
+  push-gate's own DENIED text out of the stream-json tool result. Run THAT after any
+  CLI upgrade or permission-model change; this per-fire check cannot detect such a
+  regression.
 
 .PARAMETER VerifyOnly
   Run the pre-flight checks and exit without starting a turn. Use this before
@@ -126,6 +133,30 @@ if (Test-Path $LeaseFile) {
   $driver = (Select-String -Path $LeaseFile -Pattern '^DRIVER\s+(\S+)' -AllMatches |
              Select-Object -First 1).Matches.Groups[1].Value
   if ($driver -eq 'none') { Write-Log 'DONE' 'DRIVER none: the run ended, not firing'; exit 0 }
+
+  # Past the window, do not spend a turn. safe-push already refuses to publish once
+  # WINDOW-ENDS has passed, but until 2026-09-18 nothing stopped the LAUNCHER firing,
+  # so a lease left armed after the window would keep paying for turns that could
+  # commit and never publish. The scheduled task's repetition duration currently
+  # expires at the same moment, which made this close to moot; that is a coincidence
+  # of today's arming, not a guarantee, and a second bound costs nothing.
+  $endsRaw = (Select-String -Path $LeaseFile -Pattern '^WINDOW-ENDS\s+(\S+)' |
+              Select-Object -First 1).Matches.Groups[1].Value
+  if ($endsRaw) {
+    try {
+      $endsAt = [datetime]::Parse($endsRaw)
+      if ($now -ge $endsAt) {
+        Write-Log 'CLOSED' "the window closed at $endsRaw; not firing"
+        exit 0
+      }
+    } catch {
+      Write-Log 'FAULT' "WINDOW-ENDS '$endsRaw' is not a parseable timestamp; not firing"
+      exit 1
+    }
+  } else {
+    Write-Log 'FAULT' 'lease has no WINDOW-ENDS line, so no window is open; not firing'
+    exit 1
+  }
   if ($driver -and $driver -ne 'pending') {
     $hb = (Select-String -Path $LeaseFile -Pattern '^HEARTBEAT\s+(\S+)' |
            Select-Object -First 1).Matches.Groups[1].Value
