@@ -86,50 +86,120 @@ function Write-Log([string]$level, [string]$msg) {
 # PID REUSE IS GUARDED. Windows recycles process ids, so the start time is recorded
 # alongside and must match to the second before anything is killed. Without that, a
 # stale file could name a pid now belonging to something else entirely.
+# EVERY PATH HERE FAILS CLOSED. The first version of this code did not, and a reviewer
+# named it as the single thing keeping the run from being armable: it cleared the pid
+# record and returned on every failure, and the caller then started a replacement
+# regardless. A kill that was never verified, a record that was never written, an
+# identity that could not be read - all of them let a second driver start beside a
+# first that may still be alive. That is the bridge from a recoverable hang to two
+# autonomous agents sharing one working copy, and it is the same fail-open shape as the
+# alert bug fixed an hour earlier in this same file's sibling.
+#
+# So: Stop-StaleDriver sets $script:staleDriverHandled, and the caller REFUSES TO FIRE
+# unless it is true. "Handled" means positively killed and verified gone, or positively
+# shown to be gone already. Nothing else counts.
+
 function Save-DriverPid([int]$processId) {
+  # Returns nothing; sets $script:pidRecorded. Recording is MANDATORY: a driver that
+  # cannot be recorded cannot be killed by the next takeover, so it must not be left
+  # running.
+  $script:pidRecorded = $false
   try {
     $p = Get-Process -Id $processId -ErrorAction Stop
     $payload = '{0}|{1}' -f $processId, $p.StartTime.ToString('o')
     [IO.File]::WriteAllText($PidFile, $payload, (New-Object Text.UTF8Encoding $false))
-  } catch { }
+    # Read back. A write that silently did not land is the failure this guards.
+    $check = (Get-Content $PidFile -Raw).Trim()
+    if ($check -eq $payload) { $script:pidRecorded = $true }
+    else { Write-Log 'FAULT' "driver pid record did not read back ('$check' != '$payload')" }
+  } catch {
+    Write-Log 'FAULT' "could not record the driver pid: $($_.Exception.Message)"
+  }
 }
 
 function Clear-DriverPid {
-  try { if (Test-Path $PidFile) { Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue } } catch { }
+  # OWNERSHIP-SAFE. Only deletes a record this launcher still owns, so an overlapping
+  # fire cannot delete the record of the driver that is currently running.
+  try {
+    if (-not (Test-Path $PidFile)) { return }
+    if ($script:myPidRecord) {
+      $cur = ''
+      try { $cur = (Get-Content $PidFile -Raw).Trim() } catch { }
+      if ($cur -ne $script:myPidRecord) {
+        Write-Log 'FAULT' 'the driver pid record is not mine any more; leaving it for its owner'
+        return
+      }
+    }
+    Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
+  } catch { }
 }
 
 function Stop-StaleDriver {
-  if (-not (Test-Path $PidFile)) { Write-Log 'TAKEOVER' 'no recorded driver process to stop'; return }
+  $script:staleDriverHandled = $false
+
+  if (-not (Test-Path $PidFile)) {
+    # No record at all. This is NOT proof the old driver is dead; it is the absence of
+    # evidence either way, and a pre-fix fire leaves exactly this state.
+    Write-Log 'FAULT' 'no recorded driver process, so the previous driver cannot be proved dead'
+    return
+  }
+
   $raw = ''
   try { $raw = (Get-Content $PidFile -Raw).Trim() } catch { }
   $parts = $raw -split '\|'
-  if ($parts.Count -ne 2) { Write-Log 'FAULT' "driver pid file is malformed ('$raw'); not killing anything"; Clear-DriverPid; return }
+  if ($parts.Count -ne 2) { Write-Log 'FAULT' "driver pid file is malformed ('$raw'); killing nothing and proving nothing"; return }
 
   $oldPid = 0
-  if (-not [int]::TryParse($parts[0], [ref]$oldPid)) { Write-Log 'FAULT' "driver pid '$($parts[0])' is not a number"; Clear-DriverPid; return }
+  if (-not [int]::TryParse($parts[0], [ref]$oldPid)) { Write-Log 'FAULT' "driver pid '$($parts[0])' is not a number"; return }
 
   $proc = $null
-  try { $proc = Get-Process -Id $oldPid -ErrorAction Stop } catch { }
-  if (-not $proc) { Write-Log 'TAKEOVER' "recorded driver pid $oldPid is already gone"; Clear-DriverPid; return }
-
-  # The identity check. A pid that exists but started at a different moment is a
-  # DIFFERENT process that happens to have inherited the number.
-  $want = $parts[1]
-  $got = ''
-  try { $got = $proc.StartTime.ToString('o') } catch { }
-  if ($got -ne $want) {
-    Write-Log 'FAULT' "pid $oldPid exists but started $got, not $want; it is a different process and will NOT be killed"
+  $lookupFailed = $false
+  try { $proc = Get-Process -Id $oldPid -ErrorAction Stop } catch {
+    # "No such process" is proof it is gone. Anything else (access denied) is not.
+    if ($_.Exception -is [Microsoft.PowerShell.Commands.ProcessCommandException]) { $proc = $null }
+    else { $lookupFailed = $true }
+  }
+  if ($lookupFailed) { Write-Log 'FAULT' "could not inspect pid $oldPid, so it cannot be proved dead"; return }
+  if (-not $proc) {
+    Write-Log 'TAKEOVER' "recorded driver pid $oldPid is already gone"
+    $script:staleDriverHandled = $true
     Clear-DriverPid
     return
   }
 
-  # /T for the tree, because the thing that actually hangs is a node descendant.
-  try {
-    $null = & taskkill /T /F /PID $oldPid 2>&1
-    Write-Log 'TAKEOVER' "killed the stale driver process tree at pid $oldPid"
-  } catch {
-    Write-Log 'FAULT' "could not kill stale driver pid ${oldPid}: $($_.Exception.Message)"
+  # Identity. A pid that exists but started at a different moment is a DIFFERENT
+  # process that inherited the number, and killing it would be far worse than not.
+  $want = $parts[1]
+  $got = $null
+  try { $got = $proc.StartTime.ToString('o') } catch { }
+  if ($null -eq $got) { Write-Log 'FAULT' "could not read the start time of pid $oldPid, so it cannot be identified"; return }
+  if ($got -ne $want) {
+    # The recorded driver is gone (its pid now belongs to something else), which IS
+    # proof it is dead. The stranger is left strictly alone.
+    Write-Log 'TAKEOVER' "pid $oldPid now belongs to a process started $got, not $want; the old driver is gone and nothing was killed"
+    $script:staleDriverHandled = $true
+    Clear-DriverPid
+    return
   }
+
+  # /T for the tree, because the thing that hangs is a node descendant.
+  try { $null = & taskkill /T /F /PID $oldPid 2>&1 } catch { }
+
+  # VERIFY. taskkill's exit code is not trusted on its own: partial tree termination
+  # and access-denied both need to show up as failure here.
+  Start-Sleep -Milliseconds 700
+  $still = $null
+  try { $still = Get-Process -Id $oldPid -ErrorAction Stop } catch { $still = $null }
+  if ($still) {
+    try { if ($still.StartTime.ToString('o') -ne $want) { $still = $null } } catch { }
+  }
+  if ($still) {
+    Write-Log 'FAULT' "taskkill did not remove pid $oldPid; the stale driver is STILL RUNNING"
+    return
+  }
+
+  Write-Log 'TAKEOVER' "killed the stale driver process tree at pid $oldPid and verified it is gone"
+  $script:staleDriverHandled = $true
   Clear-DriverPid
 }
 
@@ -234,11 +304,19 @@ if (Test-Path $LeaseFile) {
         Write-Log 'STANDDOWN' ("driver {0} alive, heartbeat {1:N0}m old, not firing" -f $driver, $age)
         exit 0
       }
-      Write-Log 'TAKEOVER' ("driver {0} heartbeat {1:N0}m old, firing a replacement" -f $driver, $age)
+      Write-Log 'TAKEOVER' ("driver {0} heartbeat {1:N0}m old, considering a replacement" -f $driver, $age)
       Stop-StaleDriver
     } catch {
-      Write-Log 'TAKEOVER' "heartbeat unparseable, firing a replacement"
+      Write-Log 'TAKEOVER' 'heartbeat unparseable, considering a replacement'
       Stop-StaleDriver
+    }
+    # THE REFUSAL. A replacement may only start once the previous driver is positively
+    # dead. Starting one on an unverified kill is how a recoverable hang becomes two
+    # agents committing to one working copy, and an idle window is cheap by comparison:
+    # the next fire is 30 minutes away and will try again.
+    if (-not $script:staleDriverHandled) {
+      Write-Log 'FAULT' 'the previous driver could not be proved dead; NOT firing a replacement. The next fire will retry.'
+      exit 1
     }
   }
 } else {
@@ -277,8 +355,17 @@ try {
   # WaitForExit and every fire logs "CLI exited ," with no code. Caught by the first
   # smoke of this path: the run had succeeded and the launcher could not say so.
   $null = $proc.Handle
+  $script:myPidRecord = $null
   Save-DriverPid $proc.Id
-  Write-Log 'FIRE' "driver process tree root is pid $($proc.Id)"
+  if (-not $script:pidRecorded) {
+    # A driver nobody can identify is a driver nobody can stop. Kill it now rather than
+    # leave an unkillable agent running unattended for the rest of the window.
+    Write-Log 'FAULT' "could not record pid $($proc.Id); killing the driver just started, because an unrecorded driver cannot be stopped later"
+    try { $null = & taskkill /T /F /PID $proc.Id 2>&1 } catch { }
+    exit 1
+  }
+  $script:myPidRecord = (Get-Content $PidFile -Raw).Trim()
+  Write-Log 'FIRE' "driver process tree root is pid $($proc.Id), recorded"
   $proc.WaitForExit()
   $code = $proc.ExitCode
   if ($null -eq $code) { $code = -1; Write-Log 'FAULT' 'the CLI exit code could not be read; treating as failure' }

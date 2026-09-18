@@ -87,25 +87,60 @@ const check = (label, ok, detail = '') => {
   const survived = alive(v.pid);
   check('a pid whose start time does NOT match is left alone', survived,
     survived ? `pid ${v.pid} correctly untouched` : `*** KILLED AN UNRELATED PROCESS ***`);
-  check('and the refusal is logged as a FAULT', /is a different process and will NOT be killed/.test(out),
-    /different process/.test(out) ? '' : out.replace(/\s+/g, ' ').slice(0, 140));
+  // A mismatched start time means the recorded driver's pid now belongs to something
+  // else, which IS proof the driver is gone. So this is a takeover that kills nothing,
+  // not a refusal: the run may proceed and the stranger is left strictly alone.
+  check('the stranger is left alone AND the old driver is treated as gone',
+    /nothing was killed/.test(out) && !/NOT firing/.test(out),
+    out.match(/TAKEOVER[^\r\n]*/)?.[0]?.slice(0, 120) ?? out.replace(/\s+/g, ' ').slice(0, 120));
   kill(v.pid);
 }
 
-// 3. Housekeeping cases: nothing recorded, and a pid that has already exited.
+// 3. FAIL CLOSED. The first version of this code cleared the record and returned on
+//    every failure, and the caller fired anyway. A reviewer named that as the single
+//    thing keeping the run from being armable, because it turns a recoverable hang into
+//    two agents on one working copy. Each case below must REFUSE to fire.
 {
   const { out } = runLauncher({ pidFileContent: null });
-  check('no recorded pid is handled quietly', /no recorded driver process to stop/.test(out));
-}
-{
-  const v = startVictim();
-  kill(v.pid);
-  const { out } = runLauncher({ pidFileContent: `${v.pid}|${v.started}` });
-  check('a pid that already exited is handled quietly', /already gone|different process/.test(out));
+  check('no recorded pid: refuses to fire', /could not be proved dead; NOT firing/.test(out),
+    /NOT firing/.test(out) ? '' : out.replace(/\s+/g, ' ').slice(0, 140));
+  check('...and does not start a turn', !/starting a CLI turn/.test(out));
 }
 {
   const { out } = runLauncher({ pidFileContent: 'not-a-pid-file' });
-  check('a malformed pid file kills nothing and says so', /malformed/.test(out));
+  check('a malformed pid record: refuses to fire', /malformed/.test(out) && /NOT firing/.test(out));
+}
+{
+  // A live, correctly identified victim that CANNOT be killed. Simulated by pointing
+  // the record at a process this account may not terminate; if the machine lets us kill
+  // it the case is skipped rather than passed, because a skip is not a pass.
+  const r = ps(`$p = Get-Process -Name 'wininit' -ErrorAction SilentlyContinue | Select-Object -First 1; if ($p) { Write-Output ($p.Id.ToString() + '|' + $p.StartTime.ToString('o')) }`);
+  const rec = (r.stdout || '').trim();
+  if (!rec.includes('|')) {
+    console.log('skip  unkillable-victim case: could not read a protected process');
+  } else {
+    const { out } = runLauncher({ pidFileContent: rec });
+    const refused = /STILL RUNNING|could not be proved dead; NOT firing|could not read the start time|could not inspect/.test(out);
+    check('a victim that cannot be killed: refuses to fire', refused,
+      refused ? '' : out.replace(/\s+/g, ' ').slice(0, 160));
+    check('...and does not start a turn', !/starting a CLI turn/.test(out));
+  }
+}
+
+// 4. A REAL TREE. The earlier victim was a childless ping, so /T was never exercised
+//    and the reviewer was right that the tree kill was untested.
+{
+  const r = ps(`$p = Start-Process -FilePath $env:ComSpec -ArgumentList '/c','ping -n 600 127.0.0.1' -PassThru -WindowStyle Hidden; Start-Sleep -Milliseconds 800; Write-Output ($p.Id.ToString() + '|' + $p.StartTime.ToString('o'))`);
+  const [rootPid, started] = (r.stdout || '').trim().split('|');
+  const kids = ps(`(Get-CimInstance Win32_Process -Filter "ParentProcessId=${rootPid}" | Measure-Object).Count`).stdout.trim();
+  check('the tree victim really has a child to orphan', Number(kids) >= 1, `${kids} child process(es)`);
+  const childPid = ps(`(Get-CimInstance Win32_Process -Filter "ParentProcessId=${rootPid}" | Select-Object -First 1).ProcessId`).stdout.trim();
+  const { out } = runLauncher({ pidFileContent: `${rootPid}|${started}` });
+  check('the whole tree is killed, not just its root', !alive(rootPid) && !alive(childPid),
+    `root alive=${alive(rootPid)} child(${childPid}) alive=${alive(childPid)}`);
+  check('and the kill is described as verified', /verified it is gone/.test(out));
+  if (alive(childPid)) kill(childPid);
+  if (alive(rootPid)) kill(rootPid);
 }
 
 try { rmSync(work, { recursive: true, force: true }); } catch {}
