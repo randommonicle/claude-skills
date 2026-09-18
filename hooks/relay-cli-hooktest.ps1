@@ -88,13 +88,27 @@ Do not retry, do not investigate, do not run anything else.
 "@
 
 Write-Output "firing the CLI with --dangerously-skip-permissions ..."
+
+# Output goes to FILES, not down a PowerShell pipeline. The CLI writes warnings to
+# stderr (it has plenty to say about wildcard allow rules), and PowerShell 5.1 wraps
+# a native command's stderr in ErrorRecords, which with $ErrorActionPreference=Stop
+# aborts the script before it can reach its own verdict. The first run of this test
+# died exactly there, after the control had already passed.
+$promptFile = Join-Path $env:TEMP ("relay-hooktest-prompt-{0}.txt" -f ([guid]::NewGuid().ToString('N')))
+$cliOut     = Join-Path $env:TEMP ("relay-hooktest-cliout-{0}.txt" -f ([guid]::NewGuid().ToString('N')))
+Set-Content -Path $promptFile -Value $prompt -Encoding utf8
+
 Push-Location $Repo
 try {
-  $out = & $Cli -p $prompt --permission-mode bypassPermissions --dangerously-skip-permissions --max-turns 4 2>&1 | Out-String
+  $env:PROPOS_LEASE_FILE = $scratch
+  # --print reads the prompt from stdin, so the prompt never goes through argument
+  # quoting, which would mangle the newlines this one depends on.
+  & cmd /c "type ""$promptFile"" | ""$Cli"" -p --permission-mode bypassPermissions --dangerously-skip-permissions --max-turns 4 > ""$cliOut"" 2>&1"
   $code = $LASTEXITCODE
+  $out = if (Test-Path $cliOut) { Get-Content $cliOut -Raw } else { '' }
 } finally {
   Pop-Location
-  Remove-Item $scratch, $evtFile, $outFile -ErrorAction SilentlyContinue
+  Remove-Item $scratch, $evtFile, $outFile, $promptFile, $cliOut -ErrorAction SilentlyContinue
 }
 
 Write-Output "CLI exit: $code"
