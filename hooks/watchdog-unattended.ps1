@@ -39,6 +39,7 @@ param(
   [string]$LeaseFile = (Join-Path $env:USERPROFILE '.claude\propos-overnight-heartbeat.txt'),
   [string]$LogFile = (Join-Path $env:USERPROFILE '.claude\watchdog-unattended.log'),
   [string]$StateFile = (Join-Path $env:USERPROFILE '.claude\watchdog-unattended.state'),
+  [string]$RestartStateFile = (Join-Path $env:USERPROFILE '.claude\watchdog-unattended.restart-state'),
   [string[]]$GitRoots = @('C:\Users\ben\Projects\PropOS'),
   [int]$AlertAfterMinutes = 45,
   [int]$RestartAfterMinutes = 90,
@@ -133,6 +134,22 @@ if ($prevLevel -eq $key) {
 if ($level -ne 'RESTART') { exit 0 }
 
 # ---------------------------------------------------------------- stage 2: restart
+# ONE SHOT PER HEARTBEAT VALUE. The $key guard above suppresses the repeat EMAIL
+# only; until 2026-09-18 the restart itself ran on every fire. A lease that stays
+# stale because no relay fire picks it up (the network is down, or under the old
+# evening-only cron any stall between 07:00 and 17:00) therefore meant killing and
+# relaunching the app every 15 minutes, indefinitely, including any session the
+# owner had started. Invisible on a single night; over a weekend it is dozens.
+# A successful restart is recorded against the heartbeat that provoked it, so a
+# fresh stall later gets a fresh restart, and a DEFER or a failed relaunch writes
+# nothing and is retried at the next fire.
+$prevRestart = ''
+if (Test-Path $RestartStateFile) { try { $prevRestart = (Get-Content $RestartStateFile -Raw).Trim() } catch { } }
+if ($prevRestart -eq $hb.Groups[1].Value) {
+  Write-Log 'RESTART' "already restarted for this heartbeat (age=${ageMin}m); not restarting again"
+  exit 0
+}
+
 # Never interrupt a git write. A half-finished index is a worse state to wake to
 # than a stalled run, and index.lock is the cheap, reliable signal for it.
 $locks = @()
@@ -157,6 +174,9 @@ foreach ($p in $procs) { try { Stop-Process -Id $p.Id -Force -ErrorAction Stop }
 Start-Sleep -Seconds 5
 try {
   Start-Process 'explorer.exe' -ArgumentList "shell:AppsFolder\$Aumid"
+  # Only now, after a relaunch that did not throw: a marker written earlier would
+  # turn a failed restart into a permanent one-shot that never retries.
+  try { Set-Content -Path $RestartStateFile -Value $hb.Groups[1].Value -Encoding utf8 } catch { }
   Write-Log 'RESTART' "relaunched $Aumid; the scheduled task's catch-up fire should take the stale lease"
 } catch {
   Write-Log 'FAULT' "relaunch failed: $($_.Exception.Message)"

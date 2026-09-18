@@ -20,10 +20,11 @@ const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), 'watchdog-unattende
 const NOW = '2026-09-17T02:00:00';
 const work = mkdtempSync(join(tmpdir(), 'wd-'));
 
-function run(leaseText, { gitRoot = work, extra = [] } = {}) {
+function run(leaseText, { gitRoot = work, extra = [], restartState = null } = {}) {
   const lease = join(work, 'lease.txt');
   const log = join(work, 'log.txt');
   const state = join(work, `state-${Math.random().toString(36).slice(2)}.txt`);
+  const restart = restartState ?? join(work, `restart-${Math.random().toString(36).slice(2)}.txt`);
   if (leaseText === null) {
     try { rmSync(lease); } catch {}
   } else {
@@ -33,6 +34,7 @@ function run(leaseText, { gitRoot = work, extra = [] } = {}) {
     'powershell',
     ['-NoProfile', '-File', SCRIPT,
      '-LeaseFile', lease, '-LogFile', log, '-StateFile', state,
+     '-RestartStateFile', restart,
      '-GitRoots', gitRoot, '-Now', NOW, '-NoAlert', '-NoRestart', ...extra],
     { encoding: 'utf8' },
   );
@@ -87,6 +89,42 @@ for (const [want, fn, label] of CASES) {
   ran++;
   if (!ok) fails++;
   console.log(`${ok ? 'ok  ' : 'FAIL'}  want=DEFER   got=${ok ? 'DEFER' : '(not DEFER)'}  index.lock present defers the restart`);
+}
+
+// Stage 2 must fire ONCE per heartbeat value, not on every 15-minute sweep. The
+// $key guard suppresses the repeat email only; until 2026-09-18 the restart itself
+// repeated for as long as the lease stayed stale, which over a weekend is dozens of
+// app kills. Every case above gets a fresh random restart-state file, which is
+// precisely why none of them could see this: the bug only shows on the SECOND fire.
+{
+  const STALE = '2026-09-16T19:11:00';
+  // A git root of its own: the DEFER case above leaves an index.lock under `work`,
+  // and a recursive scan from there would DEFER these runs for the wrong reason.
+  const cleanRoot = join(work, 'clean-root');
+  mkdirSync(cleanRoot, { recursive: true });
+  const marker = join(work, 'restart-state-oneshot.txt');
+  writeFileSync(marker, STALE); // as a completed restart for this heartbeat would leave it
+  const { out } = run(lease(STALE), { restartState: marker, gitRoot: cleanRoot });
+  const suppressed = /already restarted for this heartbeat/.test(out);
+  const wouldKill = /would kill claude processes/.test(out);
+  const ok = suppressed && !wouldKill;
+  ran++;
+  if (!ok) fails++;
+  console.log(
+    `${ok ? 'ok  ' : 'FAIL'}  want=ONE-SHOT got=${ok ? 'ONE-SHOT' : wouldKill ? 'would restart AGAIN' : '(no suppression line)'}  a second fire on the same stale heartbeat does not restart again`,
+  );
+
+  // The converse, or the guard could simply be "never restart": a DIFFERENT
+  // heartbeat is a fresh stall and must still reach the restart path.
+  const marker2 = join(work, 'restart-state-other.txt');
+  writeFileSync(marker2, '2026-09-16T18:00:00');
+  const { out: out2 } = run(lease(STALE), { restartState: marker2, gitRoot: cleanRoot });
+  const ok2 = /would kill claude processes/.test(out2);
+  ran++;
+  if (!ok2) fails++;
+  console.log(
+    `${ok2 ? 'ok  ' : 'FAIL'}  want=RESTART  got=${ok2 ? 'RESTART' : '(suppressed)'}  a restart recorded against a DIFFERENT heartbeat does not suppress`,
+  );
 }
 
 try { rmSync(work, { recursive: true, force: true }); } catch {}
