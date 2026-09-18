@@ -145,20 +145,30 @@ if (Test-Path $LeaseFile) {
 }
 
 # ------------------------------------------------------------------- fire one turn
-$prompt = Get-Content $PromptFile -Raw
-$args = @('-p', $prompt, '--permission-mode', 'bypassPermissions', '--dangerously-skip-permissions')
-if ($MaxTurns -gt 0) { $args += @('--max-turns', "$MaxTurns") }
+# The prompt goes in on STDIN and the output comes out to a FILE. Neither is
+# fussiness. The prompt is ~10KB of markdown and would not survive argument
+# quoting; and the CLI writes warnings to stderr, which PowerShell 5.1 wraps in
+# ErrorRecords, which with $ErrorActionPreference=Stop kills this script the
+# instant the CLI says anything at all. That is exactly how the first CLI fire
+# died: the FIRE line was logged, no END line ever was, and the turn never ran.
+$cliOut = Join-Path $env:TEMP ("relay-cli-out-{0}.txt" -f ([guid]::NewGuid().ToString('N')))
+$turns = if ($MaxTurns -gt 0) { " --max-turns $MaxTurns" } else { '' }
 
 Write-Log 'FIRE' "starting a CLI turn in $Repo"
 Push-Location $Repo
 try {
-  $out = & $Cli @args 2>&1 | Out-String
+  $inner = 'type "' + $PromptFile + '" | "' + $Cli + '" -p --permission-mode bypassPermissions --dangerously-skip-permissions' + $turns + ' > "' + $cliOut + '" 2>&1'
+  & cmd /c $inner
   $code = $LASTEXITCODE
+  $out = if (Test-Path $cliOut) { Get-Content $cliOut -Raw } else { '' }
 } finally {
   Pop-Location
 }
+
 Write-Log 'END' "CLI exited $code, $($out.Length) chars of output"
-# The transcript is the record; keep only a tail here so the log stays readable.
-$tail = ($out -split "`n" | Select-Object -Last 12) -join "`n"
+# The session transcript is the real record; keep a tail here so the log alone is
+# enough to see whether a fire did anything.
+$tail = ($out -split "`n" | Where-Object { $_ -notmatch 'Permission allow rule' -and $_.Trim() } | Select-Object -Last 10) -join "`n"
 try { Add-Content -Path $LogFile -Value $tail -Encoding utf8 } catch { }
+try { Remove-Item -LiteralPath $cliOut -ErrorAction SilentlyContinue } catch { }
 exit $code
