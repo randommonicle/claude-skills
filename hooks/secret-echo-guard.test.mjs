@@ -57,6 +57,99 @@ const DENY = [
   { rule: 4, cmd: 'bash -c "cat .env"' },
   { rule: 2, tool: 'PowerShell', cmd: 'powershell -Command "Write-Host $env:NETLIFY_TOKEN"' },
   { rule: 3, cmd: "sh -c 'env | grep SUPABASE'" },
+  // Found by the cross-agent review (GPT via codex, 20 Sept 2026, round 1): each was
+  // silent before the rewrite. Sinks that select or expose values:
+  { rule: 3, cmd: "env | awk -F= '{print $2}'" },
+  { rule: 4, cmd: "cat .env | awk -F= '{print $2}'" },
+  { rule: 4, cmd: "grep -o '[^=]*$' .env" },
+  { rule: 3, cmd: 'env | cut -d= -f1-' },
+  { rule: 3, tool: 'PowerShell', cmd: 'Get-ChildItem Env: | Select-Object Name,Value' },
+  { rule: 3, cmd: 'env | tee /dev/stderr | cut -d= -f1' },
+  { rule: 5, cmd: 'npx supabase status | tee /dev/stderr | cut -d= -f1' },
+  // One safe occurrence must not excuse an unsafe one of the same name:
+  { rule: 2, cmd: 'echo "${#NETLIFY_TOKEN}:$NETLIFY_TOKEN"' },
+  { rule: 2, tool: 'PowerShell', cmd: 'Write-Host "$($env:NETLIFY_TOKEN.Length) $env:NETLIFY_TOKEN"' },
+  // Other output primitives and reference syntaxes:
+  { rule: 2, cmd: 'node -e "process.stdout.write(process.env.ANTHROPIC_API_KEY)"' },
+  { rule: 2, cmd: "python -c \"import os,sys; sys.stdout.write(os.getenv('STRIPE_SECRET_KEY'))\"" },
+  { rule: 2, cmd: 'base64 <<< "$ANTHROPIC_API_KEY"' },
+  { rule: 2, cmd: 'tee /dev/stderr <<< "$ANTHROPIC_API_KEY"' },
+  { rule: 2, tool: 'PowerShell', cmd: '$env:NETLIFY_TOKEN | Out-String' },
+  { rule: 2, tool: 'PowerShell', cmd: 'Write-Verbose $env:NETLIFY_TOKEN -Verbose' },
+  { rule: 3, tool: 'PowerShell', cmd: 'Get-Variable -Name NETLIFY_TOKEN -ValueOnly' },
+  { rule: 2, tool: 'PowerShell', cmd: 'Write-Output ${env:NETLIFY_TOKEN}' },
+  { rule: 1, cmd: 'for v in SUPABASE_ACCESS_TOKEN SUPABASE_SERVICE_ROLE_KEY; do echo "${!v}"; done' },
+  // Listing variants:
+  { rule: 3, cmd: 'env -0' },
+  { rule: 3, cmd: 'printenv -0' },
+  { rule: 3, tool: 'PowerShell', cmd: 'Get-ChildItem Env:\\' },
+  { rule: 3, tool: 'PowerShell', cmd: 'Get-ChildItem Env:/' },
+  { rule: 3, cmd: 'cat /proc/self/environ' },
+  { rule: 3, tool: 'PowerShell', cmd: "[Environment]::GetEnvironmentVariable('NETLIFY_TOKEN','User')" },
+  // Names the first classifier missed:
+  { rule: 2, cmd: 'echo "$PGPASSWORD"' },
+  { rule: 2, cmd: 'echo "$GH_PAT"' },
+  { rule: 2, cmd: 'echo "$STRIPE_SK"' },
+  { rule: 2, cmd: 'echo "$SUPABASE_SERVICE_ROLE"' },
+  // A stderr redirect or an unrelated substitution is not a capture:
+  { rule: 5, cmd: 'npx supabase status 2>err.txt' },
+  { rule: 5, cmd: 'npx supabase status --workdir "$(pwd)"' },
+  { rule: 2, cmd: 'cat <<EOF 2>/dev/null\n$ANTHROPIC_API_KEY\nEOF' },
+  { rule: 2, cmd: 'tee /dev/stderr <<EOF\n$ANTHROPIC_API_KEY\nEOF' },
+  // Secret files: case, wrappers, other names:
+  { rule: 4, tool: 'PowerShell', cmd: 'type .ENV' },
+  { rule: 4, cmd: 'xargs cat .env' },
+  { rule: 4, cmd: 'find . -name .env -exec cat {} \\;' },
+  { rule: 4, cmd: 'cat .envrc' },
+  { rule: 4, cmd: 'cat ~/.ssh/id_rsa' },
+  { rule: 4, cmd: 'cat service-account-prod.json' },
+  // Tracing prints the expanded command:
+  { rule: 2, cmd: 'set -x; curl -H "Authorization: Bearer $NETLIFY_TOKEN" https://example.invalid' },
+  { rule: 2, cmd: "bash -x -c 'curl -H \"Authorization: Bearer $NETLIFY_TOKEN\" https://example.invalid'" },
+  // A double quote inside single quotes must not flip the parser's quote state:
+  { rule: 5, cmd: "printf '\"'; npx supabase status" },
+  // The provider class beyond supabase:
+  { rule: 5, cmd: 'aws ssm get-parameter --name /prod/db --with-decryption --query Parameter.Value --output text' },
+  { rule: 5, cmd: 'az keyvault secret show --vault-name v --name n' },
+  { rule: 5, cmd: 'netlify env:list' },
+  // Round 2 of the same review. A printed string that merely looks like a test:
+  { rule: 2, cmd: 'echo [ -n "$NETLIFY_TOKEN"' },
+  { rule: 2, cmd: 'echo "$NETLIFY_TOKEN -eq nope"' },
+  { rule: 2, tool: 'PowerShell', cmd: 'Write-Output "IsNullOrEmpty($env:NETLIFY_TOKEN)"' },
+  // A provider inside a printed substitution, a process substitution, eval:
+  { rule: 5, cmd: 'echo "$(npx supabase status)"' },
+  { rule: 5, cmd: 'echo `npx supabase status`' },
+  { rule: 5, cmd: 'cat <(npx supabase status)' },
+  { rule: 5, cmd: 'eval "npx supabase status"' },
+  // Wrappers:
+  { rule: 3, cmd: 'cmd /c "set"' },
+  { rule: 4, cmd: 'cmd /c "type .env"' },
+  { rule: 3, tool: 'PowerShell', cmd: 'Invoke-Expression "Get-ChildItem Env:"' },
+  { rule: 4, cmd: 'eval "cat .env"' },
+  { rule: 4, cmd: "sudo sh -c 'cat .env'" },
+  { rule: 4, cmd: "env FOO=1 bash -c 'cat .env'" },
+  // Redirects read left to right: a later >&2 undoes the capture.
+  { rule: 5, cmd: 'npx supabase status >status.txt 1>&2' },
+  { rule: 2, cmd: 'cat <<EOF >status.txt 1>&2\n$ANTHROPIC_API_KEY\nEOF' },
+  // Call printers: a `)` inside a string, an expanding script string, optional chaining.
+  { rule: 2, cmd: "node -e 'console.log(\")\", process.env.ANTHROPIC_API_KEY)'" },
+  { rule: 2, cmd: "node -e \"console.log('$ANTHROPIC_API_KEY')\"" },
+  { rule: 2, cmd: "python -c \"print('$ANTHROPIC_API_KEY')\"" },
+  { rule: 2, cmd: "node -e 'console.log(process.env?.ANTHROPIC_API_KEY)'" },
+  // Sinks and filters that still pass values:
+  { rule: 3, tool: 'PowerShell', cmd: 'Get-ChildItem Env: | ForEach-Object { $_.Name, $_.Value }' },
+  { rule: 5, cmd: 'aws ssm get-parameter --name /prod/db --with-decryption --query Parameter.Value --output text | grep -v token' },
+  // PowerShell here-string and backtick escape:
+  { rule: 2, tool: 'PowerShell', cmd: '@"\n$env:NETLIFY_TOKEN\n"@' },
+  { rule: 5, tool: 'PowerShell', cmd: 'Write-Output "`""; npx supabase status' },
+  { rule: 2, cmd: "bash -xc 'echo \"$ANTHROPIC_API_KEY\"'" },
+  // Other readers and encoders of a secret file:
+  { rule: 4, cmd: "sed -n 'p' .env" },
+  { rule: 4, cmd: "awk '1' .env" },
+  { rule: 4, cmd: 'base64 .env' },
+  { rule: 4, cmd: 'jq . credentials.json' },
+  { rule: 4, cmd: 'cp .env /dev/stdout' },
+  { rule: 5, cmd: 'npx supabase status >&2' },
 ];
 
 const ALLOW = [
@@ -110,6 +203,38 @@ const ALLOW = [
   'git commit -m "docs: cat .env is denied; npx supabase status too; env | grep KEY as well"',
   'echo "run npx supabase status yourself, then cat .env"',
   'grep -rn "supabase status" hooks/',
+  // From the cross-agent review round 1: literals, assignments and quiet long options
+  // that the first version denied.
+  "printf -v copy '%s' \"$ANTHROPIC_API_KEY\"",
+  "echo '$ANTHROPIC_API_KEY'",
+  'echo "\\$ANTHROPIC_API_KEY"',
+  "python -c 'print(\"$ANTHROPIC_API_KEY\")'",
+  { tool: 'PowerShell', cmd: "Write-Output '$env:NETLIFY_TOKEN'" },
+  "git commit -m 'docs: echo $ANTHROPIC_API_KEY would leak'",
+  'git commit -m "docs: a; env | grep KEY; b"',
+  'grep --quiet SUPABASE .env',
+  'rg --count SUPABASE .env',
+  'cat public.key',
+  'curl -v https://example.invalid',
+  'head README.md',
+  { tool: 'PowerShell', cmd: 'type README.md' },
+  'for v in A_KEY B_TOKEN; do echo "$v ${#v}"; done',
+  // Round 2: captured, digested, projected or literal.
+  'npx supabase status 1>status.txt',
+  'cat .env >snapshot.txt',
+  'grep KEY .env >matches.txt',
+  "x=$(printf ')' | cat .env)",
+  'x=`printf foo; npx supabase status`',
+  'set -x; set +x; curl -H "Authorization: Bearer $NETLIFY_TOKEN" https://example.invalid',
+  "printf '%s' \"$NETLIFY_TOKEN\" | sha256sum",
+  "printf '%s' \"$NETLIFY_TOKEN\" | wc -c",
+  { tool: 'PowerShell', cmd: 'Write-Output $env:NETLIFY_TOKEN | Measure-Object -Character' },
+  'aws ssm get-parameter --name /prod/db --with-decryption --query Parameter.Name --output text',
+  'netlify env:get PUBLIC_URL',
+  'echo "${NETLIFY_TOKEN:+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"',
+  'echo ${NETLIFY_TOKEN:+safe;word}',
+  "echo $'$ANTHROPIC_API_KEY'",
+  'docker run -e NETLIFY_TOKEN="$NETLIFY_TOKEN" img',
   'set -euo pipefail',
   'env NODE_ENV=test node --test',
   'git commit -m "docs: never echo a TOKEN or KEY value"',
