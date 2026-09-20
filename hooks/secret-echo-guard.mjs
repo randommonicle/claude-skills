@@ -342,9 +342,9 @@ function listingTarget(structural, raw) {
   return /[*?]/.test(tok) ? '*' : tok;
 }
 
-const SECRET_FILE = /(?:^|[\\/])(?:\.env(?:\.[\w.-]+)?|[\w.-]*\.env|\.envrc|[\w.-]*\.pem|id_(?:rsa|ed25519|ecdsa|dsa)|[\w.-]*\.key|credentials(?:\.json)?|service-account[\w.-]*\.json|\.npmrc|\.netrc|\.pgpass|\.git-credentials|\.htpasswd)$/i;
-const SECRET_FILE_IN_CMD = /(?:^|[\s'"=<\\/])((?:[\w.~:-]*[\\/])*(?:\.env(?:\.[\w.-]+)?|[\w.-]*\.env|\.envrc|[\w.-]*\.pem|id_(?:rsa|ed25519|ecdsa|dsa)|[\w.-]*\.key|credentials(?:\.json)?|service-account[\w.-]*\.json|\.npmrc|\.netrc|\.pgpass|\.git-credentials|\.htpasswd))(?=$|[\s'";|)>])/i;
-const DOC_FILE = /\.env\.(?:example|sample|template|dist)$|(?:^|[\\/])[\w.-]*pub[\w.-]*\.key$/i;
+const SECRET_FILE = /(?:^|[\\/])(?:\.env(?:\.[\w.-]+)?|[\w.-]*\.env|\.envrc|[\w.-]*\.pem|id_(?:rsa|ed25519|ecdsa|dsa)|[\w.-]*\.key|\.?credentials(?:\.json)?|service-account[\w.-]*\.json|\.npmrc|\.netrc|\.pgpass|\.git-credentials|\.htpasswd)$/i;
+const SECRET_FILE_IN_CMD = /(?:^|[\s'"=<\\/])((?:[\w.~:-]*[\\/])*(?:\.env(?:\.[\w.-]+)?|[\w.-]*\.env|\.envrc|[\w.-]*\.pem|id_(?:rsa|ed25519|ecdsa|dsa)|[\w.-]*\.key|\.?credentials(?:\.json)?|service-account[\w.-]*\.json|\.npmrc|\.netrc|\.pgpass|\.git-credentials|\.htpasswd))(?=$|[\s'";|)>])/i;
+const DOC_FILE = /\.env(?:\.[\w.-]+)?\.(?:example|sample|template|dist)$|(?:^|[\\/])[\w.-]*pub[\w.-]*\.key$/i;
 function secretFileIn(text) {
   const m = SECRET_FILE_IN_CMD.exec(text);
   if (!m || DOC_FILE.test(m[1])) return null;
