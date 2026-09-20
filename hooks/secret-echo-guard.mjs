@@ -69,6 +69,9 @@
 //      .git-credentials, .htpasswd; case-insensitive; .env.example, .sample, .template
 //      and .dist pass. A grep/rg/Select-String/findstr over one without a quiet flag
 //      (-c -l -L -q, --quiet, --count, ...) or a keys-only -o (^[^=]* or ending in =).
+//      A reader counts only in the pipeline segment that names the file (after a pipe it
+//      reads stdin); a substitution ending in a count consumer yields a number; a `\.env`
+//      escaped inside a regex is a pattern, not a path (four ICC false positives, 20 Sept).
 //   5. A provider command that prints secret values, in command position or inside a
 //      substitution that is itself printed: supabase status (the table and -o env both
 //      print the stack's keys), supabase projects api-keys / secrets list, aws ssm
@@ -346,9 +349,17 @@ const SECRET_FILE = /(?:^|[\\/])(?:\.env(?:\.[\w.-]+)?|[\w.-]*\.env|\.envrc|[\w.
 const SECRET_FILE_IN_CMD = /(?:^|[\s'"=<\\/])((?:[\w.~:-]*[\\/])*(?:\.env(?:\.[\w.-]+)?|[\w.-]*\.env|\.envrc|[\w.-]*\.pem|id_(?:rsa|ed25519|ecdsa|dsa)|[\w.-]*\.key|\.?credentials(?:\.json)?|service-account[\w.-]*\.json|\.npmrc|\.netrc|\.pgpass|\.git-credentials|\.htpasswd))(?=$|[\s'";|)>])/i;
 const DOC_FILE = /\.env(?:\.[\w.-]+)?\.(?:example|sample|template|dist)$|(?:^|[\\/])[\w.-]*pub[\w.-]*\.key$/i;
 function secretFileIn(text) {
-  const m = SECRET_FILE_IN_CMD.exec(text);
-  if (!m || DOC_FILE.test(m[1])) return null;
-  return { name: m[1], index: m.index + (m[0].length - m[1].length - (m[0].endsWith(m[1]) ? 0 : 0)) };
+  // A backslash before the name is a Windows separator after a path component
+  // (`C:\...\icc-site\.env`) but a regex escape after anything else (`"env\|ENV\|\.env"`,
+  // ICC 20 Sept 2026): only the former names a file.
+  const re = new RegExp(SECRET_FILE_IN_CMD.source, 'gi');
+  for (const m of text.matchAll(re)) {
+    if (DOC_FILE.test(m[1])) continue;
+    const index = m.index + (m[0].length - m[1].length);
+    if (text[index - 1] === '\\' && !/[\w:.~]/.test(text[index - 2] || '')) continue;
+    return { name: m[1], index };
+  }
+  return null;
 }
 const READER_WORDS = new Set(['cat', 'type', 'less', 'more', 'head', 'tail', 'bat', 'get-content', 'gc', 'strings', 'sed', 'awk', 'base64', 'base32', 'xxd', 'od', 'hexdump', 'jq', 'tee', 'rev', 'fold', 'tr', 'cut', 'uniq', 'sort', 'nl', 'tac', 'python', 'python3', 'perl', 'ruby']);
 const READERS = /(?:^|[\s;&|(])(cat|type|less|more|head|tail|bat|Get-Content|gc|strings|sed|awk|base64|base32|xxd|od|hexdump|jq|tee|rev|fold|tr|cut|uniq|sort|nl|tac)\s/i;
@@ -442,7 +453,9 @@ function statementLeak(s, ps, depth) {
   const out = stdoutTarget(top);
   // Whether output produced at `at` reaches the transcript: inside a substitution only
   // when that substitution is printed; at the top level unless captured or consumed safely.
-  const printed = (at) => (s.sub[at] ? substitutionIsPrinted(s, structural, top, at) : (out !== 'file' && !(out === 'pipe' && consumerKeepsSecret(text, top, at))));
+  // Inside a substitution, a pipeline that ends in a count or digest consumer
+  // (`$(tr -cd '\r' < .env | wc -c)`) yields a number, not the file (ICC, 20 Sept 2026).
+  const printed = (at) => (s.sub[at] ? (substitutionIsPrinted(s, structural, top, at) && !consumerKeepsSecret(text, structural, at)) : (out !== 'file' && !(out === 'pipe' && consumerKeepsSecret(text, top, at))));
   // Rule 5: provider commands.
   for (const m of structural.matchAll(new RegExp(PROVIDER.source, 'gi'))) {
     const at = m.index + (m[0].length - m[1].length);
@@ -460,12 +473,18 @@ function statementLeak(s, ps, depth) {
   // Rule 4: a secret file written to the transcript.
   const file = secretFileIn(text);
   if (file && !NAMES_ONLY_COMMAND.test(text)) {
-    const reader = READERS.exec(structural);
-    const readerAt = reader ? reader.index + (reader[0].length - reader[1].length - 1) : -1;
     const cp = /(?:^|[\s;&|(])(cp|mv|install)\s[^|;]*\/dev\/(?:stdout|stderr|tty)\b/i.exec(structural);
     if (cp) return { rule: 4, what: `the whole of ${file.name} would print`, stmt: text };
-    if (reader && readerInPosition(structural, reader, lead, READER_WORDS) && printed(readerAt)) {
-      return { rule: 4, what: `the whole of ${file.name} would print`, stmt: text };
+    // A reader counts only when the secret file is an operand of ITS pipeline segment: a
+    // reader after a pipe (`... .env | tr -d '='`, `node --env-file=.env x | sed | head`)
+    // reads stdin, not the file (ICC, 20 September 2026: two false positives).
+    for (const r of structural.matchAll(new RegExp(READERS.source, 'gi'))) {
+      const at = r.index + (r[0].length - r[1].length - 1);
+      if (!readerInPosition(structural, r, lead, READER_WORDS)) continue;
+      const segEnd = (() => { const p = structural.slice(at).search(/\|(?!\|)/); return p < 0 ? structural.length : at + p; })();
+      const segStart = (() => { const before = structural.slice(0, at); const p = before.search(/\|(?!\|)[^|]*$/); return p < 0 ? 0 : p + 1; })();
+      if (file.index < segStart || file.index >= segEnd) continue;
+      if (printed(at)) return { rule: 4, what: `the whole of ${file.name} would print`, stmt: text };
     }
     if (/(?:^|[^<])<\s*[^<(]/.test(top) && READER_WORDS.has(lead) && printed(0)) {
       return { rule: 4, what: `the whole of ${file.name} would print`, stmt: text };

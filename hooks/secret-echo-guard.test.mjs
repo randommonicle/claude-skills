@@ -241,6 +241,17 @@ const ALLOW = [
   'grep -rn "sb_secret_" --include=*.md .',
   'echo done',
   'npm run build --prefix site',
+  // Four false positives from the ICC session of 20 September 2026, each denied as rule 4
+  // although no value could reach the transcript. (a) a keys-only grep followed by
+  // filters that read STDIN, not the file: a reader after a pipe is not reading the file;
+  // (d) the same shape, `--env-file` loads the file into a child's environment and the
+  // filters after the pipe read the child's output; (b) a count consumer inside a printed
+  // substitution prints a number; (c) an escaped dot inside a quoted grep REGEX is not a
+  // path (`\.env` after `|` or a quote is a pattern; after a path component it is Windows).
+  "grep -oE '^[A-Z_]+=' ../../../.env | tr -d '=' | tr '\\n' ' '",
+  'node --env-file="C:/Users/bengr/Projects/ICC/icc-site/.env" scripts/delete-booking.js --all 2>&1 | sed -E \'s/email=[^ ]*@/email=…@/\' | head -40',
+  'echo "CR bytes: $(tr -cd \'\\r\' < ../../../.env | wc -c), lines: $(wc -l < ../../../.env)"',
+  'sed -n 1,60p scripts/db-env.sh | grep -n "env\\|ENV\\|\\.env" | head -12',
 ];
 
 function run(stdin) {
