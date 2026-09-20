@@ -250,6 +250,9 @@ Recorded so the next person reaches for something better rather than rebuilding 
 - You are quoting a model price or a model id: **claude-api**, which holds the current figures.
 - You have just compacted and are about to cite a path, line or sha from the summary:
   **verified-citations**.
+- The output you are about to cap could carry a secret value (an env var, a `.env` file, a
+  provider status table, a config API's response): **secrets-in-output**, because a secret in
+  the window is a disclosure, not a cost.
 
 ## What this skill does not do
 

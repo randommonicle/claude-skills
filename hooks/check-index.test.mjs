@@ -356,7 +356,7 @@ check(
 // and contradicted by a manifest is a comment, not a control.
 {
   const wiring = JSON.parse(readFileSync(join(dirname(CHECK), 'hooks.json'), 'utf8'));
-  const commandGates = ['push-gate.mjs', 'sql-surgery-warn.mjs'];
+  const commandGates = ['push-gate.mjs', 'sql-surgery-warn.mjs', 'secret-echo-guard.mjs'];
   for (const gate of commandGates) {
     const group = (wiring.hooks.PreToolUse ?? []).find((g) =>
       (g.hooks ?? []).some((h) => String(h.command).includes(gate)),

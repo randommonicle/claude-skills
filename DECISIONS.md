@@ -5,6 +5,34 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-09-20 The secret-echo guard is a deny from its first day, not a warn promoted later
+
+`hooks/secret-echo-guard.mjs` denies a command whose output would carry a secret
+value (a fallback expansion or print of a secret-named variable, an environment
+listing, a `.env` read, a bare `supabase status`, a verbose curl with an
+`Authorization` header, and the Read tool on `.env`) and hands back the safe form
+in the reason. The library's own path for a command gate is warn-and-log first,
+promote on evidence (the sql-surgery row in HOOKS.md). This one skips that step.
+
+Why. The evidence the promotion clause waits for already existed before the hook
+was written: two incidents in two days, both routine checks by an agent (a Sonnet
+verification agent's bare `npx supabase status` on 2026-09-18; the main
+session's `${X:-unset}` loop over `SUPABASE_*` names on 2026-09-19, which put an
+account-wide personal access token and another project's service-role key in the
+transcript, ICC L-045). And a warn cannot do the job here at all: in a
+bypass-permissions session an `ask` is auto-approved and its reason reaches
+nobody, and `additionalContext` arrives after the value has already landed; only
+a deny stops the output before it exists, and the reason still reaches the model
+so the rewrite is one retry. The false-positive cost is bounded by the same
+mechanism: the command set is six shapes that print a value and never one that
+only uses it, the prescribed presence-and-length form is a green case in the
+hook's own suite, and a denied command is rewritten from the reason, not
+abandoned. What the hook cannot see (a value copied to another variable and
+printed, a script printing `process.env` from its own source, an API response
+returning a credential) stays with the `secrets-in-output` skill, which routes
+from `context-economy`. Both incident commands are the first two deny cases in
+`hooks/secret-echo-guard.test.mjs`.
+
 ## 2026-09-15 A seat_turns divergence is recorded with a warning, never refused, never retried
 
 `run-seat.mjs` records two counts in each section's metadata: `seat_turns`, the

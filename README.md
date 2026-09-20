@@ -16,7 +16,7 @@ test that cannot go red is not a test.
 
 **Three kinds of thing live here.**
 
-- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 45.
+- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 46.
 - **Hooks**: small scripts that run automatically around what Claude does. One stops and asks you
   before Claude uploads any code to GitHub. One checks a file Claude has just edited for mistakes,
   using whatever checker that project already uses. One looks up what has changed in your project
@@ -60,11 +60,11 @@ it in [CONTRIBUTING.md](CONTRIBUTING.md).
 Skills are installed at the **user level**, so they apply to every project on the machine with no
 per-project setup.
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 45 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 46 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
-- **Hooks** ([hooks/HOOKS.md](hooks/HOOKS.md)) — deterministic enforcement in `~/.claude/settings.json`, per machine: push gate (with a live freshness block in the ask), surgery gate (destructive SQL asks, carrying the target script's own header), skill fire log, session recon, and the warn family that fires where descriptions cannot: schedule-cost, migration-write, test-write, lint-after-edit.
+- **Hooks** ([hooks/HOOKS.md](hooks/HOOKS.md)) — deterministic enforcement in `~/.claude/settings.json`, per machine: push gate (with a live freshness block in the ask), surgery gate (destructive SQL asks, carrying the target script's own header), secret-echo guard (a command that would print a secret value is denied with the safe form in the reason), skill fire log, session recon, and the warn family that fires where descriptions cannot: schedule-cost, migration-write, test-write, lint-after-edit.
 - **Norms** ([NORMS.md](NORMS.md)) — six always-on one-liners copied into the global `~/.claude/CLAUDE.md`; each points at its skill playbook.
 - **Hubs** — skills owning a workflow moment, each with a routing table to leaves.
 - **Leaves** — narrow triggers, orthogonal vocabulary, one "does not fire on" line each.
@@ -106,6 +106,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **reproduce-the-real-build** | leaf (micro) | Run the exact production build locally; prove toolchain fixes from tracked manifests alone. |
 | **date-parse-utc-safe** | leaf (micro) | Parse date-only strings as explicit local components; UTC runtimes render the previous day. |
 | **constant-time-secret-compare** | leaf (micro) | Hash then timingSafeEqual for any secret comparison. |
+| **secrets-in-output** | leaf + hook (`secret-echo-guard.mjs`) | Nothing that can carry a secret value reaches a tool result: presence and length only, names not values, .env by its keys, provider status and API responses captured and allowlisted; the hook denies the command shapes that print one. |
 | **dependency-upgrade-verification** | leaf (micro) | npm pack both versions and diff the deciding file when runtime data can't distinguish success from failure. |
 | **safe-smokes** | leaf (routed by prove-it-can-fail) | Never destructive against shared data in tests; flip-and-restore; teardown asserts its row counts. |
 | **confirm-before-push** | policy behind the push-gate hook | Per-action authorisation for pushes, merges, and remote branch deletion, with the deletion preflight. |
