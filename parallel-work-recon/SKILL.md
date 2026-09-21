@@ -37,6 +37,18 @@ created. A `009*`-style glob can misread the ceiling; list and sort, don't patte
 ## Worktrees and checkouts
 
 - One session per working copy. Two sessions on one clone halves the snapshot's half-life.
+- **Two paths are not two working copies until you have checked.** A junction, symlink, bind
+  mount, network share, or the same repo reached by a second name gives the appearance of
+  isolation with none of the substance: two window titles, two transcripts, one index and
+  one tree. `git rev-parse --absolute-git-dir` from each path answers it in one command, and
+  on Windows `fsutil reparsepoint query <path>` names the target. Check before trusting,
+  because nothing at either path announces the sharing.
+- **Commit early whenever another session, agent, or scheduled job can reach the same tree.**
+  The recon rules protect the commit; nothing protects uncommitted work. A `reset --hard` in
+  a sibling session destroys it with no trace in `reflog` or `fsck --unreachable`, so
+  "recoverable by SHA" applies only to what was committed. The commit is the unit of safety,
+  not the file save. After a loss, establish committed-or-not *before* hunting: the two cases
+  have completely different answers.
 - Use `git -C <path>` exclusively for worktree git operations — a `cd` between tool calls
   silently lands elsewhere.
 - Any prompt handed to a subagent that must work in a worktree states the absolute path and
@@ -75,21 +87,11 @@ signal for identifiers or duplicated effort. Evidence: PropOS LESSONS_LEARNED Se
 31, 33, 38, 45, 2026-05-22, 2026-07-16, 2026-07-19; worktree incidents Sessions 5, 6, 44,
 2026-07-05, 2026-07-07.
 
-<!-- FORWARD: two rules this skill should gain, from LESSONS_LEARNED entry 21
-     (2026-09-21, the claude-skills library). Not yet written into the rules above.
-
-     1. A junction, symlink, bind mount or network share is NOT a second working copy.
-        "One session per working copy" is already here, but two paths that look like two
-        checkouts defeat it silently. Resolve them before trusting them:
-        `git rev-parse --absolute-git-dir` from each answers it in one command.
-
-     2. Commit early when any other session, agent or scheduled job can reach the same
-        tree. The recon rules protect the commit; nothing here protects uncommitted work,
-        and `reset --hard` in a sibling session destroys it with no trace in reflog or
-        `fsck --unreachable`. The commit is the unit of safety, not the file save.
-
-     The incident: two sessions, one tree behind a junction, a reset --hard at 14:43
-     destroyed forty minutes of written and verified work plus a pushed commit. The
-     session had re-probed before committing exactly as this skill requires, and was
-     editing on the strength of a start-up reading. -->
+Evidence for the two rules above, added 2026-09-21: two sessions ran against one working
+copy of this very library, because `~/.claude/projects/Unslop/claude-skills` is a directory
+junction onto `~/.claude/skills` rather than a second clone. A `reset --hard` in one
+destroyed forty minutes of written and verified work in the other, plus a pushed commit, and
+left nothing in `reflog` or `fsck`. The session had re-probed before committing exactly as
+the recon section requires; what it did not do was commit, and it was editing on the strength
+of a start-up reading. LESSONS_LEARNED entry 21.
 
