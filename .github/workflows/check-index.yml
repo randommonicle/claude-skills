@@ -1,4 +1,4 @@
-# The library's CI. Three jobs, and the split is deliberate.
+# The library's CI. Four jobs, and the split is deliberate.
 #
 # index: the drift gate. It exists because the drift it catches was caused by a
 # DELETION, which no Write or Edit hook can observe, so the warn family in
@@ -63,10 +63,10 @@ jobs:
   index:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
       - name: the gate can go red
         run: node hooks/check-index.test.mjs
       - name: the index agrees with the disk
@@ -75,10 +75,10 @@ jobs:
   archives:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
       - name: the archive gate can go red
         run: node hooks/check-archives.test.mjs
       - name: every .skill archive matches its skill directory
@@ -87,10 +87,10 @@ jobs:
   hooks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
       # push-gate.test.mjs builds throwaway git repos. It sets user.email itself,
       # but a runner with no global identity fails on the first commit, so the
       # identity is established here rather than depended upon.
@@ -117,10 +117,10 @@ jobs:
   hooks-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
       # bash rather than the runner's default PowerShell, so this loop stays identical
       # to the one in the hooks job above. Git for Windows provides it on this image.
       - name: the PowerShell-driven suites

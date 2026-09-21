@@ -5,6 +5,51 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-09-21 A suite that needs an interpreter declares it, and runs where it exists
+
+A suite driving a `.ps1` script cannot run on a Linux runner. Three did anyway and
+`main` was red for eight consecutive runs while every suite passed on the
+maintainer's machine. The standing shape, so this is not relitigated:
+
+A win32-only suite carries `// @win32-only` at the start of a comment line, skips
+loudly off win32 with a second line saying "not a pass", and exits 0. The
+`hooks-windows` job discovers suites by that anchored marker and runs them for
+real. A bare-substring grep is not acceptable discovery: two drafts silently
+selected the wrong set, one of them returning the right count so a count guard
+passed, and the second matching a file whose comment merely *explained* the marker.
+Prose about a marker is not a marker.
+
+Every powershell spawn in such a suite checks `spawnSync`'s `error` and exits **2**.
+Exit 1 stays "the thing under test decided wrongly" and 2 means "the harness could
+not run", because conflating them is what turned one missing interpreter into
+fifteen reported logic failures.
+
+A suite only goes in that job if every side effect is suppressed. `relay-cli-takeover`
+does not: its case 3 points the launcher at `wininit.exe` and relies on the account
+being unable to kill it, while hosted Windows runners are elevated and the kill is a
+real `taskkill /T /F`. It keeps the skip, carries no marker, and a `FORWARD:` note in
+the file records that gating case 3 behind an `IsInRole(Administrators)` check is
+what would make it runner-safe. Its win32 coverage is manual until then.
+
+Anything the alert or notification path needs is a **parameter**, not a read of
+`$env:USERPROFILE`. The recipient config was hardcoded, so two cases passed on one
+machine and failed the first time they ran anywhere else. `-ConfigFile` defaults to
+the previous expression, so the scheduled task is unaffected.
+
+## 2026-09-21 The claude.ai skill-sync cache is ignored, and is not a VENDOR member
+
+`synced/` is written by the desktop app: a `<orgId>_<userId>` bucket holding the
+anthropic-example skills and a manifest, 222 files. Same rule as the vendor packs
+(2026-08-10): not this library's content, so never committed, indexed or counted.
+
+It is **not** added to the `VENDOR` sets in `check-index.mjs` and `audit-fires.mjs`.
+Those count top-level directories holding a `SKILL.md`, and this one's skills are
+nested a level down, so the index gate never sees it — it reports 46 and passes with
+`synced/` on disk. Adding it there would assert a collision that does not exist.
+The `.gitignore` entry stands alone with a comment saying so, and the kept-in-step
+test is unaffected because it asserts VENDOR members have a `.gitignore` line, not
+the converse.
+
 ## 2026-09-20 The secret-echo guard is a deny from its first day, not a warn promoted later
 
 `hooks/secret-echo-guard.mjs` denies a command whose output would carry a secret

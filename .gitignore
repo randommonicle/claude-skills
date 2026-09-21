@@ -23,6 +23,20 @@ web-perf/
 workers-best-practices/
 wrangler/
 
+# The claude.ai skill-sync cache, written by the desktop app: a bucket directory
+# named <orgId>_<userId> holding the anthropic-example skills (docx, pdf, pptx,
+# xlsx, morning, import-memory, ash-training-roster) plus a manifest. 222 files as
+# of 2026-09-21, including ISO-IEC 29500 .xsd schemas and a .woff2, none of it this
+# library's content. Same rule as the vendor block above (DECISIONS.md 2026-08-10):
+# not ours, so never committed, indexed or counted.
+#
+# Deliberately NOT a member of the VENDOR sets in check-index.mjs and
+# audit-fires.mjs. Those count top-level directories that hold a SKILL.md, and this
+# one's skills are nested a level down, so the index gate never sees it -- it
+# reports 46 and passes with synced/ on disk. Adding it to those sets would claim a
+# collision that does not exist.
+synced/
+
 # cross-agent-review: scaffolding travels, transcripts and local seat state do not
 exchange/**
 !exchange/README.md
