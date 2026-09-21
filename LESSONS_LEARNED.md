@@ -927,3 +927,58 @@ environment — interpreter, shell, binary, privilege level, locale, path separa
 `lint-after-edit`'s `#!/bin/sh` stubs are the first instance in this library, so
 this is recurrence rather than novelty; the `wininit` hazard is a third, on the
 privilege axis.
+
+## 21. Two sessions, one working copy, and a reset that left no trace
+
+**What happened.** On 2026-09-21 two Claude sessions ran at the same time against
+what looked like two checkouts of this library. `C:\Users\ben\.claude\skills` and
+`C:\Users\ben\.claude\projects\Unslop\claude-skills` are one working copy and one
+`.git`: the second is a directory junction onto the first, created 2026-09-15 to end
+a two-clone drift. **verified** — `fsutil reparsepoint query` reports
+`Substitute Name: \??\C:\Users\ben\.claude\skills`, and
+`git rev-parse --absolute-git-dir` returns the identical git directory from both
+paths.
+
+At 14:43:15 one session ran `git reset --hard` back two commits. That discarded a
+commit already pushed to public `main`, discarded a second, substantive local commit,
+and destroyed the other session's uncommitted work — a fix that had been written and
+proved forty minutes earlier. The other session had taken a `git status` at start-up,
+which was accurate when taken and quietly wrong by the time it was relied upon.
+
+- **`reset --hard` erases uncommitted work with no forensic trace at all.** Committed
+  work is recoverable by SHA from the reflog. Uncommitted work is not in `git reflog`,
+  not in `git fsck --unreachable`, not anywhere. The only honest conclusion available
+  afterwards was "if it was committed it is recoverable, if it was not it is gone",
+  and establishing which came before any attempt to hunt for it.
+- **The junction gives the appearance of isolation with none of the substance.** Two
+  paths, two window titles, two session transcripts, one index and one tree. A real
+  `git worktree` would have had its own tree and index and the collision could not
+  have happened. Nothing at either path announces the sharing.
+- **A session-start recon is a snapshot, and its half-life was minutes, not hours.**
+  The rule already existed and was still not enough: the session re-probed before
+  committing, as `parallel-work-recon` requires, but did its editing for forty minutes
+  on the strength of a reading taken at start-up. The cheap defence is not a better
+  probe, it is committing early, because a commit is the only state a reset in another
+  window cannot destroy.
+
+**The lesson.** Work that is not committed is not protected from anything, and on a
+shared working copy it is not protected from a sibling session either. Commit early
+and often when any other agent, session, or scheduled job can reach the same tree —
+the commit is the unit of safety, not the file save. And before trusting two paths to
+be two checkouts, resolve them: `git rev-parse --absolute-git-dir` from each answers
+it in one command.
+
+The corollary for handovers: "nothing half-written, the working tree is clean" is a
+claim with a very short shelf life on a shared copy, and a later reader has no way to
+know when it stopped being true.
+
+**skill that should have prevented this:** `parallel-work-recon` — it owns "keep one
+session per working copy" and the duty to re-probe, and both rules were right. What it
+did not say, and now should, is that a junction or symlink is not a second working
+copy, and that commit-early is the mitigation when the recon's snapshot is what you
+are standing on. Candidate amendment rather than a new skill.
+
+**class:** two writers sharing one mutable workspace through an alias that hides the
+sharing — junction, symlink, bind mount, network share, or the same path reached by a
+second name — where one writer's destructive operation silently destroys the other's
+uncommitted state.

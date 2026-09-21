@@ -74,3 +74,22 @@ Parallel work makes staleness the default, not the exception, and git provides n
 signal for identifiers or duplicated effort. Evidence: PropOS LESSONS_LEARNED Sessions 26,
 31, 33, 38, 45, 2026-05-22, 2026-07-16, 2026-07-19; worktree incidents Sessions 5, 6, 44,
 2026-07-05, 2026-07-07.
+
+<!-- FORWARD: two rules this skill should gain, from LESSONS_LEARNED entry 21
+     (2026-09-21, the claude-skills library). Not yet written into the rules above.
+
+     1. A junction, symlink, bind mount or network share is NOT a second working copy.
+        "One session per working copy" is already here, but two paths that look like two
+        checkouts defeat it silently. Resolve them before trusting them:
+        `git rev-parse --absolute-git-dir` from each answers it in one command.
+
+     2. Commit early when any other session, agent or scheduled job can reach the same
+        tree. The recon rules protect the commit; nothing here protects uncommitted work,
+        and `reset --hard` in a sibling session destroys it with no trace in reflog or
+        `fsck --unreachable`. The commit is the unit of safety, not the file save.
+
+     The incident: two sessions, one tree behind a junction, a reset --hard at 14:43
+     destroyed forty minutes of written and verified work plus a pushed commit. The
+     session had re-probed before committing exactly as this skill requires, and was
+     editing on the strength of a start-up reading. -->
+
