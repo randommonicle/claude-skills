@@ -43,6 +43,14 @@ check go red, revert.
    output" assertion is a hidden dependency on everything else and breaks on innocent code.
 9. **A passing test can encode the bug.** When fixing a bug, check whether a green test pins
    the wrong behaviour — two tests once codified drop-this-content as correct.
+10. **Assert that the subject actually ran.** When a test drives an external script, binary or
+   process, a bail before any work makes every negative assertion trivially true. A launcher
+   suite once exited at a pre-flight path check and reported nine failures beside four
+   VACUOUS PASSES — "does not start a turn" and "the stranger is left alone" are both true of
+   a process that did nothing — so the green ones read as proof that the guards worked. Guard
+   the premise: assert the subject reached the behaviour under test, and treat a bail as a
+   harness fault reported once, not as N results. Related to rule 2, but the failure is one
+   step earlier: there the fixture was missing, here the subject never started.
 
 Mechanics note: a CI check that reads a snapshotted event payload (e.g. a PR body) cannot be
 re-run into a pass after the source is edited — close/reopen refreshes the payload.

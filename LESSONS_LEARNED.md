@@ -915,9 +915,23 @@ The corollary for a permanently red check: a signal that cannot go green carries
 more information than one that cannot go red. Five days of red cost nothing in
 broken code and everything in the ability to notice broken code.
 
+**Recurrence, same day.** The class below repeated twice more within hours, which is
+the strongest thing this entry has to say. `watchdog-network`'s two alert cases
+depended on a recipient config read from `$env:USERPROFILE`, so they had only ever
+run on one machine; fixed with `-ConfigFile`. Then `relay-cli-takeover` pre-flighted
+against `-Repo`'s default, the maintainer's PropOS checkout, and every case bailed on
+the runner; fixed by supplying a stub repo. Three instances, one class, one day — and
+each was found by a *different* first real run, never by reading the code.
+
+The third added a wrinkle worth its own rule. The bail produced nine failures **and
+four vacuous passes**: "does not start a turn" and "the stranger is left alone" are
+both trivially true of a launcher that exited before doing anything, so the green
+cases read as evidence the guards worked. A count alone is not the signal. That is now
+`prove-it-can-fail` rule 10, and the suite asserts its own premise.
+
 **skill that should have prevented this:** `prove-it-can-fail` — its question is
 already the right one and was simply not asked of the harness, only of the
-watchdogs. `reproduce-the-real-build` is the secondary: the suites were proved on
+watchdogs. It gained rule 10 from the recurrence above. `reproduce-the-real-build` is the secondary: the suites were proved on
 one platform and shipped to another. `mass-red-triage` owned the second miss and
 its rule on truncated runs was right while the run was read badly, exactly as
 `blast-radius-grep` was in entry 19.
