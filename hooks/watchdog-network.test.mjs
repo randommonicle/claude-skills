@@ -134,13 +134,23 @@ function check(label, ok, detail = '') {
   const log = join(work, 'log-alertfail.txt');
   const cleanRoot = join(work, 'alertfail-root');
   mkdirSync(cleanRoot, { recursive: true });
+  // The recipient config travels with the test. It used to be read from
+  // $env:USERPROFILE by the script, so both cases in this block passed on the
+  // maintainer's machine and failed the first time they ran anywhere else: the
+  // alert block needs the config to EXIST before it will call the notifier at all,
+  // so without it neither "NOT SENT" nor "queued" is ever logged and both asserts
+  // fail for a reason that has nothing to do with what they test. Proved by
+  // pointing USERPROFILE at an empty directory, which reproduced the CI failure
+  // exactly, 14/16 with these two cases red.
+  const cfg = join(work, 'notify-owner.config.json');
+  writeFileSync(cfg, JSON.stringify({ to: 'nobody@example.invalid' }));
 
   // -NoAlert is deliberately NOT passed here: the alert path is what is under test.
   // TWO fires on one state file, because the alert only happens once the local remedies
   // are spent: fire 1 flushes and waits, fire 2 reaches stage 2 and therefore the alert.
   const fireOnce = () =>
     ps(['-NoProfile', '-File', SCRIPT, '-StateFile', state, '-LogFile', log,
-        '-ForceDown', '-NoRemediate', '-Notifier', stub]);
+        '-ForceDown', '-NoRemediate', '-Notifier', stub, '-ConfigFile', cfg]);
   fireOnce();
   const r = fireOnce();
   const out = (r.stdout || '') + (r.stderr || '');
@@ -167,7 +177,7 @@ function check(label, ok, detail = '') {
   const log2 = join(work, 'log-alertok.txt');
   const fireOk = () =>
     ps(['-NoProfile', '-File', SCRIPT, '-StateFile', state2, '-LogFile', log2,
-        '-ForceDown', '-NoRemediate', '-Notifier', stubOk]);
+        '-ForceDown', '-NoRemediate', '-Notifier', stubOk, '-ConfigFile', cfg]);
   fireOk();
   const ok2 = fireOk();
   const out2 = (ok2.stdout || '') + (ok2.stderr || '');

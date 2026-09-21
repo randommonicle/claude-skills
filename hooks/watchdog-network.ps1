@@ -51,6 +51,13 @@ param(
   # Testing only: point at a stub that exits non-zero, to prove a failed delivery does
   # not suppress the retry. Defaults to the real notifier beside this script.
   [string]$Notifier = '',
+  # The recipient config. Parameterised for the same reason as $Notifier: it was read
+  # straight from $env:USERPROFILE, so the two alert-path cases in the sibling suite
+  # silently depended on a file that exists only on the maintainer's machine. They
+  # passed there and failed on a hosted runner the first time one ever ran them, which
+  # is the defect this whole family of suites was fixed for on 2026-09-21. The default
+  # is the previous expression unchanged, so the scheduled task behaves identically.
+  [string]$ConfigFile = (Join-Path $env:USERPROFILE '.claude\notify-owner.config.json'),
   [int]$NotifierTimeoutMs = 60000,
   [int]$TimeoutMs = 4000,
   [string]$Now,
@@ -223,7 +230,7 @@ try {
 if (-not $state.alerted -and -not $NoAlert) {
   $delivered = $false
   $notifier = if ($Notifier) { $Notifier } else { Join-Path $PSScriptRoot 'notify-owner.ps1' }
-  $configPath = Join-Path $env:USERPROFILE '.claude\notify-owner.config.json'
+  $configPath = $ConfigFile
   if ((Test-Path $notifier) -and (Test-Path $configPath)) {
     try {
       $to = (Get-Content $configPath -Raw | ConvertFrom-Json).to
