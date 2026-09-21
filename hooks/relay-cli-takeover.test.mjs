@@ -20,24 +20,22 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(HERE, 'relay-cli-fire.ps1');
 
+// @win32-only -- the marker the hooks-windows CI job discovers this suite by.
+//
 // Windows PowerShell only. It skips loudly off win32 rather than failing: in the
 // Linux-only hooks job `powershell` does not exist, and this suite crashed there on every
 // run from 2026-09-18 to 2026-09-21 while passing on the maintainer's machine.
 //
-// NOTE the absence of the @win32-only marker, which is deliberate and is what keeps this
-// suite OUT of the hooks-windows job. Case 3 ("a victim that cannot be killed") points the
-// launcher at wininit.exe and depends on this account being unable to terminate it, but
-// its guard only skips when that process cannot be READ, not when it can be KILLED. The
-// launcher's kill is real: relay-cli-fire.ps1 runs `taskkill /T /F /PID`. A hosted Windows
-// runner is elevated, so there the case would force-kill a critical system process.
-//
-// FORWARD: to run this suite on a hosted runner, gate case 3 behind an
-// IsInRole(Administrators) check that skips loudly, then add the @win32-only marker here.
-// Until then its win32 coverage is manual, on the maintainer's machine. Decided
-// 2026-09-21, see docs/REVIEW_red-ci_2026-09-21.md section 7.
+// It carried NO marker until 2026-09-21, because case 3 pointed the launcher at
+// wininit.exe and relied on this account being unable to terminate it, while a hosted
+// Windows runner is elevated and the launcher's kill is a real `taskkill /T /F`. That
+// case now manufactures the condition with a stub instead of borrowing it from the OS,
+// so nothing here touches a process this suite did not start, and the marker is safe.
+// The old arrangement was worse than unsafe: it SKIPPED on the maintainer's non-admin
+// machine, so it ran nowhere at all. See DECISIONS.md 2026-09-21.
 if (process.platform !== 'win32') {
   console.log(`SKIP  relay-cli-takeover.test.mjs: needs Windows PowerShell, platform is ${process.platform}`);
-  console.log('SKIP  not a pass, and NOT covered by hooks-windows either. See the FORWARD note in this file.');
+  console.log('SKIP  not a pass. This suite is executed by the hooks-windows CI job.');
   process.exit(0);
 }
 
@@ -73,7 +71,7 @@ const alive = (pid) =>
   (ps(`[bool](Get-Process -Id ${pid} -ErrorAction SilentlyContinue)`).stdout || '').trim() === 'True';
 const kill = (pid) => ps(`Stop-Process -Id ${pid} -Force -ErrorAction SilentlyContinue`);
 
-function runLauncher({ pidFileContent, staleMinutes = 120 }) {
+function runLauncher({ pidFileContent, staleMinutes = 120, taskkill = null }) {
   const lease = join(work, `lease-${Math.random().toString(36).slice(2)}.txt`);
   const pidFile = join(work, `driver-${Math.random().toString(36).slice(2)}.pid`);
   const log = join(work, 'log.txt');
@@ -83,7 +81,8 @@ function runLauncher({ pidFileContent, staleMinutes = 120 }) {
   if (pidFileContent !== null) writeFileSync(pidFile, pidFileContent);
   const r = psRaw(
     ['-NoProfile', '-File', SCRIPT, '-LeaseFile', lease, '-LogFile', log, '-PidFile', pidFile,
-     '-Cli', stubCli, '-PromptFile', promptFile],
+     '-Cli', stubCli, '-PromptFile', promptFile,
+     ...(taskkill ? ['-Taskkill', taskkill] : [])],
   );
   return { out: (r.stdout || '') + (r.stderr || ''), pidFile };
 }
@@ -142,20 +141,35 @@ const check = (label, ok, detail = '') => {
   check('a malformed pid record: refuses to fire', /malformed/.test(out) && /NOT firing/.test(out));
 }
 {
-  // A live, correctly identified victim that CANNOT be killed. Simulated by pointing
-  // the record at a process this account may not terminate; if the machine lets us kill
-  // it the case is skipped rather than passed, because a skip is not a pass.
-  const r = ps(`$p = Get-Process -Name 'wininit' -ErrorAction SilentlyContinue | Select-Object -First 1; if ($p) { Write-Output ($p.Id.ToString() + '|' + $p.StartTime.ToString('o')) }`);
-  const rec = (r.stdout || '').trim();
-  if (!rec.includes('|')) {
-    console.log('skip  unkillable-victim case: could not read a protected process');
-  } else {
-    const { out } = runLauncher({ pidFileContent: rec });
-    const refused = /STILL RUNNING|could not be proved dead; NOT firing|could not read the start time|could not inspect/.test(out);
-    check('a victim that cannot be killed: refuses to fire', refused,
-      refused ? '' : out.replace(/\s+/g, ' ').slice(0, 160));
-    check('...and does not start a turn', !/starting a CLI turn/.test(out));
-  }
+  // A live, correctly identified victim that CANNOT be killed. The condition is
+  // MANUFACTURED, with a taskkill stub that reports success and kills nothing, against a
+  // victim this suite started itself.
+  //
+  // It used to be borrowed from the OS: the record pointed at wininit.exe and the case
+  // relied on this account being unable to terminate it. That never ran anywhere. On the
+  // maintainer's non-admin machine Get-Process could not even read wininit's StartTime,
+  // so the case printed "skip" and passed the suite; on a hosted Windows runner, which is
+  // elevated, the same code would have force-killed a critical system process. A case
+  // that either skips or destroys is not a test, and it is why this suite was kept out of
+  // CI until 2026-09-21.
+  // The stub is stubCli itself: it is already an @echo off / exit /b 0 .cmd, which is
+  // exactly a taskkill that reports success and kills nothing. Reused rather than
+  // written fresh because building a .cmd's CRLF escapes from a generator is how
+  // LESSONS_LEARNED entry 9's heredoc trap bites, and it bit again writing this line.
+  const noopKill = stubCli;
+  const v = startVictim();
+  const { out } = runLauncher({ pidFileContent: `${v.pid}|${v.started}`, taskkill: noopKill });
+  const survived = alive(v.pid);
+  // Guard the premise. If the stub did not hold the victim alive, the assertions below
+  // would pass for the wrong reason, which is the shape of the bug this whole file exists
+  // to catch.
+  check('the stub really did leave the victim alive', survived,
+    survived ? `pid ${v.pid} still running, as the stub intended` : `pid ${v.pid} died anyway; premise broken`);
+  const refused = /STILL RUNNING/.test(out);
+  check('a victim that cannot be killed: refuses to fire', refused,
+    refused ? '' : out.replace(/\s+/g, ' ').slice(0, 160));
+  check('...and does not start a turn', !/starting a CLI turn/.test(out));
+  kill(v.pid);
 }
 
 // 4. A REAL TREE. The earlier victim was a childless ping, so /T was never exercised

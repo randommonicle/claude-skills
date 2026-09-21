@@ -181,6 +181,16 @@ at the new tip, so nothing diverged.
 
 ## 7. The blocker on the Windows job
 
+> **Superseded later the same day.** The finding below is accurate and is why the suite was
+> held back. The remedy it proposes — gating case 3 behind an `IsInRole(Administrators)`
+> check — was **not** what shipped, because gating only makes the zero coverage official:
+> the case was *already* skipping on the maintainer's non-admin machine, where
+> `Get-Process` cannot read `wininit`'s `StartTime`. So it ran nowhere at all. Instead
+> `relay-cli-fire.ps1` gained a `-Taskkill` parameter and the suite now manufactures the
+> condition with a stub against a victim it starts itself. The case is exercised for the
+> first time, the suite carries the marker, and all three run in `hooks-windows`. See
+> `DECISIONS.md` 2026-09-21 and `docs/HANDOVER_red-ci_2026-09-21.md`.
+
 `relay-cli-takeover.test.mjs` case 3 ("a victim that cannot be killed") points the launcher at
 **`wininit.exe`** and depends on the account being unable to terminate it. Its guard skips only
 when that process cannot be **read**, not when it can be **killed**. The launcher's kill is real:

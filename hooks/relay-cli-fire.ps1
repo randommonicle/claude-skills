@@ -56,6 +56,14 @@ param(
   [string]$PidFile = (Join-Path $env:USERPROFILE '.claude\propos-overnight-driver.pid'),
   [string]$Cli = (Join-Path $env:APPDATA 'npm\claude.cmd'),
   [int]$MaxTurns = 0,
+  # The kill command, parameterised for the same reason as watchdog-network's -Notifier
+  # and -ConfigFile (DECISIONS.md 2026-09-21): the "victim that cannot be killed" case
+  # had no safe way to reach this path. It pointed at wininit.exe and relied on the
+  # account being unable to terminate it, which meant it SKIPPED on the maintainer's
+  # non-admin machine and would have force-killed a system process on an elevated
+  # runner. It therefore never ran anywhere. A stub that declines to kill produces the
+  # condition exactly, on any machine, with no system process involved.
+  [string]$Taskkill = 'taskkill',
   [switch]$VerifyOnly
 )
 
@@ -183,7 +191,7 @@ function Stop-StaleDriver {
   }
 
   # /T for the tree, because the thing that hangs is a node descendant.
-  try { $null = & taskkill /T /F /PID $oldPid 2>&1 } catch { }
+  try { $null = & $Taskkill /T /F /PID $oldPid 2>&1 } catch { }
 
   # VERIFY. taskkill's exit code is not trusted on its own: partial tree termination
   # and access-denied both need to show up as failure here.

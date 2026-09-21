@@ -24,12 +24,26 @@ Exit 1 stays "the thing under test decided wrongly" and 2 means "the harness cou
 not run", because conflating them is what turned one missing interpreter into
 fifteen reported logic failures.
 
-A suite only goes in that job if every side effect is suppressed. `relay-cli-takeover`
-does not: its case 3 points the launcher at `wininit.exe` and relies on the account
-being unable to kill it, while hosted Windows runners are elevated and the kill is a
-real `taskkill /T /F`. It keeps the skip, carries no marker, and a `FORWARD:` note in
-the file records that gating case 3 behind an `IsInRole(Administrators)` check is
-what would make it runner-safe. Its win32 coverage is manual until then.
+A suite only goes in that job if every side effect is suppressed or stubbed, and a
+test never borrows a hazardous condition from the OS when it can manufacture a safe
+one. `relay-cli-takeover` case 3 wanted "a live victim that cannot be killed" and got
+it by pointing the launcher at `wininit.exe`, relying on the account being unable to
+terminate it. That was unsafe on an elevated runner, where the launcher's real
+`taskkill /T /F` would have hit a critical system process — and it was useless on the
+maintainer's non-admin machine, where `Get-Process` could not read wininit's
+`StartTime`, so the case printed "skip". It therefore ran nowhere.
+
+The condition is now produced, not borrowed: `relay-cli-fire.ps1` takes a `-Taskkill`
+parameter defaulting to `taskkill`, and the suite passes a stub that reports success
+and kills nothing, against a victim it started itself. The case is exercised for the
+first time, on any machine, and the suite carries the marker. It also asserts its own
+premise — that the stub really did leave the victim alive — because without that the
+two assertions behind it would pass for the wrong reason.
+
+The launcher's *other* `taskkill` call, which kills the driver it just started when
+that driver's pid could not be recorded, is deliberately NOT parameterised. It only
+ever kills its own child, so the "killing a stranger" hazard that motivated this does
+not apply to it.
 
 Anything the alert or notification path needs is a **parameter**, not a read of
 `$env:USERPROFILE`. The recipient config was hardcoded, so two cases passed on one
