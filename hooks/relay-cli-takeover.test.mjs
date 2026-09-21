@@ -19,10 +19,43 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(HERE, 'relay-cli-fire.ps1');
+
+// Windows PowerShell only. It skips loudly off win32 rather than failing: in the
+// Linux-only hooks job `powershell` does not exist, and this suite crashed there on every
+// run from 2026-09-18 to 2026-09-21 while passing on the maintainer's machine.
+//
+// NOTE the absence of the @win32-only marker, which is deliberate and is what keeps this
+// suite OUT of the hooks-windows job. Case 3 ("a victim that cannot be killed") points the
+// launcher at wininit.exe and depends on this account being unable to terminate it, but
+// its guard only skips when that process cannot be READ, not when it can be KILLED. The
+// launcher's kill is real: relay-cli-fire.ps1 runs `taskkill /T /F /PID`. A hosted Windows
+// runner is elevated, so there the case would force-kill a critical system process.
+//
+// FORWARD: to run this suite on a hosted runner, gate case 3 behind an
+// IsInRole(Administrators) check that skips loudly, then add the @win32-only marker here.
+// Until then its win32 coverage is manual, on the maintainer's machine. Decided
+// 2026-09-21, see docs/REVIEW_red-ci_2026-09-21.md section 7.
+if (process.platform !== 'win32') {
+  console.log(`SKIP  relay-cli-takeover.test.mjs: needs Windows PowerShell, platform is ${process.platform}`);
+  console.log('SKIP  not a pass, and NOT covered by hooks-windows either. See the FORWARD note in this file.');
+  process.exit(0);
+}
+
 const work = mkdtempSync(join(tmpdir(), 'takeover-'));
 
-const ps = (script) =>
-  spawnSync('powershell', ['-NoProfile', '-Command', script], { encoding: 'utf8' });
+// Every spawn goes through here so a missing interpreter is reported once, as itself,
+// rather than as a downstream crash on output the script was never alive to produce.
+// Exit 2 for a harness fault; exit 1 stays the launcher behaving wrongly.
+const psRaw = (args) => {
+  const r = spawnSync('powershell', args, { encoding: 'utf8' });
+  if (r.error) {
+    console.error(`FATAL  could not run powershell: ${r.error.code ?? ''} ${r.error.message}`);
+    console.error('FATAL  no case below was executed. This is a harness fault, not a launcher fault.');
+    process.exit(2);
+  }
+  return r;
+};
+const ps = (script) => psRaw(['-NoProfile', '-Command', script]);
 
 // A stub "CLI" that exits at once, and a prompt file for it to be handed.
 const stubCli = join(work, 'stub-cli.cmd');
@@ -48,11 +81,9 @@ function runLauncher({ pidFileContent, staleMinutes = 120 }) {
   const ends = new Date(Date.now() + 6 * 3600000).toISOString();
   writeFileSync(lease, `HEARTBEAT ${hb}\r\nDRIVER hung-driver\r\nWINDOW-ENDS ${ends}\r\nIN-FLIGHT x\r\n`);
   if (pidFileContent !== null) writeFileSync(pidFile, pidFileContent);
-  const r = spawnSync(
-    'powershell',
+  const r = psRaw(
     ['-NoProfile', '-File', SCRIPT, '-LeaseFile', lease, '-LogFile', log, '-PidFile', pidFile,
      '-Cli', stubCli, '-PromptFile', promptFile],
-    { encoding: 'utf8' },
   );
   return { out: (r.stdout || '') + (r.stderr || ''), pidFile };
 }

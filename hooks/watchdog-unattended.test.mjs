@@ -18,6 +18,24 @@ import { fileURLToPath } from 'node:url';
 
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), 'watchdog-unattended.ps1');
 const NOW = '2026-09-17T02:00:00';
+
+// @win32-only — the marker the hooks-windows CI job discovers this suite by.
+//
+// The thing under test is a Windows PowerShell script, so this suite says so and exits 0
+// rather than running. From 2026-09-17 to 2026-09-21 it sat in a Linux-only CI job where
+// `powershell` does not exist (that image ships PowerShell 7 as `pwsh`), and every case
+// failed with got=(none): eight red runs reporting fifteen logic failures that were one
+// missing interpreter, and while they stood CI could not have shown a real regression.
+//
+// The skip is LOUD, and the ubuntu job prints it, because a silent skip is the defect the
+// hooks job was created to fix from the other direction — lint-after-edit's #!/bin/sh
+// stubs, which cannot run on the Windows machine this library is maintained from.
+if (process.platform !== 'win32') {
+  console.log(`SKIP  watchdog-unattended.test.mjs: needs Windows PowerShell, platform is ${process.platform}`);
+  console.log('SKIP  not a pass. This suite is executed by the hooks-windows CI job.');
+  process.exit(0);
+}
+
 const work = mkdtempSync(join(tmpdir(), 'wd-'));
 
 function run(leaseText, { gitRoot = work, extra = [], restartState = null } = {}) {
@@ -38,6 +56,15 @@ function run(leaseText, { gitRoot = work, extra = [], restartState = null } = {}
      '-GitRoots', gitRoot, '-Now', NOW, '-NoAlert', '-NoRestart', ...extra],
     { encoding: 'utf8' },
   );
+  // A spawn that never started returns status null and stdout null, and `|| ''` would
+  // turn that into an empty string every assertion then fails against — one broken
+  // harness reported as N broken behaviours. Exit 2, distinct from the 1 that means the
+  // watchdog decided wrongly, so the two are never confused again.
+  if (r.error) {
+    console.error(`FATAL  could not run powershell: ${r.error.code ?? ''} ${r.error.message}`);
+    console.error('FATAL  no case below was executed. This is a harness fault, not a watchdog fault.');
+    process.exit(2);
+  }
   return { out: (r.stdout || '') + (r.stderr || ''), code: r.status };
 }
 

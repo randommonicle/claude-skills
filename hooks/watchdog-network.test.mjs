@@ -19,7 +19,34 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), 'watchdog-network.ps1');
+
+// @win32-only — the marker the hooks-windows CI job discovers this suite by.
+//
+// Windows PowerShell only, and it says so rather than running. See the same block in
+// watchdog-unattended.test.mjs for what the silent version cost: in a Linux-only job
+// `powershell` does not exist, so seven cases failed and the eighth crashed on a state
+// file the script had never been alive to write. Loud, because a quiet skip is
+// indistinguishable from sixteen passes.
+if (process.platform !== 'win32') {
+  console.log(`SKIP  watchdog-network.test.mjs: needs Windows PowerShell, platform is ${process.platform}`);
+  console.log('SKIP  not a pass. This suite is executed by the hooks-windows CI job.');
+  process.exit(0);
+}
+
 const work = mkdtempSync(join(tmpdir(), 'wdnet-'));
+
+// Every powershell spawn in this file goes through here, so a missing or broken
+// interpreter is reported once, as itself, instead of as N wrong decisions. Exit 2 for a
+// harness fault; exit 1 stays the watchdog deciding wrongly.
+function ps(args) {
+  const r = spawnSync('powershell', args, { encoding: 'utf8' });
+  if (r.error) {
+    console.error(`FATAL  could not run powershell: ${r.error.code ?? ''} ${r.error.message}`);
+    console.error('FATAL  no case below was executed. This is a harness fault, not a watchdog fault.');
+    process.exit(2);
+  }
+  return r;
+}
 
 // One state file per scenario, but SHARED across the fires within a scenario: the cap
 // only exists across fires, so a fresh state file per fire would hide exactly the bug
@@ -30,7 +57,7 @@ function fire(scenario, { down = true, now = null, extra = [] } = {}) {
   const args = ['-NoProfile', '-File', SCRIPT, '-StateFile', state, '-LogFile', log, '-NoRemediate', '-NoAlert'];
   if (down) args.push('-ForceDown');
   if (now) args.push('-Now', now);
-  const r = spawnSync('powershell', [...args, ...extra], { encoding: 'utf8' });
+  const r = ps([...args, ...extra]);
   return { out: (r.stdout || '') + (r.stderr || ''), state, code: r.status };
 }
 
@@ -81,8 +108,14 @@ function check(label, ok, detail = '') {
   // Recovery must reset the budget, or one bad morning spends it for the whole weekend.
   const f6 = fire('esc', { down: false, now: '2026-09-18T11:15:00' });
   check('recovery is logged with how long it was down', levelsIn(f6.out).includes('RECOVERED'), levelsIn(f6.out).join(','));
-  const after = JSON.parse(readFileSync(f6.state, 'utf8'));
-  check('recovery clears the outage and the remediation budget', !after.outageStart && after.remediations === 0);
+  // Read defensively. An unguarded readFileSync here used to throw ENOENT and kill the
+  // whole run at case 9 of 16, so a suite that had already failed reported seven results
+  // instead of sixteen. A missing state file is a real failure and is reported as one.
+  let after = null;
+  try { after = JSON.parse(readFileSync(f6.state, 'utf8')); } catch (e) { after = { readError: String(e.message ?? e) }; }
+  check('recovery clears the outage and the remediation budget',
+    after !== null && !after.readError && !after.outageStart && after.remediations === 0,
+    after?.readError ? `state unreadable: ${after.readError}` : '');
 
   const f7 = fire('esc', { now: '2026-09-18T12:00:00' });
   const got7 = levelsIn(f7.out);
@@ -106,12 +139,8 @@ function check(label, ok, detail = '') {
   // TWO fires on one state file, because the alert only happens once the local remedies
   // are spent: fire 1 flushes and waits, fire 2 reaches stage 2 and therefore the alert.
   const fireOnce = () =>
-    spawnSync(
-      'powershell',
-      ['-NoProfile', '-File', SCRIPT, '-StateFile', state, '-LogFile', log,
-       '-ForceDown', '-NoRemediate', '-Notifier', stub],
-      { encoding: 'utf8' },
-    );
+    ps(['-NoProfile', '-File', SCRIPT, '-StateFile', state, '-LogFile', log,
+        '-ForceDown', '-NoRemediate', '-Notifier', stub]);
   fireOnce();
   const r = fireOnce();
   const out = (r.stdout || '') + (r.stderr || '');
@@ -137,10 +166,8 @@ function check(label, ok, detail = '') {
   const state2 = join(work, 'state-alertok.json');
   const log2 = join(work, 'log-alertok.txt');
   const fireOk = () =>
-    spawnSync('powershell',
-      ['-NoProfile', '-File', SCRIPT, '-StateFile', state2, '-LogFile', log2,
-       '-ForceDown', '-NoRemediate', '-Notifier', stubOk],
-      { encoding: 'utf8' });
+    ps(['-NoProfile', '-File', SCRIPT, '-StateFile', state2, '-LogFile', log2,
+        '-ForceDown', '-NoRemediate', '-Notifier', stubOk]);
   fireOk();
   const ok2 = fireOk();
   const out2 = (ok2.stdout || '') + (ok2.stderr || '');

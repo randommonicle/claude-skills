@@ -19,11 +19,36 @@
 # not executed on Linux either. Six cases that guard nothing look exactly like
 # six cases that pass.
 #
+# hooks-windows: the mirror image of that, and it exists because the library walked
+# into the same defect from the other side. THREE suites drive .ps1 scripts through
+# `powershell`, the Windows-only 5.1 executable, which is absent from ubuntu-latest
+# (that image ships PowerShell 7 as `pwsh`): watchdog-unattended, watchdog-network
+# and relay-cli-takeover. None checked spawnSync's error, so one missing interpreter
+# became fifteen logic failures in the first, a mid-run ENOENT crash in the second
+# and a crash in the third. main was red for eight consecutive runs, 2026-09-17 to
+# 2026-09-21, while all 22 suites passed on the maintainer's machine. All three now
+# skip loudly off win32, and this job is where the safe ones actually execute.
+#
+# Note the count: the triage that found this first reported two, because the
+# failed-log tail truncated the third. Three is what the full log says.
+#
+# TWO of the three run here, not three. relay-cli-takeover is deliberately excluded
+# and carries no @win32-only marker: its case 3 points the launcher at wininit.exe
+# and relies on the account being unable to kill it, but a hosted Windows runner is
+# elevated, and the launcher's kill is a real `taskkill /T /F`. The FORWARD note in
+# that file records what would make it runner-safe.
+#
+# The two that do run are safe because every side effect is suppressed:
+# -NoRemediate -NoAlert (network) and -NoAlert -NoRestart (unattended). No DNS
+# flush, no adapter bounce, no Outlook COM.
+#
 # Cost, per price-the-spend, before it shipped: this repo is PUBLIC, so standard
-# runners are free and draw on no metered allowance. Three ubuntu jobs, no npm
-# install, node stdlib only, seconds each, billed as zero minutes. Re-price if
-# the repo ever goes private, where per-job rounding bills each job a whole
-# minute and the three-job split would cost triple a single one.
+# runners are free and draw on no metered allowance. FOUR jobs since 2026-09-21
+# (three ubuntu, one windows), no npm install, node stdlib only, seconds each,
+# billed as zero minutes. Re-price if the repo ever goes private, where per-job
+# rounding bills each job a whole minute, so the four-job split would cost four
+# times a single one — and the Windows job bills at 2x the Linux rate on top of
+# that, making it the first thing to cut if this repo ever stops being public.
 name: check-index
 
 on:
@@ -80,6 +105,53 @@ jobs:
         run: |
           failed=0
           for t in hooks/*.test.mjs; do
+            echo "::group::$t"
+            if node "$t"; then echo "PASS $t"; else echo "FAIL $t"; failed=1; fi
+            echo "::endgroup::"
+          done
+          exit $failed
+
+  # The win32 half of the hooks job. Only the PowerShell-driven suites that are safe
+  # on a hosted runner: everything else is already covered on Linux, and this job is
+  # here to close the gap that made those unrunnable, not to duplicate the other twenty.
+  hooks-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # bash rather than the runner's default PowerShell, so this loop stays identical
+      # to the one in the hooks job above. Git for Windows provides it on this image.
+      - name: the PowerShell-driven suites
+        shell: bash
+        run: |
+          # Discovery is by a marker each suite DECLARES about itself, anchored to the
+          # start of a comment line: exactly "// @win32-only". Both halves of that were
+          # learned the hard way on 2026-09-21.
+          #
+          # Draft 1 grepped for spawnSync('powershell' and silently got the wrong set: it
+          # matched a suite that must not run here, missed watchdog-unattended whose spawn
+          # is split across two lines, and happened to return the right COUNT, so a
+          # count-only guard passed while the job ran the wrong tests.
+          #
+          # Draft 2 grepped for a bare '@win32-only' and matched relay-cli-takeover, whose
+          # comment EXPLAINS why it must not carry the marker. Prose about a marker is not
+          # a marker. Hence the anchor: a declaration is at the start of its line, a
+          # mention is not. Anything discovered here gets an elevated Windows runner, so
+          # this pattern being precise is a safety property, not tidiness.
+          mapfile -t suites < <(grep -lE '^// @win32-only\b' hooks/*.test.mjs)
+          echo "discovered ${#suites[@]}: ${suites[*]}"
+          # An empty discovery would make this job green having executed no test at all,
+          # which is the exact shape of failure this workflow exists to prevent. The
+          # converse — a new PowerShell suite that forgets the marker — needs no check
+          # here: it has no skip either, so it fails in the ubuntu hooks job and goes red.
+          if [ "${#suites[@]}" -eq 0 ]; then
+            echo "no suite carries @win32-only. Either the marker was renamed or this job is testing nothing."
+            exit 1
+          fi
+          failed=0
+          for t in "${suites[@]}"; do
             echo "::group::$t"
             if node "$t"; then echo "PASS $t"; else echo "FAIL $t"; failed=1; fi
             echo "::endgroup::"
