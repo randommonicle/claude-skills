@@ -852,3 +852,78 @@ so that skill gained a completion gate in the same commit.
 **class:** a total derived by combining figures from two reports, systems or dates
 where the overlap between them was assumed rather than established by inspecting a
 single record end to end.
+
+## 20. Three suites reported a missing interpreter as fifteen broken behaviours
+
+**What happened.** Two watchdog suites and a launcher suite drive Windows PowerShell
+scripts. They were written and proved on the Windows machine this library is
+maintained from, then added to a CI job that runs only on `ubuntu-latest`, where
+the `powershell` executable does not exist — that image ships PowerShell 7 as
+`pwsh`. None of the three inspected `spawnSync`'s `error`, and all three did
+`(r.stdout || '') + (r.stderr || '')`, so a spawn that never started became the
+empty string and every assertion failed against output nothing had produced.
+
+`watchdog-unattended` printed `0/15 passed` with every case reading `got=(none)`.
+`watchdog-network` failed seven cases and then died on an unguarded `readFileSync`
+of a state file the script had never been alive to write, so the last seven of its
+sixteen cases never reported at all. `relay-cli-takeover` crashed the same way.
+
+`main` was red for eight consecutive runs across five days, 2026-09-17 to
+2026-09-21, while all 22 suites passed locally. The two gates that were working the
+whole time, `index` and `archives`, were green in every one of those runs and
+invisible underneath an overall red badge. Nothing was recorded — not in
+`DECISIONS.md`, not here — and the newest handover predated the first red run, so
+a reader had no way to tell a standing platform fault from a new regression.
+
+- **The workflow had already met this defect from the other side and said so.** Its
+  own header explains that the `hooks` job exists because `lint-after-edit`'s
+  `#!/bin/sh` stubs cannot execute on Windows, and that "six cases that guard
+  nothing look exactly like six cases that pass." The fix for
+  Windows-cannot-run-sh was a Linux job. Nobody asked the mirror question when
+  `.ps1` suites arrived.
+- **The triage committed the error it was looking for.** The first pass read
+  `gh run view --log-failed | tail` and concluded **two** failing suites. The tail
+  truncated the third, and that wrong count propagated into a workflow comment
+  before the full log was read. `mass-red-triage` names truncated runs explicitly;
+  the triage still reasoned from a fragment, which is the same shape as entry 19's
+  third miss.
+- **Two attempts to discover the affected suites by grep silently got the wrong
+  set.** Grepping `spawnSync('powershell'` matched a suite that must never run on a
+  hosted runner, missed one whose spawn was split across two lines, and returned
+  the right *count* — so a count-only guard passed while the job would have run the
+  wrong tests. Grepping a bare marker string then matched the file whose comment
+  *explains why it must not carry that marker*. Prose about a marker is not a
+  marker. Both were caught only by running the grep and reading the names, never by
+  reasoning about the pattern.
+- **A safety property hid inside a test's assumption about its environment.**
+  `relay-cli-takeover` case 3 points the launcher at `wininit.exe` and relies on the
+  account being unable to kill it, but its guard skips only when that process cannot
+  be *read*. The launcher's kill is a real `taskkill /T /F`, and a hosted Windows
+  runner is elevated. The suite was within one commit of force-killing a critical
+  system process on CI, and an already-written workflow comment asserted all three
+  suites were runner-safe.
+
+**The lesson.** "What does this print when the thing it guards is broken" and "what
+does this print when the interpreter is not there" are different questions, and only
+the first gets asked. A suite that shells out inherits every property of its
+execution environment — interpreter, shell, binary, privilege level — and each one
+it does not assert is a way for it to report something other than what it tested.
+The cheap form of the check is to name, for each spawn, what happens when that
+spawn does not start.
+
+The corollary for a permanently red check: a signal that cannot go green carries no
+more information than one that cannot go red. Five days of red cost nothing in
+broken code and everything in the ability to notice broken code.
+
+**skill that should have prevented this:** `prove-it-can-fail` — its question is
+already the right one and was simply not asked of the harness, only of the
+watchdogs. `reproduce-the-real-build` is the secondary: the suites were proved on
+one platform and shipped to another. `mass-red-triage` owned the second miss and
+its rule on truncated runs was right while the run was read badly, exactly as
+`blast-radius-grep` was in entry 19.
+
+**class:** a check whose result depends on an unasserted property of its execution
+environment — interpreter, shell, binary, privilege level, locale, path separator.
+`lint-after-edit`'s `#!/bin/sh` stubs are the first instance in this library, so
+this is recurrence rather than novelty; the `wininit` hazard is a third, on the
+privilege axis.
