@@ -12,7 +12,7 @@
 // No CLI is ever invoked here: -Cli points at a stub that exits immediately, so the
 // whole launcher path runs without spending anything.
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,11 +55,22 @@ const psRaw = (args) => {
 };
 const ps = (script) => psRaw(['-NoProfile', '-Command', script]);
 
+// The launcher pre-flights three paths and exits 1 if any is missing: -Cli, -PromptFile
+// and -Repo. The suite supplied the first two and left -Repo on its default, the
+// maintainer's PropOS checkout. That exists here and does not exist on a CI runner, so
+// every case bailed at pre-flight the first time this suite ran on Windows CI: nine FAILs
+// and, worse, four VACUOUS PASSES, because "does not start a turn" and "the stranger is
+// left alone" are both true of a launcher that did nothing at all. Third instance of this
+// class in one day, after -ConfigFile and the missing interpreter itself.
+//
 // A stub "CLI" that exits at once, and a prompt file for it to be handed.
 const stubCli = join(work, 'stub-cli.cmd');
 writeFileSync(stubCli, '@echo off\r\nexit /b 0\r\n');
 const promptFile = join(work, 'prompt.txt');
 writeFileSync(promptFile, 'this prompt is never sent anywhere\n');
+// A repo that exists only so pre-flight passes. Nothing is read from it.
+const stubRepo = join(work, 'stub-repo');
+mkdirSync(stubRepo, { recursive: true });
 
 // A victim process that will sit there until something kills it.
 function startVictim() {
@@ -81,10 +92,22 @@ function runLauncher({ pidFileContent, staleMinutes = 120, taskkill = null }) {
   if (pidFileContent !== null) writeFileSync(pidFile, pidFileContent);
   const r = psRaw(
     ['-NoProfile', '-File', SCRIPT, '-LeaseFile', lease, '-LogFile', log, '-PidFile', pidFile,
-     '-Cli', stubCli, '-PromptFile', promptFile,
+     '-Cli', stubCli, '-PromptFile', promptFile, '-Repo', stubRepo,
      ...(taskkill ? ['-Taskkill', taskkill] : [])],
   );
-  return { out: (r.stdout || '') + (r.stderr || ''), pidFile };
+  const out = (r.stdout || '') + (r.stderr || '');
+  // A pre-flight bail is a HARNESS fault, not a launcher fault, and is reported once as
+  // itself. Without this the first Windows CI run of this suite reported nine failures and
+  // four vacuous passes for one missing directory, because assertions like "does not start
+  // a turn" are trivially true of a launcher that exited before doing anything. Exit 2,
+  // matching the missing-interpreter guard above.
+  const bail = out.match(/FAULT\s+(?:CLI|prompt|repo) not found at.*/);
+  if (bail) {
+    console.error(`FATAL  the launcher bailed at pre-flight: ${bail[0].trim()}`);
+    console.error('FATAL  a path this suite is responsible for supplying is missing, so no case below exercised the launcher.');
+    process.exit(2);
+  }
+  return { out, pidFile };
 }
 
 let fails = 0, ran = 0;
