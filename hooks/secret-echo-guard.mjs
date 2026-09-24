@@ -74,6 +74,10 @@
 //      A reader counts only in the pipeline segment that names the file (after a pipe it
 //      reads stdin); a substitution ending in a count consumer yields a number; a `\.env`
 //      escaped inside a regex is a pattern, not a path (four ICC false positives, 20 Sept).
+//      A grep's PATTERN is text whatever it contains (`grep -n "process.env" f.mjs`,
+//      24 Sept): only a token proven to be the pattern is exempt, so a secret file as an
+//      operand, an option's value, via xargs or `<`, or after an option the parser does
+//      not know, still counts (grepPatternSpans).
 //   5. A provider command that prints secret values, in command position or inside a
 //      substitution that is itself printed: supabase status (the table and -o env both
 //      print the stack's keys), supabase projects api-keys / secrets list, aws ssm
@@ -350,15 +354,17 @@ function listingTarget(structural, raw) {
 const SECRET_FILE = /(?:^|[\\/])(?:\.env(?:\.[\w.-]+)?|[\w.-]*\.env|\.envrc|[\w.-]*\.pem|id_(?:rsa|ed25519|ecdsa|dsa)|[\w.-]*\.key|\.?credentials(?:\.json)?|service-account[\w.-]*\.json|\.npmrc|\.netrc|\.pgpass|\.git-credentials|\.htpasswd)$/i;
 const SECRET_FILE_IN_CMD = /(?:^|[\s'"=<\\/])((?:[\w.~:-]*[\\/])*(?:\.env(?:\.[\w.-]+)?|[\w.-]*\.env|\.envrc|[\w.-]*\.pem|id_(?:rsa|ed25519|ecdsa|dsa)|[\w.-]*\.key|\.?credentials(?:\.json)?|service-account[\w.-]*\.json|\.npmrc|\.netrc|\.pgpass|\.git-credentials|\.htpasswd))(?=$|[\s'";|)>])/i;
 const DOC_FILE = /\.env(?:\.[\w.-]+)?\.(?:example|sample|template|dist)$|(?:^|[\\/])[\w.-]*pub[\w.-]*\.key$/i;
-function secretFileIn(text) {
+function secretFileIn(text, exempt = []) {
   // A backslash before the name is a Windows separator after a path component
   // (`C:\...\icc-site\.env`) but a regex escape after anything else (`"env\|ENV\|\.env"`,
-  // ICC 20 Sept 2026): only the former names a file.
+  // ICC 20 Sept 2026): only the former names a file. `exempt` holds the spans of grep
+  // patterns (grepPatternSpans), which are text whatever they contain.
   const re = new RegExp(SECRET_FILE_IN_CMD.source, 'gi');
   for (const m of text.matchAll(re)) {
     if (DOC_FILE.test(m[1])) continue;
     const index = m.index + (m[0].length - m[1].length);
     if (text[index - 1] === '\\' && !/[\w:.~]/.test(text[index - 2] || '')) continue;
+    if (exempt.some(([from, to]) => index >= from && index + m[1].length <= to)) continue;
     return { name: m[1], index };
   }
   return null;
@@ -376,6 +382,124 @@ function grepKeysOnly(text) {
 function readerInPosition(structural, m, lead, words) {
   const before = structural.slice(0, m.index + (m[0].length - m[1].length - 1));
   return words.has(lead) || /^\s*$/.test(before) || COMMAND_POSITION.test(before);
+}
+
+// Which argument of a grep is its PATTERN (24 Sept 2026). A secret-file name inside the
+// pattern is text, not a file: `grep -n "process\.env" f.mjs` was denied as a read of `.env`
+// in a folder named `process`, and `"process.env"` as a file of that name. Only a token
+// proven to be the pattern is exempt from the scan: an -e/--regexp, /C: or -Pattern value,
+// else the first operand. An option these tables do not know ends the proof, and every
+// token stays a possible file, as before. A flag wrongly listed as valued would skip the
+// real pattern and exempt the file after it, so `valued` holds only letters each tool's
+// manual gives an argument; a valued option wrongly listed as a flag costs a false positive.
+const GREP_OPTIONS = {
+  grep: {
+    flags: 'abcEFGHhIiLlnoPqRrsTUuVvwxyZz', valued: 'ABCDdefm',
+    long: /^--(?:basic-regexp|byte-offset|colou?r|count|dereference-recursive|extended-regexp|files-with-matches|files-without-match|fixed-strings|ignore-case|initial-tab|invert-match|line-buffered|line-number|line-regexp|no-filename|no-ignore-case|no-messages|null|null-data|only-matching|perl-regexp|quiet|recursive|silent|text|with-filename|word-regexp)$/,
+    longValued: /^--(?:after-context|before-context|binary-files|context|devices|directories|exclude|exclude-dir|exclude-from|group-separator|include|label|max-count)$/,
+  },
+  rg: {
+    flags: 'abcFHhIiLlNnoPpqSsUuVvwxz', valued: 'ABCdEefgjMmrTt',
+    long: /^--(?:byte-offset|case-sensitive|column|count|count-matches|files-with-matches|files-without-match|fixed-strings|follow|heading|hidden|ignore-case|invert-match|json|line-number|line-regexp|multiline|no-filename|no-heading|no-ignore|no-line-number|no-messages|null|only-matching|pcre2|pretty|quiet|search-zip|smart-case|stats|text|trim|unrestricted|vimgrep|with-filename|word-regexp)$/,
+    longValued: /^--(?:after-context|before-context|colors?|context|context-separator|encoding|engine|glob|iglob|ignore-file|max-columns|max-count|max-depth|max-filesize|path-separator|pre|pre-glob|replace|sortr?|threads|type|type-add|type-not)$/,
+  },
+};
+// Select-String parameters and the common ones seen with it; any unique prefix binds.
+const SLS_VALUED = ['pattern', 'path', 'literalpath', 'pspath', 'lp', 'include', 'exclude', 'encoding', 'context', 'culture', 'inputobject', 'erroraction', 'ea', 'warningaction', 'wa', 'outvariable', 'ov'];
+const SLS_SWITCHES = ['simplematch', 'casesensitive', 'notmatch', 'allmatches', 'list', 'quiet', 'raw', 'noemphasis', 'verbose', 'vb', 'debug', 'db'];
+const part = (t, k) => ({ start: t.start + k, end: t.end, hasSub: t.hasSub });
+// The words after a command, split where the shell splits them (whitespace outside quotes
+// and substitutions), up to this segment's pipe, redirect or closing parenthesis.
+function argTokens(s, from) {
+  const base = s.sub[from - 1] ?? 0;
+  const tokens = [];
+  let start = -1, i = from;
+  const close = () => {
+    if (start >= 0) tokens.push({ start, end: i, raw: s.text.slice(start, i), hasSub: s.sub.slice(start, i).some((d) => d > base) });
+    start = -1;
+  };
+  for (; i < s.text.length; i++) {
+    const bare = !s.lit[i] && !s.dq[i] && s.sub[i] === base;
+    if (bare && /[|;&<>)]/.test(s.text[i])) break;
+    if (bare && /\s/.test(s.text[i])) close();
+    else if (start < 0) start = i;
+  }
+  close();
+  return tokens;
+}
+function grepPattern(tokens, table) {
+  const explicit = [], operands = [];
+  let fromFile = false, options = true;
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i], a = t.raw;
+    if (!options || a === '-' || !a.startsWith('-')) { operands.push(t); continue; }
+    if (a === '--') { options = false; continue; }
+    if (a.startsWith('--')) {
+      const eq = a.indexOf('='), name = eq < 0 ? a : a.slice(0, eq);
+      if (name === '--regexp') { explicit.push(eq < 0 ? tokens[++i] : part(t, eq + 1)); continue; }
+      if (name === '--file') { fromFile = true; if (eq < 0) i++; continue; }
+      if (eq >= 0 || table.long.test(name)) continue;
+      if (table.longValued.test(name)) { i++; continue; }
+      return null;
+    }
+    for (let j = 1; j < a.length; j++) {
+      if (table.valued.includes(a[j])) {
+        const attached = j + 1 < a.length;
+        if (a[j] === 'e') explicit.push(attached ? part(t, j + 1) : tokens[i + 1]);
+        if (a[j] === 'f') fromFile = true;
+        if (!attached) i++;
+        break;
+      }
+      if (!table.flags.includes(a[j])) return null;
+    }
+  }
+  return explicit.length || fromFile ? explicit : operands.slice(0, 1);
+}
+function findstrPattern(tokens) {
+  const explicit = [], operands = [];
+  let fromFile = false;
+  for (const t of tokens) {
+    const o = /^\/([a-z]+)(:?)/i.exec(t.raw);
+    if (!o) { operands.push(t); continue; }
+    const name = o[1].toLowerCase();
+    if (name === 'c' && o[2]) explicit.push(part(t, o[0].length));
+    else if (name === 'g') fromFile = true;
+    else if (!/^(?:[abdefilmnoprsvx]|off(?:line)?)$/.test(name)) return null;
+  }
+  return explicit.length || fromFile ? explicit : operands.slice(0, 1);
+}
+function slsPattern(tokens) {
+  const explicit = [], operands = [];
+  const names = [...SLS_VALUED, ...SLS_SWITCHES];
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    const o = /^-([a-z]+)(:?)/i.exec(t.raw);
+    if (!o) { operands.push(t); continue; }
+    const p = o[1].toLowerCase();
+    const hit = names.includes(p) ? [p] : names.filter((n) => n.startsWith(p));
+    if (hit.length !== 1) return null;
+    if (SLS_SWITCHES.includes(hit[0])) continue;
+    const value = o[2] ? part(t, o[0].length) : tokens[++i];
+    if (hit[0] === 'pattern') explicit.push(value);
+  }
+  return explicit.length ? explicit : operands.slice(0, 1);
+}
+function grepPatternSpans(s, structural) {
+  const spans = [];
+  for (const m of structural.matchAll(new RegExp(GREPS.source, 'gi'))) {
+    const at = m.index + (m[0].length - m[1].length - 1);
+    // Strictly in command position: a grep word that is another command's argument
+    // (`grep -n rg .env`) must not donate an exemption to the file after it.
+    const before = structural.slice(0, at);
+    if (!/^\s*$/.test(before) && !COMMAND_POSITION.test(before)) continue;
+    const word = m[1].toLowerCase();
+    const args = argTokens(s, at + m[1].length);
+    const found = word === 'findstr' ? findstrPattern(args)
+      : word === 'select-string' || word === 'sls' ? slsPattern(args)
+      : grepPattern(args, GREP_OPTIONS[word === 'rg' ? 'rg' : 'grep']);
+    for (const t of found ?? []) if (t && !t.hasSub) spans.push([t.start, t.end]);
+  }
+  return spans;
 }
 
 const PROVIDER = /(?:^|[\s;&|(`])((?:\w+=\S+\s+)*(?:sudo\s+|npx\s+)?(?:supabase\s+(?:status|projects\s+api-keys|secrets\s+list)|aws\s+(?:ssm\s+get-parameters?(?:-by-path)?\b(?=.*--with-decryption)|secretsmanager\s+get-secret-value)|az\s+keyvault\s+secret\s+show|gcloud\s+secrets\s+versions\s+access|vault\s+kv\s+get|op\s+(?:read|item\s+get)|doppler\s+secrets\b|netlify\s+env:(?:list|get)|heroku\s+config(?::get)?\b|stripe\s+config\s+--list))/i;
@@ -472,8 +596,8 @@ function statementLeak(s, ps, depth) {
   if (lead === 'curl' && /(?:^|\s)(?:-[a-zA-Z]*v[a-zA-Z]*|--verbose|--trace(?:-ascii)?)\b/.test(structural) && /Authorization|apikey|x-api-key/i.test(text)) {
     return { rule: 6, what: 'curl -v prints the Authorization header', stmt: text };
   }
-  // Rule 4: a secret file written to the transcript.
-  const file = secretFileIn(text);
+  // Rule 4: a secret file written to the transcript. A grep's pattern is text, not a file.
+  const file = secretFileIn(text, grepPatternSpans(s, structural));
   if (file && !NAMES_ONLY_COMMAND.test(text)) {
     const cp = /(?:^|[\s;&|(])(cp|mv|install)\s[^|;]*\/dev\/(?:stdout|stderr|tty)\b/i.exec(structural);
     if (cp) return { rule: 4, what: `the whole of ${file.name} would print`, stmt: text };

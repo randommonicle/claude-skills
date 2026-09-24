@@ -150,6 +150,32 @@ const DENY = [
   { rule: 4, cmd: 'jq . credentials.json' },
   { rule: 4, cmd: 'cp .env /dev/stdout' },
   { rule: 5, cmd: 'npx supabase status >&2' },
+  // Only a grep's PATTERN is exempt from the secret-file scan (24 September 2026). A secret
+  // file as a file operand, an option's value, fed by xargs or a redirect, inside a pattern
+  // that runs a command, or behind an option the parser does not know, stays denied.
+  { rule: 4, cmd: 'grep KEY .env' },
+  { rule: 4, cmd: 'grep -n "x" .env.local' },
+  { rule: 4, cmd: 'grep -rn TOKEN config/app.env' },
+  { rule: 4, cmd: 'cat .env | grep X' },
+  { rule: 4, cmd: 'rg SECRET .env' },
+  { rule: 4, tool: 'PowerShell', cmd: 'Select-String -Path .env -Pattern X' },
+  { rule: 4, cmd: 'grep "process.env" .env' },
+  { rule: 4, cmd: 'grep -e "process.env" .env' },
+  { rule: 4, cmd: 'grep -- "process.env" .env' },
+  { rule: 4, cmd: 'grep -r KEY --include=.env .' },
+  { rule: 4, cmd: 'rg -g .env KEY' },
+  { rule: 4, cmd: 'rg -T js KEY .env' },
+  { rule: 4, cmd: 'grep -f .env app.log' },
+  { rule: 4, cmd: 'grep -T KEY .env' },
+  { rule: 4, cmd: 'grep -m 5 KEY .env' },
+  { rule: 4, cmd: 'grep -5 KEY .env' },
+  { rule: 4, cmd: 'grep "$(cat .env)" app.js' },
+  { rule: 4, cmd: 'grep KEY < .env' },
+  { rule: 4, cmd: 'find . -name .env | xargs grep KEY' },
+  { rule: 4, cmd: 'grep -n rg .env' },
+  { rule: 4, cmd: 'findstr KEY .env' },
+  { rule: 4, tool: 'PowerShell', cmd: "Select-String -Path .env -Pattern 'process.env'" },
+  { rule: 4, tool: 'PowerShell', cmd: 'Get-Content .env | Select-String KEY' },
 ];
 
 const ALLOW = [
@@ -252,6 +278,27 @@ const ALLOW = [
   'node --env-file="C:/Users/bengr/Projects/ICC/icc-site/.env" scripts/delete-booking.js --all 2>&1 | sed -E \'s/email=[^ ]*@/email=…@/\' | head -40',
   'echo "CR bytes: $(tr -cd \'\\r\' < ../../../.env | wc -c), lines: $(wc -l < ../../../.env)"',
   'sed -n 1,60p scripts/db-env.sh | grep -n "env\\|ENV\\|\\.env" | head -12',
+  // The pattern is not a file (24 September 2026). Each was denied as rule 4: the grep's
+  // pattern read as a file named `process.env`, or, with the dot escaped, as `.env` in a
+  // folder named `process`. The first three are the live repro, a read-only search of
+  // this suite; the fourth and fifth passed already and pin the repro's edges.
+  'grep -n "process\\.env" f.test.mjs',
+  'grep -n "process.env from" f.test.mjs',
+  'grep -n "process\\.env from" f.test.mjs',
+  'grep -n -c "process\\.env from" f.test.mjs',
+  'grep -n "from process" f.test.mjs',
+  'grep -rn "process.env" src/',
+  'grep -rn --include=*.ts "process.env" .',
+  'grep -e "process.env" -n app.js',
+  "grep -n 'process.env' f.mjs",
+  'grep -n process.env f.mjs',
+  'grep -rn ".env" --include=*.js .',
+  'cat app.js | grep "process.env"',
+  'rg -n "process.env" src',
+  'rg "process\\.env" src',
+  'findstr /C:"process.env" app.js',
+  { tool: 'PowerShell', cmd: "Select-String -Pattern 'process.env' -Path app.js" },
+  { tool: 'PowerShell', cmd: "Select-String 'process.env' app.js" },
 ];
 
 function run(stdin) {
