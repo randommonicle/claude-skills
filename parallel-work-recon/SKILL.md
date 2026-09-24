@@ -70,6 +70,14 @@ Every chip prompt therefore states these as verbatim duties, never as context th
 - The chip works on its own branch or worktree and never merges to a protected branch; it opens a
   PR and leaves the merge to the operator's per-action confirm.
 
+<!-- FORWARD: a rule this section should gain (docs/HANDOVER_secret-guard_2026-09-24.md,
+section 9). A chip's prompt can arrive inside the spawning conversation itself with no
+worktree made for it, as one did on 2026-09-24 in ~/.claude/skills. The chip then checks
+`git worktree list` and, finding none of its own, runs `git worktree add` before its first
+edit, at a path outside the repo so the main checkout's `git status` never lists it. For
+~/.claude/skills that also keeps the copy away from the directory Claude Code reads skills
+from (a precaution, not a verified hazard). -->
+
 Ratified 2026-08-06 (PropOS, Ben): a chip was spawned to investigate a smoke-teardown leak while
 the spawning session was mid-rebase on an open PR; its prompt scoped files and live-data rules but
 never declared the parallelism. No collision that day; the rule closes the class, not the instance.
