@@ -37,6 +37,14 @@ wrangler/
 # collision that does not exist.
 synced/
 
+# A discard pile that appeared beside synced/ on 2026-09-24: one
+# <epoch-ms>-<pid>-<random> directory per superseded copy of a synced skill (docs,
+# import-memory, morning, pdf, computer-use, deep-research and others; 71 files, some
+# with their own LICENSE.txt), written by two processes two seconds apart, apparently
+# the desktop app refreshing synced/. Not ours, same rule as synced/, and like synced/
+# it has no top-level SKILL.md, so it is not a VENDOR member either.
+.trash/
+
 # cross-agent-review: scaffolding travels, transcripts and local seat state do not
 exchange/**
 !exchange/README.md
