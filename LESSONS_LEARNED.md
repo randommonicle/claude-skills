@@ -996,3 +996,55 @@ are standing on. Candidate amendment rather than a new skill.
 sharing — junction, symlink, bind mount, network share, or the same path reached by a
 second name — where one writer's destructive operation silently destroys the other's
 uncommitted state.
+
+## 22. A gate that read its signal from the whole command, not from what it guards
+
+**What happened.** On 2026-09-24 `secret-echo-guard` denied a read-only search of its own
+test suite, `grep -n "process\.env from" hooks/secret-echo-guard.test.mjs`, as rule 4, a
+grep over a secret file. Fixing that false positive turned up twelve false negatives in the
+same few lines: real reads of a secret file that the live hook allowed. **verified** for
+every shape by stdin probe against the unmodified hook, with nothing executed.
+
+- **The secret-file scan read the whole command, the pattern included.** `secretFileIn()`
+  took the first secret-file-shaped token anywhere in the statement, and the grep branch
+  denied without asking which argument it came from. The quoted search text `process.env`
+  read as a file of that name, and `process\.env` as `.env` in a folder called `process`,
+  because a backslash after a word reads as a Windows path separator.
+- **The quiet-flag test read the whole command too.** One regex took any `-c`, `-l`, `-L`
+  or `-q` in the statement as grep's own. So `grep KEY .env | head -c 500` counted as quiet
+  because of `head`'s `-c`, as did the same read piped through `tr -cd`, `cut -c 1-40` or
+  `uniq -c`; `rg -L`, which follows symlinks, counted as listing files; and Select-String
+  parameters whose names happen to contain those letters (`-AllMatches`, `-SimpleMatch`,
+  `-NotMatch`, `-Encoding`, `-LiteralPath`) read as clusters of short flags. Each of these
+  printed the file, while `Select-String -Quiet`, which prints only True or False, was
+  denied.
+- **Only the first grep was judged.** In `grep -c x app.js | grep KEY .env` the first
+  grep's `-c` excused the second, which prints the file.
+
+The false negatives surfaced because the must-stay-denied list was written, and run against
+the unmodified hook, before anything changed: several close variants of the reads the brief
+said must stay blocked were not blocked to begin with. Fixed in `ad04512` (a grep's pattern
+is text) and `fdc76b0` (quiet flags per tool, from the grep's own pipe segment, every grep
+judged). 224 PASS and 15 FAIL before the first fix, 239 and 0 after; 245 and 13 before the
+second, 258 and 0 after; thirteen mutants, one per safety property, each caught by a named
+case. **verified**.
+
+**The lesson.** A check reads its signal from its subject. A gate that asks "is there a
+quiet flag?" or "is there a secret file name?" anywhere in the command answers a question
+about the whole pipeline when the decision is about one program's arguments, and every other
+program in the pipeline then moves the verdict, in both directions: here one false positive
+and twelve false negatives from the same shape. Scope each read to the subject (the grep's
+own pipe segment, its own argument positions) and let anything the parser cannot prove fall
+back to the cautious answer.
+
+The corollary: run the must-stay-denied list against the unmodified gate before changing it.
+Fixing a false positive is when the list of what the gate must catch gets written down, and
+so when its existing false negatives are cheapest to find.
+
+**skill that should have prevented this:** `prove-it-can-fail`, rule 8 ("Assert on the
+subject, not a document-wide pattern"). The rule was written for test assertions, and this is
+the same failure in a gate. Candidate amendment: widen rule 8 from tests to gates and
+classifiers.
+
+**class:** a check that reads its signal from a whole command, document or payload instead of
+from the subject it guards, so that unrelated content flips the verdict in either direction.
