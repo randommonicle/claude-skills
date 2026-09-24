@@ -93,7 +93,9 @@ Nothing. Everything is committed, merged and pushed.
 - **For Ben:** a mechanical drift check for the norm block (for example `session-recon`
   comparing the block in `~/.claude/CLAUDE.md` with `NORMS.md` and printing one line on a
   mismatch), and a `LESSONS_LEARNED.md` entry for the missing block. Offered on 2026-09-24,
-  not yet answered.
+  not yet answered. **Superseded later the same day:** Ben said yes, and both landed through
+  the `feat/norms-drift-check` PR (the check in `hooks/session-recon.mjs`, and
+  `LESSONS_LEARNED.md` entry 23).
 - Carried from the 2026-09-21 note, section 7, **not re-verified**: the owner-only claude.ai
   items (the `working-lean` upload and its eval results) and `b47e020` remaining retrievable
   by SHA.
@@ -103,8 +105,11 @@ Nothing. Everything is committed, merged and pushed.
 1. On any machine, before other work: `git -C ~/.claude/skills pull --ff-only`. A machine's
    guard has the rule 4 fixes only once its checkout contains `dbfa55c`.
 2. On the work machine: `grep -c "BEGIN CLAUDE-SKILLS NORMS" ~/.claude/CLAUDE.md`. If it
-   prints 0, paste the block from `NORMS.md`, markers included.
-3. Answer the drift-check question in section 7.
+   prints 0, paste the block from `NORMS.md`, markers included. Since the
+   `feat/norms-drift-check` PR, `session-recon` reports a missing or stale block at session
+   start by itself once step 1's pull has run.
+3. **Superseded later the same day:** the drift-check question in section 7 was answered
+   and built.
 4. Optional: delete the stale local `feat/legal-fork`, or re-point it with `git branch -f`
    before resuming that work.
 
