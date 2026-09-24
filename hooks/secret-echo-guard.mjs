@@ -20,13 +20,15 @@
 // `exchange/REVIEW_secret-echo-guard_2026-09-20.md`). It is a guard against ROUTINE
 // slips by an agent doing ordinary work, judged from the command string. It is not an
 // exfiltration boundary: a command string cannot predict what a program prints, so a
-// value copied into another variable and printed (`k=$KEY; echo $k`), a script that
-// prints process.env from its own source, a secret under a name the classifier does
-// not know, an encoding the reader set does not name, and an API response that returns
-// a credential (the Supabase Management API's auth GET answers 243 fields including
-// smtp_pass) all pass. The secrets-in-output skill is the control for those: print a
-// named allowlist of fields, never a raw response, and dry-run the output shape on a
-// dummy value first.
+// value copied into another variable and printed (`k=$KEY; echo $k`), any script file
+// run by name (`bash phase.sh`, `node x.mjs`: its contents are never read, so even an
+// `echo $KEY` inside one passes, measured 24 Sept 2026; only the inline wrappers listed
+// below are analysed), a secret under a name the classifier does not know, an encoding
+// the reader set does not name, and an API response that returns a credential (the
+// Supabase Management API's auth GET answers 243 fields including smtp_pass) all pass.
+// The secrets-in-output skill is the control for those: print a named allowlist of
+// fields, never a raw response, and dry-run the output shape on a dummy value first. A
+// script written to batch work therefore reads no secrets; those stay visible commands.
 //
 // How a command is read. A scanner walks the string once with shell quoting rules
 // (single quotes literal; double quotes and PowerShell @"..."@ expanding; backslash, or
