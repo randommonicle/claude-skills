@@ -1,6 +1,6 @@
 ---
 name: handover
-description: Produce a structured handover note when the context window fills or the user asks to wrap up. Run /context first to read the real percentage; never estimate — and where the harness cannot invoke /context, record the gap verbatim rather than inventing a figure. Triggers when the context band reaches amber or red, when the user says "wrap up", "handover", or "hand off", or before deliberately ending a long working session.
+description: Produce a structured handover note when the context window fills or the user asks to wrap up. Take the real percentage from /context or, in the Claude desktop app, the get_usage tool; never estimate, and where neither exists record the gap verbatim rather than inventing a figure. Triggers when the context band reaches amber or red, when the user says "wrap up", "handover", or "hand off", or before deliberately ending a long working session.
 ---
 
 # Handover note
@@ -17,8 +17,16 @@ The global operating rules define context bands: green below 50%, yellow 50 to 6
 
 Run `/context` first and use the real figure. Do not guess or estimate the percentage. Run `/context` and use the figure it returns. The whole point of the bands is that the decision to wrap is made on a real reading, not a feeling.
 
-Where the harness cannot invoke `/context` — a non-interactive orchestrator or headless
-session — an honest gap is the reading. Write "no reading — /context unavailable in this
+In the Claude desktop app the agent cannot type `/context`, but the reading is one tool call
+away: `mcp__ccd_session_mgmt__get_usage` with `session_id: "self"`. It is usually deferred, so
+load it through ToolSearch first. Its `context.percentUsed` is the reading; the same call reports
+the plan's 5-hour and weekly limits, which matter when several sessions run at once. On
+2026-09-24 a desktop session wrote the gap line below into a handover while this tool sat in its
+deferred list, and the user had to supply the 38 % reading. Search the deferred tools for
+"context usage" before declaring a gap.
+
+Where neither `/context` nor a usage tool is available (a non-interactive orchestrator or
+headless session), an honest gap is the reading. Write "no reading: /context unavailable in this
 harness" verbatim into the note's wrap-up context, never an invented or estimated
 percentage, and make the band decision from the harness's own signals (context-compaction
 warnings, summarisation system reminders). Five consecutive sessions on one project

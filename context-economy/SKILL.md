@@ -165,7 +165,10 @@ briefed at roughly 150k reported using *"roughly half the ~150k budget"* while i
 
 Take the number from the harness, never from the prose:
 
-- `/context`: what is in the window now, and what is occupying it.
+- `/context`: what is in the window now, and what is occupying it. In the Claude desktop app,
+  where the agent cannot type it, the same figures come from the `mcp__ccd_session_mgmt__get_usage`
+  tool with `session_id: "self"` (load it through ToolSearch if deferred), which also reports the
+  plan's 5-hour and weekly limits.
 - `/usage`: session totals, and from v2.1.251 a `Prompt cache (main)` line giving the share of
   input served from cache, the miss count, and whether the cache is warm. The breakdown flags any
   behaviour accounting for *"10% or more"* of recent usage, cache misses and long context included.
