@@ -3,7 +3,9 @@
 This file is the single source of the always-on norm block (R-20). The copy in each
 machine's `~/.claude/CLAUDE.md` is pasted from here verbatim, between the marker lines.
 Drift check: diff that block against this file whenever a norm changes or during a tier
-review. Cap: at most six norms (R-19); a norm that never bites demotes to a hub bullet, a
+review. On a direct-clone machine `hooks/session-recon.mjs` also makes that comparison at every
+session start and says so, to the model and the person, when the block is missing or differs
+(2026-09-24, LESSONS_LEARNED entry 23). Cap: at most six norms (R-19); a norm that never bites demotes to a hub bullet, a
 norm violated anyway promotes to a hook where mechanisable.
 
 <!-- BEGIN CLAUDE-SKILLS NORMS v2026-07-29 -->

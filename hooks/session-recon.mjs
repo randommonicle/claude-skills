@@ -4,11 +4,48 @@
 // additionalContext so every session opens with live repo state instead of a
 // stale snapshot. Fail-open: any error or timeout yields no context, never a
 // broken session. The pre-commit re-run stays behavioural in the skill —
-// this hook only covers session start.
+// this hook only covers session start. It also checks that this machine's
+// CLAUDE.md still carries the Layer 1 norm block (normsLine, below).
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// NORMS.md's block is pasted by hand into each direct-clone machine's CLAUDE.md, and
+// nothing checked the paste: on 2026-09-24 the home machine was found with no block at
+// all and no record of when it went (LESSONS_LEARNED entry 23). Compare the two, line
+// endings aside, and say so when they differ. Only the direct-clone layout is checked,
+// the library at <config>/skills beside <config>/CLAUDE.md; a plugin install gets the
+// block from norms-inject, and in any other layout CLAUDE.md's place is unknown, so
+// both stay silent rather than raise a false alarm. Fail-open.
+const NORM_BLOCK = /<!-- BEGIN CLAUDE-SKILLS NORMS([^>]*)-->[\s\S]*?<!-- END CLAUDE-SKILLS NORMS[^>]*-->/;
+
+function normsLine() {
+  try {
+    if (process.env.CLAUDE_PLUGIN_ROOT) return null;
+    const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+    if (basename(repo) !== 'skills') return null;
+    const normsPath = join(repo, 'NORMS.md');
+    const canon = NORM_BLOCK.exec(readFileSync(normsPath, 'utf8').replace(/\r\n/g, '\n'));
+    if (!canon) return null;
+    const claudeMd = join(repo, '..', 'CLAUDE.md');
+    const paste = ' Paste the block from ' + normsPath + ', markers included.';
+    if (!existsSync(claudeMd))
+      return 'Layer 1 norms: ' + claudeMd + ' does not exist, so the always-on norms are not loaded in this session.' + paste;
+    const live = NORM_BLOCK.exec(readFileSync(claudeMd, 'utf8').replace(/\r\n/g, '\n'));
+    if (!live)
+      return 'Layer 1 norms: ' + claudeMd + ' has no CLAUDE-SKILLS NORMS block, so the always-on norms are not loaded in this session.' + paste;
+    if (live[0] === canon[0]) return null;
+    const had = live[1].trim() || 'unversioned', want = canon[1].trim();
+    return (
+      'Layer 1 norms: the block in ' + claudeMd +
+      (had === want ? ' differs from NORMS.md under the same marker (' + want + ').' : ' is ' + had + ' but NORMS.md is ' + want + '.') +
+      ' Re-paste it from ' + normsPath + '.'
+    );
+  } catch {
+    return null;
+  }
+}
 
 // update-skills.mjs writes this beside the repo after each unattended run. Stay
 // SILENT while the library is current: a line appears only when something wants
@@ -79,6 +116,8 @@ process.stdin.on('end', () => {
 
     // Read first: the library's own health matters wherever the session opens,
     // including a directory that is not a repo at all.
+    const norms = normsLine();
+    if (norms) parts.push(norms);
     const update = skillsUpdateLine();
     if (update) parts.push(update);
 
@@ -96,6 +135,9 @@ process.stdin.on('end', () => {
 
     process.stdout.write(
       JSON.stringify({
+        // Missing norms are shown to the person too: the model-only context is where
+        // this drift went unnoticed.
+        ...(norms ? { systemMessage: norms } : {}),
         hookSpecificOutput: {
           hookEventName: 'SessionStart',
           additionalContext:
