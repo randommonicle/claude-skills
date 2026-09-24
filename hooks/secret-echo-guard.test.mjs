@@ -176,6 +176,23 @@ const DENY = [
   { rule: 4, cmd: 'findstr KEY .env' },
   { rule: 4, tool: 'PowerShell', cmd: "Select-String -Path .env -Pattern 'process.env'" },
   { rule: 4, tool: 'PowerShell', cmd: 'Get-Content .env | Select-String KEY' },
+  // Quiet flags count only on the grep's own segment, per tool (24 September 2026). Each of
+  // these printed a secret file's lines and passed: a -c belonging to head, tr, cut or uniq
+  // after the pipe read as grep's, rg -L follows symlinks, and a Select-String parameter
+  // whose name happens to contain c, l or q read as a cluster of quiet flags.
+  { rule: 4, cmd: 'grep KEY .env | head -c 500' },
+  { rule: 4, cmd: "grep KEY .env | tr -cd '[:print:]'" },
+  { rule: 4, cmd: 'grep KEY .env | cut -c 1-40' },
+  { rule: 4, cmd: 'grep KEY .env | uniq -c' },
+  { rule: 4, cmd: 'findstr KEY .env | head -c 50' },
+  { rule: 4, cmd: 'rg -L KEY .env' },
+  { rule: 4, cmd: 'grep -c x app.js | grep KEY .env' },
+  { rule: 4, tool: 'PowerShell', cmd: 'Select-String -Path .env -Pattern KEY -AllMatches' },
+  { rule: 4, tool: 'PowerShell', cmd: 'Select-String -Path .env -Pattern KEY -SimpleMatch' },
+  { rule: 4, tool: 'PowerShell', cmd: 'Select-String -LiteralPath .env -Pattern KEY' },
+  { rule: 4, tool: 'PowerShell', cmd: 'Select-String -Path .env -Pattern KEY -NotMatch' },
+  { rule: 4, tool: 'PowerShell', cmd: 'Select-String -Path .env -Pattern KEY -Encoding utf8' },
+  { rule: 4, tool: 'PowerShell', cmd: 'Select-String -Path .env -Pattern KEY -Quiet:$false' },
 ];
 
 const ALLOW = [
@@ -299,6 +316,14 @@ const ALLOW = [
   'findstr /C:"process.env" app.js',
   { tool: 'PowerShell', cmd: "Select-String -Pattern 'process.env' -Path app.js" },
   { tool: 'PowerShell', cmd: "Select-String 'process.env' app.js" },
+  // Quiet by the grep's own flags, or feeding a grep that is quiet (24 September 2026).
+  // Select-String -Quiet returns True or False; it was denied before.
+  { tool: 'PowerShell', cmd: 'Select-String -Path .env -Pattern KEY -Quiet' },
+  'grep KEY .env | grep -c x',
+  'grep -l KEY .env',
+  'rg -c KEY .env',
+  'rg -lq KEY .env',
+  'find . -name .env | xargs grep -c KEY',
 ];
 
 function run(stdin) {

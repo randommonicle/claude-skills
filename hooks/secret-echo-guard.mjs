@@ -69,8 +69,10 @@
 //      `< file`): .env, .env.*, *.env, .envrc, *.pem, id_rsa/id_ed25519, *.key (not pub),
 //      credentials(.json), service-account*.json, .npmrc, .netrc, .pgpass,
 //      .git-credentials, .htpasswd; case-insensitive; .env.example, .sample, .template
-//      and .dist pass. A grep/rg/Select-String/findstr over one without a quiet flag
-//      (-c -l -L -q, --quiet, --count, ...) or a keys-only -o (^[^=]* or ending in =).
+//      and .dist pass. A grep/rg/Select-String/findstr over one without a quiet flag of
+//      its own, read from its pipe segment and per tool (grep -c -l -L -q, rg -c -l -q,
+//      --quiet, --count, ...; Select-String -Quiet; findstr none), not feeding a grep
+//      that has one, and without a keys-only -o (^[^=]* or ending in =).
 //      A reader counts only in the pipeline segment that names the file (after a pipe it
 //      reads stdin); a substitution ending in a count consumer yields a number; a `\.env`
 //      escaped inside a regex is a pattern, not a path (four ICC false positives, 20 Sept).
@@ -373,7 +375,29 @@ const READER_WORDS = new Set(['cat', 'type', 'less', 'more', 'head', 'tail', 'ba
 const READERS = /(?:^|[\s;&|(])(cat|type|less|more|head|tail|bat|Get-Content|gc|strings|sed|awk|base64|base32|xxd|od|hexdump|jq|tee|rev|fold|tr|cut|uniq|sort|nl|tac)\s/i;
 const GREP_WORDS = new Set(['grep', 'rg', 'egrep', 'fgrep', 'select-string', 'sls', 'findstr']);
 const GREPS = /(?:^|[\s;&|(])(grep|rg|egrep|fgrep|Select-String|sls|findstr)\s/i;
-const GREP_QUIET = /\s-[a-zA-Z]*[cLlq][a-zA-Z]*\b|\s--(?:quiet|silent|count|files-with-matches|files-without-match|files-with-match)\b/;
+// Quiet flags, read from the grep's OWN pipeline segment and per tool (24 Sept 2026). Read
+// statement-wide, a `head -c 500` after the pipe made `grep KEY .env` quiet; `rg -L` follows
+// symlinks rather than listing files; and Select-String parameters such as -AllMatches,
+// -LiteralPath or -NotMatch are words, not clusters of short flags. findstr has none here.
+const GREP_QUIET = {
+  grep: /\s-[a-zA-Z]*[cLlq][a-zA-Z]*\b|\s--(?:quiet|silent|count|files-with-matches|files-without-match|files-with-match)\b/,
+  rg: /\s-[a-zA-Z]*[clq][a-zA-Z]*\b|\s--(?:quiet|count|count-matches|files-with-matches|files-without-match)\b/,
+  sls: /\s-q(?:u(?:i(?:e(?:t)?)?)?)?(?=\s|$|:(?!\s*\$false))/i,
+  findstr: /(?!)/,
+};
+const grepTool = (word) => ({ rg: 'rg', findstr: 'findstr', 'select-string': 'sls', sls: 'sls' })[word.toLowerCase()] ?? 'grep';
+function grepQuiet(structural, at, word) {
+  const end = structural.slice(at).search(/\|(?!\|)/);
+  return GREP_QUIET[grepTool(word)].test(end < 0 ? structural.slice(at) : structural.slice(at, at + end));
+}
+// A grep whose output feeds a quiet grep puts only that grep's count or names on screen.
+function feedsQuietGrep(structural, at) {
+  const pipe = structural.slice(at).search(/\|(?!\|)/);
+  if (pipe < 0) return false;
+  const next = at + pipe + 1;
+  const m = /^\s*(grep|rg|egrep|fgrep|Select-String|sls|findstr)\s/i.exec(structural.slice(next));
+  return !!m && grepQuiet(structural, next + m[0].length - m[1].length - 1, m[1]);
+}
 function grepKeysOnly(text) {
   if (!/\s-[a-zA-Z]*o[a-zA-Z]*\b|\s--only-matching\b/.test(text)) return false;
   const pat = /(?:^|\s)(?:-[a-zA-Z]+\s+)*['"]([^'"]*)['"]/.exec(text.replace(/(?:^|\s)-[a-zA-Z]+\b/g, ' '))?.[1];
@@ -492,11 +516,9 @@ function grepPatternSpans(s, structural) {
     // (`grep -n rg .env`) must not donate an exemption to the file after it.
     const before = structural.slice(0, at);
     if (!/^\s*$/.test(before) && !COMMAND_POSITION.test(before)) continue;
-    const word = m[1].toLowerCase();
+    const tool = grepTool(m[1]);
     const args = argTokens(s, at + m[1].length);
-    const found = word === 'findstr' ? findstrPattern(args)
-      : word === 'select-string' || word === 'sls' ? slsPattern(args)
-      : grepPattern(args, GREP_OPTIONS[word === 'rg' ? 'rg' : 'grep']);
+    const found = tool === 'findstr' ? findstrPattern(args) : tool === 'sls' ? slsPattern(args) : grepPattern(args, GREP_OPTIONS[tool]);
     for (const t of found ?? []) if (t && !t.hasSub) spans.push([t.start, t.end]);
   }
   return spans;
@@ -615,9 +637,12 @@ function statementLeak(s, ps, depth) {
     if (/(?:^|[^<])<\s*[^<(]/.test(top) && READER_WORDS.has(lead) && printed(0)) {
       return { rule: 4, what: `the whole of ${file.name} would print`, stmt: text };
     }
-    const grep = GREPS.exec(structural);
-    const grepAt = grep ? grep.index + (grep[0].length - grep[1].length - 1) : -1;
-    if (grep && readerInPosition(structural, grep, lead, GREP_WORDS) && printed(grepAt) && !GREP_QUIET.test(structural) && !grepKeysOnly(text)) {
+    // Every grep in the statement, not only the first, each judged by its own quiet flags:
+    // in `grep -c x app.js | grep KEY .env` the second one prints the file.
+    for (const g of structural.matchAll(new RegExp(GREPS.source, 'gi'))) {
+      const at = g.index + (g[0].length - g[1].length - 1);
+      if (!readerInPosition(structural, g, lead, GREP_WORDS) || !printed(at)) continue;
+      if (grepQuiet(structural, at, g[1]) || feedsQuietGrep(structural, at) || grepKeysOnly(text)) continue;
       return { rule: 4, what: `a grep over ${file.name} prints KEY=value lines`, stmt: text };
     }
   }
