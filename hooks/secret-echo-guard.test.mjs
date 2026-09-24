@@ -169,6 +169,7 @@ const DENY = [
   { rule: 4, cmd: 'grep -T KEY .env' },
   { rule: 4, cmd: 'grep -m 5 KEY .env' },
   { rule: 4, cmd: 'grep -5 KEY .env' },
+  { rule: 4, cmd: 'grep -k KEY .env' },
   { rule: 4, cmd: 'grep "$(cat .env)" app.js' },
   { rule: 4, cmd: 'grep KEY < .env' },
   { rule: 4, cmd: 'find . -name .env | xargs grep KEY' },
@@ -316,6 +317,13 @@ const ALLOW = [
   'findstr /C:"process.env" app.js',
   { tool: 'PowerShell', cmd: "Select-String -Pattern 'process.env' -Path app.js" },
   { tool: 'PowerShell', cmd: "Select-String 'process.env' app.js" },
+  // Options each tool's own --help lists, so the pattern after them is proven (checked
+  // against GNU grep 3.0 and ripgrep 14.1.1): grep's -NUM context shorthand, a digit
+  // inside a cluster, --binary, and rg's -. for hidden files.
+  'grep -5 "process.env" f.mjs',
+  'grep -n2 "process.env" f.mjs',
+  'grep --binary "process.env" f.mjs',
+  'rg -. "process.env" src',
   // Quiet by the grep's own flags, or feeding a grep that is quiet (24 September 2026).
   // Select-String -Quiet returns True or False; it was denied before.
   { tool: 'PowerShell', cmd: 'Select-String -Path .env -Pattern KEY -Quiet' },

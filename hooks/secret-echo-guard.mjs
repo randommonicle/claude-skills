@@ -416,16 +416,18 @@ function readerInPosition(structural, m, lead, words) {
 // proven to be the pattern is exempt from the scan: an -e/--regexp, /C: or -Pattern value,
 // else the first operand. An option these tables do not know ends the proof, and every
 // token stays a possible file, as before. A flag wrongly listed as valued would skip the
-// real pattern and exempt the file after it, so `valued` holds only letters each tool's
-// manual gives an argument; a valued option wrongly listed as a flag costs a false positive.
+// real pattern and exempt the file after it, so `valued` and `longValued` hold only what
+// each tool's own --help gives an argument (GNU grep 3.0, ripgrep 14.1.1, checked 24 Sept
+// 2026); a valued option wrongly listed as a flag costs a false positive. grep's -NUM
+// context shorthand is a run of digit flags.
 const GREP_OPTIONS = {
   grep: {
-    flags: 'abcEFGHhIiLlnoPqRrsTUuVvwxyZz', valued: 'ABCDdefm',
-    long: /^--(?:basic-regexp|byte-offset|colou?r|count|dereference-recursive|extended-regexp|files-with-matches|files-without-match|fixed-strings|ignore-case|initial-tab|invert-match|line-buffered|line-number|line-regexp|no-filename|no-ignore-case|no-messages|null|null-data|only-matching|perl-regexp|quiet|recursive|silent|text|with-filename|word-regexp)$/,
-    longValued: /^--(?:after-context|before-context|binary-files|context|devices|directories|exclude|exclude-dir|exclude-from|group-separator|include|label|max-count)$/,
+    flags: 'abcEFGHhIiLlnoPqRrsTUuVvwxyZz0123456789', valued: 'ABCDdefm',
+    long: /^--(?:basic-regexp|binary|byte-offset|colou?r|count|dereference-recursive|extended-regexp|files-with-matches|files-without-match|fixed-strings|ignore-case|initial-tab|invert-match|line-buffered|line-number|line-regexp|no-filename|no-ignore-case|no-messages|null|null-data|only-matching|perl-regexp|quiet|recursive|silent|text|unix-byte-offsets|with-filename|word-regexp)$/,
+    longValued: /^--(?:after-context|before-context|binary-files|context|devices|directories|exclude|exclude-dir|exclude-from|include|label|max-count)$/,
   },
   rg: {
-    flags: 'abcFHhIiLlNnoPpqSsUuVvwxz', valued: 'ABCdEefgjMmrTt',
+    flags: 'abcFHhIiLlNnoPpqSsUuVvwxz.0', valued: 'ABCdEefgjMmrTt',
     long: /^--(?:byte-offset|case-sensitive|column|count|count-matches|files-with-matches|files-without-match|fixed-strings|follow|heading|hidden|ignore-case|invert-match|json|line-number|line-regexp|multiline|no-filename|no-heading|no-ignore|no-line-number|no-messages|null|only-matching|pcre2|pretty|quiet|search-zip|smart-case|stats|text|trim|unrestricted|vimgrep|with-filename|word-regexp)$/,
     longValued: /^--(?:after-context|before-context|colors?|context|context-separator|encoding|engine|glob|iglob|ignore-file|max-columns|max-count|max-depth|max-filesize|path-separator|pre|pre-glob|replace|sortr?|threads|type|type-add|type-not)$/,
   },
