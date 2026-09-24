@@ -1048,3 +1048,35 @@ classifiers.
 
 **class:** a check that reads its signal from a whole command, document or payload instead of
 from the subject it guards, so that unrelated content flips the verdict in either direction.
+
+## 23. The always-on norms were missing from one machine, and nothing noticed
+
+**What happened.** On 2026-09-24 a session on the home machine (`C:\Users\bengr`) found that
+`~/.claude/CLAUDE.md` carried no `CLAUDE-SKILLS NORMS` block, and that `norms-inject` was not
+wired, correctly, since it serves plugin installs. `NORMS.md` says each direct-clone machine
+carries the block, pasted by hand, and the only control on the paste was a sentence: "Drift
+check: diff that block against this file whenever a norm changes or during a tier review." No
+`DECISIONS.md` or lessons entry recorded a removal, and Ben confirmed it was not deliberate.
+How long the always-on norms had been absent on that machine is unknown. **verified**:
+`grep -c "BEGIN CLAUDE-SKILLS NORMS" ~/.claude/CLAUDE.md` returned 0, and the block was
+restored the same day from `NORMS.md`, its 22 lines identical once line endings are
+normalised.
+
+It was found by accident. A review of an unrelated repository asked where a new always-on rule
+could live, which led to checking whether the existing always-on rules were actually loaded,
+which led to the empty grep.
+
+**The lesson.** A copy kept in step by a prose instruction is not kept in step. The paste is
+manual, per machine, and invisible when it is missing: the session still works, the norms
+simply do not apply, and nothing in any output says so. The control has to run where the copy
+lives and speak where a person will see it. `session-recon` now compares the block with
+`NORMS.md` at every session start on a direct-clone machine and reports a missing or
+different block to the model and, as a `systemMessage`, to the person.
+
+**skill that should have prevented this:** `enforce-invariants-in-build`: a rule asserted only
+in prose "is a comment, not a control; if a violation can exist without failing the build,
+one eventually will". The invariant here, that every direct-clone machine carries the block
+verbatim, lived only in a sentence of `NORMS.md`.
+
+**class:** a hand-maintained copy of canonical text on each machine, checked only by an
+instruction to compare it, so that a missing or stale copy fails silently and per machine.
