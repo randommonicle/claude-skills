@@ -78,8 +78,8 @@ the command-string shapes above before they run and hands back the safe form in 
 deny, not an ask, because in a bypass-permissions session an ask is auto-approved and shown to nobody,
 and unattended is exactly where the slips happened. What the hook cannot see, this skill still owns: a
 value copied into another variable and printed (`k=$KEY; echo $k`), any script file run by name
-(the hook never reads its contents, so an `echo $KEY` inside `bash phase.sh` passes), and every API
-response.
+(the hook never reads its contents, so an `echo $KEY` inside `bash phase.sh` passes), a recursive
+grep over a folder holding a secret file (`grep -rn TOKEN .`), and every API response.
 
 ## Why
 
