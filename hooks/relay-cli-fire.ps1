@@ -56,6 +56,9 @@ param(
   [string]$PidFile = (Join-Path $env:USERPROFILE '.claude\propos-overnight-driver.pid'),
   [string]$Cli = (Join-Path $env:APPDATA 'npm\claude.cmd'),
   [int]$MaxTurns = 0,
+  # Passed through as --model when set. Added 2026-09-25 so a run names its model
+  # explicitly instead of inheriting whatever the CLI's default happens to be that day.
+  [string]$Model = '',
   # The kill command, parameterised for the same reason as watchdog-network's -Notifier
   # and -ConfigFile (DECISIONS.md 2026-09-21): the "victim that cannot be killed" case
   # had no safe way to reach this path. It pointed at wininit.exe and relied on the
@@ -211,6 +214,31 @@ function Stop-StaleDriver {
   Clear-DriverPid
 }
 
+function Get-RecordedDriverState {
+  # Added 2026-09-25. The read-only sibling of Stop-StaleDriver: it says whether the
+  # recorded driver is still running and kills nothing. Returns 'none' (no record),
+  # 'gone' (positively gone), 'alive' (the recorded process is still running) or
+  # 'unknown' (the record cannot be read, so nothing can be concluded).
+  if (-not (Test-Path $PidFile)) { return 'none' }
+  $raw = ''
+  try { $raw = (Get-Content $PidFile -Raw).Trim() } catch { return 'unknown' }
+  $parts = $raw -split '\|'
+  if ($parts.Count -ne 2) { return 'unknown' }
+  $recPid = 0
+  if (-not [int]::TryParse($parts[0], [ref]$recPid)) { return 'unknown' }
+  $proc = $null
+  try { $proc = Get-Process -Id $recPid -ErrorAction Stop } catch {
+    if ($_.Exception -is [Microsoft.PowerShell.Commands.ProcessCommandException]) { return 'gone' }
+    return 'unknown'
+  }
+  # A start time this account cannot read belongs to another account's process, and the
+  # driver always runs as this account, so the pid has been recycled: the driver is gone.
+  $got = $null
+  try { $got = $proc.StartTime.ToString('o') } catch { return 'gone' }
+  if ($got -ne $parts[1]) { return 'gone' }
+  return 'alive'
+}
+
 # ---------------------------------------------------------------- pre-flight
 if (-not (Test-Path $Cli))        { Write-Log 'FAULT' "CLI not found at $Cli"; exit 1 }
 if (-not (Test-Path $PromptFile)) { Write-Log 'FAULT' "prompt not found at $PromptFile"; exit 1 }
@@ -303,6 +331,26 @@ if (Test-Path $LeaseFile) {
     Write-Log 'FAULT' 'lease has no WINDOW-ENDS line, so no window is open; not firing'
     exit 1
   }
+  if ($driver -eq 'pending') {
+    # Added 2026-09-25, for runs that hand the lease back between items. A pid record
+    # while the lease says pending means an earlier launcher never reached its finally
+    # block (Task Scheduler stopped it at the time limit), so the driver it started may
+    # still be running: it handed back and has not exited yet, or it is waiting on
+    # something. Firing now would start a second driver beside it on one working copy.
+    $rec = Get-RecordedDriverState
+    if ($rec -eq 'alive') {
+      Write-Log 'STANDDOWN' 'lease is pending but the recorded driver process is still running; not firing'
+      exit 0
+    }
+    if ($rec -eq 'unknown') {
+      Write-Log 'FAULT' 'lease is pending and a driver pid record exists that cannot be read; not firing'
+      exit 1
+    }
+    if ($rec -eq 'gone') {
+      Write-Log 'OK' 'lease is pending; clearing the pid record of a driver that is already gone'
+      Clear-DriverPid
+    }
+  }
   if ($driver -and $driver -ne 'pending') {
     $hb = (Select-String -Path $LeaseFile -Pattern '^HEARTBEAT\s+(\S+)' |
            Select-Object -First 1).Matches.Groups[1].Value
@@ -341,7 +389,13 @@ if (Test-Path $LeaseFile) {
 $cliOut = Join-Path $env:TEMP ("relay-cli-out-{0}.txt" -f ([guid]::NewGuid().ToString('N')))
 $turns = if ($MaxTurns -gt 0) { " --max-turns $MaxTurns" } else { '' }
 
-Write-Log 'FIRE' "starting a CLI turn in $Repo"
+# Added 2026-09-25: the launcher names the driver, so that once the CLI exits it can
+# tell its own driver's lease from anyone else's. The prompt tells the driver to claim
+# the lease under exactly this id; the child inherits it through the environment.
+$driverId = 'relay-' + (Get-Date).ToString('yyyyMMddTHHmmss')
+$env:PROPOS_DRIVER_ID = $driverId
+
+Write-Log 'FIRE' "starting a CLI turn in $Repo as driver $driverId"
 
 # Streams are redirected by Start-Process directly; there is no cmd wrapper and no
 # pipeline. The first attempt wrapped `type prompt | claude -p ...` in a .cmd and
@@ -352,6 +406,7 @@ Write-Log 'FIRE' "starting a CLI turn in $Repo"
 $cliErr = Join-Path $env:TEMP ("relay-cli-err-{0}.txt" -f ([guid]::NewGuid().ToString('N')))
 $cliArgs = @('-p', '--permission-mode', 'bypassPermissions', '--dangerously-skip-permissions')
 if ($MaxTurns -gt 0) { $cliArgs += @('--max-turns', "$MaxTurns") }
+if ($Model) { $cliArgs += @('--model', $Model) }
 
 try {
   $proc = Start-Process -FilePath $Cli -ArgumentList $cliArgs `
@@ -393,4 +448,40 @@ Write-Log 'END' "CLI exited $code, $($out.Length) chars of output"
 $tail = ($out -split "`n" | Where-Object { $_ -notmatch 'Permission allow rule' -and $_.Trim() } | Select-Object -Last 10) -join "`n"
 try { Add-Content -Path $LogFile -Value $tail -Encoding utf8 } catch { }
 try { Remove-Item -LiteralPath $cliOut -ErrorAction SilentlyContinue } catch { }
+
+# ------------------------------------------------------ post-exit handback, 2026-09-25
+# WHY. Until 2026-09-25 the launcher wrote nothing to the lease after the CLI exited,
+# and the finally block above deletes the pid record. So a driver that died mid-item (a
+# usage limit, a crash, --max-turns) left its own id in the lease with no pid record
+# behind it, every later fire hit "the previous driver could not be proved dead", and
+# the run refused to fire again for the rest of its window. The 2026-09-18 run never
+# met this because its driver always exited cleanly. This launcher has just watched the
+# process exit, which is the proof that check was looking for, so it hands the lease
+# back itself. It only rewrites a lease that still names ITS OWN driver; any other
+# state is left exactly as found.
+try {
+  $leaseText = if (Test-Path $LeaseFile) { Get-Content $LeaseFile -Raw } else { '' }
+  $after = ([regex]::Match($leaseText, '(?m)^DRIVER\s+(\S+)')).Groups[1].Value
+  if ($after -eq $driverId) {
+    $window = ([regex]::Match($leaseText, '(?m)^WINDOW-ENDS\s+\S+')).Value
+    $was = ([regex]::Match($leaseText, '(?m)^IN-FLIGHT\s+(.*?)\s*$')).Groups[1].Value
+    $stamp = (Get-Date).ToString('o')
+    $lines = @("HEARTBEAT $stamp", 'DRIVER pending')
+    if ($window) { $lines += $window }
+    $lines += "IN-FLIGHT ORPHANED: $driverId exited $code at $stamp without handing back, so its item may be partial; check its worktree before continuing. It had written: $was"
+    $newText = ($lines -join "`r`n") + "`r`n"
+    [IO.File]::WriteAllText($LeaseFile, $newText, (New-Object Text.UTF8Encoding $false))
+    if ((Get-Content $LeaseFile -Raw) -eq $newText) {
+      Write-Log 'HANDBACK' "driver $driverId exited $code without handing back; the lease is pending again"
+    } else {
+      Write-Log 'FAULT' 'the handback write did not read back; the lease may still name the dead driver'
+    }
+  } elseif ($after -eq 'pending' -or $after -eq 'none') {
+    Write-Log 'OK' "the lease reads DRIVER $after after the turn; nothing to hand back"
+  } else {
+    Write-Log 'FAULT' "the lease names driver '$after', not this fire's $driverId; leaving it exactly as found"
+  }
+} catch {
+  Write-Log 'FAULT' "post-exit handback failed: $($_.Exception.Message)"
+}
 exit $code
