@@ -59,6 +59,10 @@ param(
   # Passed through as --model when set. Added 2026-09-25 so a run names its model
   # explicitly instead of inheriting whatever the CLI's default happens to be that day.
   [string]$Model = '',
+  # How old a heartbeat must be before a driver counts as dead. It was a literal 45 until
+  # 2026-09-25; a driver waiting on one long subagent can go that long without writing a
+  # heartbeat, so a run that delegates heavily passes something larger.
+  [int]$StaleMinutes = 45,
   # The kill command, parameterised for the same reason as watchdog-network's -Notifier
   # and -ConfigFile (DECISIONS.md 2026-09-21): the "victim that cannot be killed" case
   # had no safe way to reach this path. It pointed at wininit.exe and relied on the
@@ -214,6 +218,30 @@ function Stop-StaleDriver {
   Clear-DriverPid
 }
 
+function Set-LeasePending([string]$why) {
+  # Added 2026-09-25. Returns the lease to pending on behalf of a driver that can no
+  # longer do it itself, keeping WINDOW-ENDS byte for byte and saying the item may be
+  # partial. Returns $true only when the new text reads back.
+  $leaseText = if (Test-Path $LeaseFile) { Get-Content $LeaseFile -Raw } else { '' }
+  $window = ([regex]::Match($leaseText, '(?m)^WINDOW-ENDS\s+\S+')).Value
+  $was = ([regex]::Match($leaseText, '(?m)^IN-FLIGHT\s+(.*?)\s*$')).Groups[1].Value
+  $stamp = (Get-Date).ToString('o')
+  $lines = @("HEARTBEAT $stamp", 'DRIVER pending')
+  if ($window) { $lines += $window }
+  $lines += "IN-FLIGHT ORPHANED: $why at $stamp, so its item may be partial; check its worktree before continuing. It had written: $was"
+  $newText = ($lines -join "`r`n") + "`r`n"
+  [IO.File]::WriteAllText($LeaseFile, $newText, (New-Object Text.UTF8Encoding $false))
+  return ((Get-Content $LeaseFile -Raw) -eq $newText)
+}
+
+function Get-RecordedDriverAgeMinutes {
+  # Minutes since the recorded driver process started, from the start time in its pid
+  # record. Only called once Get-RecordedDriverState has said 'alive', which means the
+  # record parsed and its start time matched the live process.
+  $parts = ((Get-Content $PidFile -Raw).Trim()) -split '\|'
+  return [int]((Get-Date) - [datetime]::Parse($parts[1])).TotalMinutes
+}
+
 function Get-RecordedDriverState {
   # Added 2026-09-25. The read-only sibling of Stop-StaleDriver: it says whether the
   # recorded driver is still running and kills nothing. Returns 'none' (no record),
@@ -339,8 +367,21 @@ if (Test-Path $LeaseFile) {
     # something. Firing now would start a second driver beside it on one working copy.
     $rec = Get-RecordedDriverState
     if ($rec -eq 'alive') {
-      Write-Log 'STANDDOWN' 'lease is pending but the recorded driver process is still running; not firing'
-      exit 0
+      # Bounded, because a driver that never exits would otherwise hold every fire off for
+      # the rest of the window. A process alive this long while the lease reads pending is
+      # not doing a driver's work: either it never claimed the lease (hung at start, or
+      # waiting at a usage limit) or it carried on after handing back.
+      $recAge = Get-RecordedDriverAgeMinutes
+      if ($recAge -lt $StaleMinutes) {
+        Write-Log 'STANDDOWN' ("lease is pending but the recorded driver process is still running ({0}m old); not firing" -f $recAge)
+        exit 0
+      }
+      Write-Log 'TAKEOVER' ("lease is pending and the recorded driver has been alive {0}m; treating it as hung" -f $recAge)
+      Stop-StaleDriver
+      if (-not $script:staleDriverHandled) {
+        Write-Log 'FAULT' 'the hung driver could not be proved dead; NOT firing a replacement'
+        exit 1
+      }
     }
     if ($rec -eq 'unknown') {
       Write-Log 'FAULT' 'lease is pending and a driver pid record exists that cannot be read; not firing'
@@ -356,7 +397,7 @@ if (Test-Path $LeaseFile) {
            Select-Object -First 1).Matches.Groups[1].Value
     try {
       $age = ($now - [datetime]::Parse($hb)).TotalMinutes
-      if ($age -lt 45) {
+      if ($age -lt $StaleMinutes) {
         Write-Log 'STANDDOWN' ("driver {0} alive, heartbeat {1:N0}m old, not firing" -f $driver, $age)
         exit 0
       }
@@ -374,6 +415,17 @@ if (Test-Path $LeaseFile) {
       Write-Log 'FAULT' 'the previous driver could not be proved dead; NOT firing a replacement. The next fire will retry.'
       exit 1
     }
+    # Added 2026-09-25. The dead driver's id is still in the lease. A replacement that
+    # finds another driver's id there stands down, as it should, so without this the
+    # takeover fires a driver that exits at once, this launcher's handback declines a
+    # lease that is not its own driver's, and the next fire finds no pid record and
+    # refuses for the rest of the window. The old driver is now proved dead, so the
+    # launcher hands its lease back before firing.
+    if (-not (Set-LeasePending "$driver was taken over after its heartbeat went stale")) {
+      Write-Log 'FAULT' 'could not return the lease to pending after the takeover; NOT firing'
+      exit 1
+    }
+    Write-Log 'TAKEOVER' "the lease of $driver is pending again, for the replacement"
   }
 } else {
   Write-Log 'FAULT' "no lease file at $LeaseFile, not firing"; exit 1
@@ -463,15 +515,7 @@ try {
   $leaseText = if (Test-Path $LeaseFile) { Get-Content $LeaseFile -Raw } else { '' }
   $after = ([regex]::Match($leaseText, '(?m)^DRIVER\s+(\S+)')).Groups[1].Value
   if ($after -eq $driverId) {
-    $window = ([regex]::Match($leaseText, '(?m)^WINDOW-ENDS\s+\S+')).Value
-    $was = ([regex]::Match($leaseText, '(?m)^IN-FLIGHT\s+(.*?)\s*$')).Groups[1].Value
-    $stamp = (Get-Date).ToString('o')
-    $lines = @("HEARTBEAT $stamp", 'DRIVER pending')
-    if ($window) { $lines += $window }
-    $lines += "IN-FLIGHT ORPHANED: $driverId exited $code at $stamp without handing back, so its item may be partial; check its worktree before continuing. It had written: $was"
-    $newText = ($lines -join "`r`n") + "`r`n"
-    [IO.File]::WriteAllText($LeaseFile, $newText, (New-Object Text.UTF8Encoding $false))
-    if ((Get-Content $LeaseFile -Raw) -eq $newText) {
+    if (Set-LeasePending "$driverId exited $code without handing back") {
       Write-Log 'HANDBACK' "driver $driverId exited $code without handing back; the lease is pending again"
     } else {
       Write-Log 'FAULT' 'the handback write did not read back; the lease may still name the dead driver'

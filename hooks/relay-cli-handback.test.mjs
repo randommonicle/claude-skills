@@ -62,19 +62,22 @@ const kill = (pid) => ps(`Stop-Process -Id ${pid} -Force -ErrorAction SilentlyCo
 
 // stubLines are the body of the stub CLI after `@echo off` and the marker write. The
 // marker is how a case tells "the launcher fired" from "the launcher stood down".
-function runLauncher({ lease = ARMED, pidFileContent = null, stubLines }) {
+function runLauncher({ lease = ARMED, pidFileContent = null, stubLines, extraArgs = [] }) {
   const id = Math.random().toString(36).slice(2);
   const leaseFile = join(work, `lease-${id}.txt`);
   const pidFile = join(work, `driver-${id}.pid`);
   const logFile = join(work, `log-${id}.txt`);
   const marker = join(work, `fired-${id}.txt`);
+  const snapshot = join(work, `seen-${id}.txt`);
   const stub = join(work, `stub-${id}.cmd`);
   writeFileSync(leaseFile, lease);
   if (pidFileContent !== null) writeFileSync(pidFile, pidFileContent);
-  const body = ['@echo off', `echo fired> "${marker}"`, ...stubLines(leaseFile)].join('\r\n') + '\r\n';
+  // stubLines gets the lease path and a snapshot path: a stub that copies the lease to the
+  // snapshot records exactly what a real driver would have read when it started.
+  const body = ['@echo off', `echo fired> "${marker}"`, ...stubLines(leaseFile, snapshot)].join('\r\n') + '\r\n';
   writeFileSync(stub, body);
   const r = psRaw(['-NoProfile', '-File', SCRIPT, '-LeaseFile', leaseFile, '-LogFile', logFile,
-    '-PidFile', pidFile, '-Cli', stub, '-PromptFile', promptFile, '-Repo', stubRepo]);
+    '-PidFile', pidFile, '-Cli', stub, '-PromptFile', promptFile, '-Repo', stubRepo, ...extraArgs]);
   const out = (r.stdout || '') + (r.stderr || '');
   // A copy of the launcher run from anywhere but this directory cannot find push-gate.mjs
   // and bails before firing. The first red proof of this suite hit exactly that, and two
@@ -90,6 +93,7 @@ function runLauncher({ lease = ARMED, pidFileContent = null, stubLines }) {
   return {
     out,
     leaseAfter: existsSync(leaseFile) ? readFileSync(leaseFile, 'utf8') : '',
+    seen: existsSync(snapshot) ? readFileSync(snapshot, 'utf8') : '',
     fired: existsSync(marker),
     pidFileAfter: existsSync(pidFile),
   };
@@ -192,6 +196,48 @@ const oneLine = (s) => s.replace(/\s+/g, ' ').slice(0, 160);
   const r = runLauncher({ pidFileContent: 'not-a-pid-record', stubLines: () => ['exit /b 0'] });
   check('pending plus an unreadable pid record: the launcher does not fire', !r.fired, oneLine(r.out));
   check('and it reports a fault', /FAULT.*cannot be read/.test(r.out), oneLine(r.out));
+}
+
+// 8. THE DEADLOCK. A stale driver is killed and a replacement fired. The replacement must
+//    find the lease PENDING: if it still names the dead driver, a replacement that obeys its
+//    prompt stands down at once, the launcher then declines to hand back a lease that is
+//    not its own driver's, and every later fire finds no pid record and refuses.
+{
+  const v = startVictim();
+  try {
+    const stale = new Date(Date.now() - 120 * 60000).toISOString();
+    const r = runLauncher({
+      lease: `HEARTBEAT ${stale}\r\nDRIVER hung-driver\r\nWINDOW-ENDS ${ENDS}\r\nIN-FLIGHT item 4 half done\r\n`,
+      pidFileContent: `${v.pid}|${v.started}`,
+      stubLines: (lease, seen) => [`copy /y "${lease}" "${seen}" >nul`, 'exit /b 0'],
+    });
+    check('(precondition) the stale driver was killed', !alive(v.pid));
+    check('(precondition) the replacement was fired', r.fired, oneLine(r.out));
+    check('the replacement found the lease pending, not naming the dead driver',
+      /^DRIVER pending\r?$/m.test(r.seen), oneLine(r.seen));
+    check('with a note that the item may be partial and what the dead driver had written',
+      /^IN-FLIGHT ORPHANED: hung-driver was taken over .*It had written: item 4 half done/m.test(r.seen), oneLine(r.seen));
+    check('and the window survived the takeover', r.seen.includes(`WINDOW-ENDS ${ENDS}\r\n`), oneLine(r.seen));
+  } finally {
+    kill(v.pid);
+  }
+}
+
+// 9. The guard's bound. Pending plus a recorded driver that has been alive longer than the
+//    stale threshold is hung (it never claimed, or it carried on after handing back). It must
+//    be killed and replaced, not waited on for the rest of the window. -StaleMinutes 0 makes
+//    a freshly started victim old enough; case 5 covers the young one.
+{
+  const v = startVictim();
+  try {
+    const r = runLauncher({ pidFileContent: `${v.pid}|${v.started}`, stubLines: () => ['exit /b 0'],
+      extraArgs: ['-StaleMinutes', '0'] });
+    check('pending plus an over-age recorded driver: it is killed', !alive(v.pid), oneLine(r.out));
+    check('and a replacement is fired', r.fired, oneLine(r.out));
+    check('and the log calls it hung', /TAKEOVER.*treating it as hung/.test(r.out), oneLine(r.out));
+  } finally {
+    kill(v.pid);
+  }
 }
 
 try { rmSync(work, { recursive: true, force: true }); } catch { /* best effort */ }
