@@ -14,7 +14,7 @@ The two that change the most behaviour for the least reading are
 command exited without error, and [`prove-it-can-fail`](prove-it-can-fail/SKILL.md), which says a
 test that cannot go red is not a test.
 
-**Three kinds of thing live here.**
+**Four kinds of thing live here.**
 
 - **Skills**: short playbooks Claude reads at the right moment. The table below lists all 46.
 - **Hooks**: small scripts that run automatically around what Claude does. One stops and asks you
@@ -22,6 +22,8 @@ test that cannot go red is not a test.
   using whatever checker that project already uses. One looks up what has changed in your project
   since you last worked on it, so Claude is not working from an out-of-date picture.
 - **Norms**: six one-line rules that apply in every session, listed in [NORMS.md](NORMS.md).
+- **Agents**: reviewers Claude can hand a change to for a second opinion, listed under
+  [Agents](#agents).
 
 It installs once per machine and applies to every project on it. You never run any of it by hand.
 
@@ -51,8 +53,8 @@ your project's state at the start of each session; a report when Claude edits a 
 TypeScript file in a project that has a checker configured; and Claude visibly loading a named
 rule before it writes a test, changes a database, or calls an AI model.
 
-**Where things are**: the skills in the table below; what each hook does in
-[hooks/HOOKS.md](hooks/HOOKS.md); what went wrong on real jobs in
+**Where things are**: the skills in the table below; the agents in [agents/](agents/); what
+each hook does in [hooks/HOOKS.md](hooks/HOOKS.md); what went wrong on real jobs in
 [LESSONS_LEARNED.md](LESSONS_LEARNED.md); standing choices in [DECISIONS.md](DECISIONS.md); how
 the library gates itself in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); house rules for changing
 it in [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -118,6 +120,18 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **skill-library-builder** | process | Turn a repo into a project-specific skill library; skills encode mechanical steps, not awareness. |
 | **ai-surface-discipline / unslop-ui / unslop-text / unslop-code** | see rows above / forks | The three **unslop-\*** skills are forks of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches — see each skill's `UPSTREAM.md`. |
 
+## Agents
+
+Reviewers in [agents/](agents/) that Claude can hand a named change to for a second opinion.
+Each returns a verdict and findings ranked by severity with `file:line` evidence, and
+recommends rather than edits. With the plugin installed they are namespaced under it, so you
+can call one directly, for example `@agent-ash:property-reg-reviewer`.
+
+| Agent | What it reviews |
+|-------|-----------------|
+| [code-reviewer](agents/code-reviewer.md) | A specific diff or file, as an independent second opinion on correctness, security, failure modes and test adequacy. |
+| [property-reg-reviewer](agents/property-reg-reviewer.md) | A change touching service-charge maths, demands, client money, leaseholder-facing output, retention or erasure, or AI surfaces, against LTA 1985, the RICS Service Charge Code, TPI, BSA 2022 and UK GDPR. Run it as well as code-reviewer on regulated changes. |
+
 ## Install on a new machine
 
 **Prerequisites.** Claude Code, `git`, and **`node` on PATH** (every hook is a node script). The
@@ -159,11 +173,12 @@ every hook):
 ```
 
 The repo doubles as a plugin marketplace (`.claude-plugin/marketplace.json`). The plugin
-serves the skills from the repo root (`"skills": "./"` in plugin.json), wires all Layer 0
-hooks via `hooks/hooks.json`, and injects the NORMS.md block at every session start
-(`hooks/norms-inject.mjs`) — no manual CLAUDE.md or settings.json editing. Updates arrive
-when the machine refreshes the marketplace (no version field is set, so every push to main
-counts as a new version). The repo is public, so no credentials are needed to read it.
+serves the skills from the repo root (`"skills": "./"` in plugin.json), loads the agents from
+`agents/`, wires all Layer 0 hooks via `hooks/hooks.json`, and injects the NORMS.md block at
+every session start (`hooks/norms-inject.mjs`) — no manual CLAUDE.md or settings.json editing.
+Updates arrive when the machine refreshes the marketplace (no version field is set, so every
+push to main counts as a new version). The repo is public, so no credentials are needed to
+read it.
 
 **Check it worked**, rather than assuming:
 
@@ -186,7 +201,15 @@ logs gone.
 git clone https://github.com/randommonicle/claude-skills.git ~/.claude/skills
 ```
 
-Then copy the NORMS.md block into `~/.claude/CLAUDE.md` and install the hooks per
-[hooks/HOOKS.md](hooks/HOOKS.md). This mode is for editing the skills; a machine on this
-mode must NOT also install the plugin.
+Then copy the NORMS.md block into `~/.claude/CLAUDE.md`, install the hooks per
+[hooks/HOOKS.md](hooks/HOOKS.md), and copy the agents to where Claude Code reads user agents,
+which is not the clone:
+
+```bash
+mkdir -p ~/.claude/agents && cp ~/.claude/skills/agents/*.md ~/.claude/agents/
+```
+
+Copy again after pulling a change to an agent; `session-recon` names a copy that is missing or
+out of date at the start of every session. This mode is for editing the skills; a machine on
+this mode must NOT also install the plugin.
 

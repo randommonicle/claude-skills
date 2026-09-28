@@ -5,9 +5,10 @@
 // stale snapshot. Fail-open: any error or timeout yields no context, never a
 // broken session. The pre-commit re-run stays behavioural in the skill —
 // this hook only covers session start. It also checks that this machine's
-// CLAUDE.md still carries the Layer 1 norm block (normsLine, below).
+// CLAUDE.md still carries the Layer 1 norm block (normsLine, below), and that
+// its user-level agents match the library's (agentsLine).
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -41,6 +42,42 @@ function normsLine() {
       'Layer 1 norms: the block in ' + claudeMd +
       (had === want ? ' differs from NORMS.md under the same marker (' + want + ').' : ' is ' + had + ' but NORMS.md is ' + want + '.') +
       ' Re-paste it from ' + normsPath + '.'
+    );
+  } catch {
+    return null;
+  }
+}
+
+// agents/*.md are copied by hand into each direct-clone machine's <config>/agents, where
+// Claude Code reads user agents, and a README sentence was the only control on the copy:
+// the norm block's shape again, repeated on 2026-09-28 (LESSONS_LEARNED entry 26). A copy
+// that is missing means the agent does not load; one that differs means an old version
+// runs. Those are two failure modes, so they get two clauses. Agents that exist only at
+// user level (debugger, refactorer) are machine-local by decision and are not reported.
+// Same layout rule and plugin skip as normsLine, since a plugin install loads agents/
+// itself. Fail-open.
+function agentsLine() {
+  try {
+    if (process.env.CLAUDE_PLUGIN_ROOT) return null;
+    const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+    if (basename(repo) !== 'skills') return null;
+    const library = join(repo, 'agents');
+    if (!existsSync(library)) return null;
+    const user = join(repo, '..', 'agents');
+    const text = (p) => readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
+    const missing = [], different = [];
+    for (const entry of readdirSync(library, { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
+      const copy = join(user, entry.name);
+      if (!existsSync(copy)) missing.push(entry.name);
+      else if (text(copy) !== text(join(library, entry.name))) different.push(entry.name);
+    }
+    if (!missing.length && !different.length) return null;
+    return (
+      'Agents: ' +
+      (missing.length ? 'Not in ' + user + ', so not loaded this session: ' + missing.sort().join(', ') + '. ' : '') +
+      (different.length ? 'Different from the library, so an old version runs: ' + different.sort().join(', ') + '. ' : '') +
+      'Copy from ' + library + '.'
     );
   } catch {
     return null;
@@ -118,6 +155,9 @@ process.stdin.on('end', () => {
     // including a directory that is not a repo at all.
     const norms = normsLine();
     if (norms) parts.push(norms);
+    const agents = agentsLine();
+    if (agents) parts.push(agents);
+    const toPerson = [norms, agents].filter(Boolean).join('\n');
     const update = skillsUpdateLine();
     if (update) parts.push(update);
 
@@ -135,9 +175,9 @@ process.stdin.on('end', () => {
 
     process.stdout.write(
       JSON.stringify({
-        // Missing norms are shown to the person too: the model-only context is where
-        // this drift went unnoticed.
-        ...(norms ? { systemMessage: norms } : {}),
+        // Missing norms and stale agents are shown to the person too: the model-only
+        // context is where this drift went unnoticed.
+        ...(toPerson ? { systemMessage: toPerson } : {}),
         hookSpecificOutput: {
           hookEventName: 'SessionStart',
           additionalContext:

@@ -9,6 +9,7 @@ a reader.
 - Our own original skills don't need an `UPSTREAM.md`.
 - Every leaf description carries a "does not fire on" line; no two leaves share their primary trigger vocabulary; soft cap ~60 words per description.
 - Adding a leaf updates its hub's routing table in the same commit.
+- Anything the direct-clone install copies by hand (the NORMS.md block, `agents/*.md`) is compared with its copy by `session-recon` at every session start. A new hand-copied file gets that comparison in the same change (LESSONS_LEARNED 26).
 
 ## Before you commit
 
@@ -40,3 +41,20 @@ How they work, and the drift that caused each: [docs/ARCHITECTURE.md](docs/ARCHI
    and `.claude-plugin/marketplace.json`. `check-index.mjs` reds if you miss one.
 3. Run `node hooks/pack-skill.mjs <skill-dir>` if the skill ships a `.skill` archive.
 4. State the "does not fire on" line against the nearest existing skill, not in the abstract.
+
+## Adding or changing an agent
+
+1. Write `agents/<name>.md` with frontmatter `name` (matching the file name), `description`,
+   `tools` and `model`, then run:
+
+   ```bash
+   claude plugin validate --strict ./agents
+   ```
+
+   It reds on frontmatter that does not parse, and `--strict` also reds on a missing
+   description. CI cannot run it, because the workflow installs nothing, so it runs here.
+2. Add a row to the Agents table in the README. Its first cell is a link, never a bold name:
+   the index gate reads every bold first cell in the README as a skill.
+3. Leave `.claude-plugin/plugin.json` without an `agents` key. That key replaces the default
+   `agents/` scan and takes only file paths, so every agent would be listed in two places
+   (DECISIONS.md, 2026-09-28).

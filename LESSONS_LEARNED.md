@@ -1080,3 +1080,98 @@ verbatim, lived only in a sentence of `NORMS.md`.
 
 **class:** a hand-maintained copy of canonical text on each machine, checked only by an
 instruction to compare it, so that a missing or stale copy fails silently and per machine.
+
+## 24. The validator passed a tree whose agents it never opened
+
+**What happened.** On 2026-09-28, adding the library's first two agents, the first choice of
+check for them was `claude plugin validate .`. Run at the repo root it printed "Validating
+marketplace manifest" and passed: with `.claude-plugin/marketplace.json` present, that file is
+what it validates, and it gave the same two warnings and the same pass before `agents/` existed
+as after. Pointed at `./agents` it opens each agent file instead. On a scratch copy, an agent
+whose YAML frontmatter does not parse went red there (exit 1), and one with no `description`
+passed (exit 0) until `--strict` turned the warning into a failure (exit 1). **verified**: each
+run on Claude Code 2.1.281, and the two real agents pass
+`claude plugin validate --strict ./agents`.
+
+The same runs turned up a contradiction. For an agent whose frontmatter does not parse, the
+validator says it "does not load at all", while the plugin components page of the Claude Code
+docs says it still loads with every field ignored, which for a read-only reviewer would mean
+every tool. Which of the two the runtime does was not tested.
+
+**The lesson.** A validator pointed at a container validates the container. "Validation passed"
+at the repo root was a statement about a manifest, and it would have stayed green for any agent
+this library could ship. The command only became a check once a deliberately broken agent had
+turned it red, and that run is how the command in CONTRIBUTING was chosen.
+
+**skill that should have prevented this:** `prove-it-can-fail`, and it did: the broken-agent run
+came before CONTRIBUTING named a command, so nothing shipped with the blind one.
+
+**class:** a check aimed at a container (a repo root, a manifest, a workspace) that validates
+the container's own file and reports success without opening the components inside it.
+
+## 25. A secret guard refused a test counter named pass
+
+**What happened.** On 2026-09-28 a loop over the hook suites kept its tally in `pass` and `fail`
+and ended with `echo "suites passed=$pass failed=$fail"`. `secret-echo-guard` denied it under
+rule 2, the print of a secret-named variable. `SECRET_NAME` (`hooks/secret-echo-guard.mjs:100-101`,
+"const SECRET_NAME =") matches a bare `PASS` as a whole name, case-insensitively, and
+`PUBLISHABLE_NAME` (`:102`) exempts names ending `_COUNT`, so `pass_count` would have gone
+through. The loop was rewritten with `ok` and `bad` and ran on the next try, which is the
+bounded cost the 2026-09-20 decision predicted. **verified**: fed to the guard as PreToolUse
+events, `pass=0; echo "passed=$pass"`, `for key in a b; do echo "$key"; done`,
+`token=$(date); echo "$token"` and `session=1; echo "$session"` were all denied, and
+`pass_count=0; echo "$pass_count"` and `ok=0; echo "$ok"` were allowed.
+
+**The lesson.** The name list that must catch `DB_PASS` and `API_KEY` also catches some of the
+most ordinary names in shell: a pass/fail tally, a loop variable called `key`. Each refusal
+costs one retry, which is cheap, and it is a cost the guard's own suite cannot see. Its `ALLOW`
+list (`hooks/secret-echo-guard.test.mjs:199`, "const ALLOW = [") covers the safe forms the deny
+reason prescribes, and none of its cases is an ordinary variable that happens to share a secret
+word's name. Narrowing the match, say for a bare lowercase name assigned a literal or used as a
+`for` variable, trades against real secrets with plain names, so it is a decision for the
+guard's owner and is not made here.
+
+**skill that should have prevented this:** none - new candidate. `prove-it-can-fail` asks what a
+check prints when the thing is broken; nothing in the library asks what a deny-level gate
+refuses when nothing is wrong.
+
+**class:** a deny-level gate keyed on name tokens that are also everyday words, so it refuses
+innocent commands and the cost arrives as retries that nobody counts.
+
+## 26. The norm block's control was four days old when the agents repeated its failure
+
+**What happened.** Entry 23 closed on 2026-09-24 with a control: `session-recon` compares the
+hand-pasted norm block with `NORMS.md` at every session start. Its class line named the shape,
+"a hand-maintained copy of canonical text on each machine, checked only by an instruction to
+compare it". On 2026-09-28 commit `167cec8` added `agents/` to the library. A direct-clone
+machine reads user agents from `~/.claude/agents/`, not from the clone, so the README told it to
+copy them there and to "Copy again after pulling a change to an agent", and that sentence was
+the only control. The DECISIONS entry for the day noted that "a copy can drift" and went on. On
+the maintainer's machine the copy would have been stale from the merge onwards, because the
+published `property-reg-reviewer` had been edited for public release and the user-level one had
+not.
+
+A second-opinion review of `167cec8` did flag the two copies, and proposed one sentence naming
+the canonical copy as the fix: the prose control that entry 23 had already shown fails. The gap
+was caught before merge by the class line itself. Writing entries 24 and 25 meant reading entry
+23, and its class described the new README step exactly. **verified**:
+`git show 167cec8:README.md` line 212 reads "Copy again after pulling a change to an agent. This
+mode is for editing the skills; a machine", and the new check, staged against copies of the
+real `~/.claude/agents`, reports "Different from the library, so an old version runs:
+property-reg-reviewer.md." and says nothing about the two agents kept only at user level.
+
+**The lesson.** Entry 23's fix was shaped like its instance. `normsLine()` checks the one
+hand-copied thing it was written for, so the next hand-copied thing arrived with no check and
+nothing prompted one. Closing a class needs a rule that the next instance meets at the moment it
+is created; a control written for the first instance alone leaves the second unguarded.
+`agentsLine()` (`hooks/session-recon.mjs:59`, "function agentsLine() {", commit `f57aaae`) now
+does for the agents what `normsLine()` does for the block, and CONTRIBUTING now says that
+anything the direct-clone install copies by hand gets its session-start comparison in the same
+change.
+
+**skill that should have prevented this:** `enforce-invariants-in-build`, as in entry 23: "copy
+again after pulling" is an invariant asserted in prose. Recorded as a recurrence of entry 23's
+class, which is what that class line was written for.
+
+**class:** recurrence of entry 23: a hand-maintained copy of canonical text on each machine,
+checked only by an instruction to compare it.
