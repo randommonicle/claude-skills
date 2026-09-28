@@ -5,6 +5,46 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-09-28 Agents ship from agents/, and the repo copy is canonical
+
+Two subagent definitions joined the library on Ben's instruction ("it should BE in the
+public repo"): `property-reg-reviewer`, the statutory-aware reviewer for UK
+property-management changes, and `code-reviewer`, the generic reviewer its description
+tells Claude to run alongside it. The other two user-level agents, `debugger` and
+`refactorer`, stay machine-local.
+
+They live in `agents/` at the plugin root, which is the plugin's default agent location,
+and `plugin.json` deliberately has no `agents` key. That key replaces the default scan and
+accepts only file paths, so every agent would be listed twice, once on disk and once in the
+manifest, with nothing checking the two agree. Installed as a plugin they load namespaced,
+as `ash:code-reviewer` and `ash:property-reg-reviewer`.
+
+They are not skills and are not counted. The index gate counts directories holding a
+`SKILL.md`, so `agents/` is invisible to it, and the README's agent rows open with a link
+because the gate reads every bold first cell in the README as a skill: a bold agent row reds
+with "no property-reg-reviewer/SKILL.md exists". Nothing yet checks the agent files against
+the README's Agents table. When that lands, extend `check-index.mjs` to assert the agent set
+in both directions, each agent's frontmatter `name` against its file name, and a non-empty
+description; the `FORWARD` anchor in that file marks the spot. Until then the check is
+`claude plugin validate --strict ./agents`, which reds on frontmatter that does not parse
+and on a missing description, and runs locally only because CI installs nothing.
+
+The repo copy is canonical. A direct-clone machine reads user agents from
+`~/.claude/agents/`, not from the clone, so it copies them there, as it copies the NORMS.md
+block into `CLAUDE.md`, and a copy can drift. The Codex twin (`~/.codex/agents/*.toml`, the
+same body in Codex's format) stays machine-local, as the Antigravity port does
+(hooks/HOOKS.md).
+
+The public `property-reg-reviewer` differs from the copy that lived at user level in three
+respects, each at Ben's direction on 2026-09-28. The private PropOS migration number behind
+a known RLS false positive is gone; the general `WITH CHECK` semantics stay. Twelve-year
+retention and staff-only dual signing are labelled as the platform's own policy, stricter
+than the RICS professional statement *Client money handling* (1st edition, effective 1
+January 2020): its section 3.5.1 suggests keeping records for at least six years, and
+section 3.5.2 allows a sole signatory who is a principal or a senior person remote from the
+account's day-to-day operation. The pounds-not-pence rule is scoped to the platform it was
+written for, with an instruction to confirm the unit in the schema under review.
+
 ## 2026-09-21 A suite that needs an interpreter declares it, and runs where it exists
 
 A suite driving a `.ps1` script cannot run on a Linux runner. Three did anyway and

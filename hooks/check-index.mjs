@@ -87,7 +87,9 @@ function parseArgs(argv) {
 }
 
 // A directory is a skill when it holds a SKILL.md. That is also what makes the
-// docs/ and hooks/ directories not skills, without naming them here.
+// docs/, hooks/ and agents/ directories not skills, without naming them here.
+// FORWARD: agents/*.md are not yet checked against the README's Agents table,
+// see DECISIONS 2026-09-28.
 function skillsOnDisk(root) {
   return readdirSync(root, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !BUILTINS.has(entry.name) && !VENDOR.has(entry.name))
