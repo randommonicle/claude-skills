@@ -9,6 +9,7 @@ a reader.
 - Our own original skills don't need an `UPSTREAM.md`.
 - Every leaf description carries a "does not fire on" line; no two leaves share their primary trigger vocabulary; soft cap ~60 words per description.
 - Adding a leaf updates its hub's routing table in the same commit.
+- Anything the direct-clone install copies by hand (the NORMS.md block, `agents/*.md`) is compared with its copy by `session-recon` at every session start. A new hand-copied file gets that comparison in the same change (LESSONS_LEARNED 26).
 
 ## Before you commit
 
