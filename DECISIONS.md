@@ -31,7 +31,10 @@ and on a missing description, and runs locally only because CI installs nothing.
 
 The repo copy is canonical. A direct-clone machine reads user agents from
 `~/.claude/agents/`, not from the clone, so it copies them there, as it copies the NORMS.md
-block into `CLAUDE.md`, and a copy can drift. The Codex twin (`~/.codex/agents/*.toml`, the
+block into `CLAUDE.md`, and a copy can drift. `session-recon` therefore compares each
+library agent with its copy at every session start and names a missing or different one to
+Claude and to the person: the control LESSONS_LEARNED 23 put on the norm block, which the
+first draft of this change left out (LESSONS_LEARNED 26). The Codex twin (`~/.codex/agents/*.toml`, the
 same body in Codex's format) stays machine-local, as the Antigravity port does
 (hooks/HOOKS.md).
 

@@ -209,6 +209,7 @@ which is not the clone:
 mkdir -p ~/.claude/agents && cp ~/.claude/skills/agents/*.md ~/.claude/agents/
 ```
 
-Copy again after pulling a change to an agent. This mode is for editing the skills; a machine
-on this mode must NOT also install the plugin.
+Copy again after pulling a change to an agent; `session-recon` names a copy that is missing or
+out of date at the start of every session. This mode is for editing the skills; a machine on
+this mode must NOT also install the plugin.
 

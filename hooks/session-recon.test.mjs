@@ -14,6 +14,10 @@
 // compares line endings (a CRLF CLAUDE.md reads as drift), one that runs under a
 // plugin install or an unknown layout (a false alarm on every session there), one
 // that tells only the model, and one that reports a NORMS.md it cannot parse.
+// The agent cases (2026-09-28) red against a version with no check, one that compares
+// line endings, one that reports agents kept only at user level, one that runs under a
+// plugin install or an unknown layout, one that tells only the model, and one that
+// gives a missing copy and an old copy the same message.
 // Run: node hooks/session-recon.test.mjs
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync, copyFileSync, mkdirSync } from 'node:fs';
@@ -32,16 +36,24 @@ const fail = (m) => {
 const hoursAgo = (h) => new Date(Date.now() - h * 3600000).toISOString();
 
 // <root>/skills/hooks/session-recon.mjs, so the hook resolves its status file to
-// <root>/skills-update.json, NORMS.md to <root>/skills/NORMS.md and CLAUDE.md to
-// <root>/CLAUDE.md exactly as it does beside the real library. `norms.dir` stages
-// another layout; a null normsMd or claudeMd leaves that file out.
-function stage(status, cwdIsRepo, norms = null) {
+// <root>/skills-update.json, NORMS.md to <root>/skills/NORMS.md, CLAUDE.md to
+// <root>/CLAUDE.md, the library's agents to <root>/skills/agents and the user's to
+// <root>/agents, exactly as it does beside the real library. `layout.dir` stages
+// another layout; a null normsMd or claudeMd leaves that file out, and
+// `layout.agents` maps file names to text under `lib` and `user`.
+function stage(status, cwdIsRepo, layout = null) {
   const root = mkdtempSync(join(tmpdir(), 'recon-'));
-  const lib = join(root, norms?.dir ?? 'skills');
+  const lib = join(root, layout?.dir ?? 'skills');
   mkdirSync(join(lib, 'hooks'), { recursive: true });
   copyFileSync(HOOK, join(lib, 'hooks', 'session-recon.mjs'));
-  if (norms?.normsMd != null) writeFileSync(join(lib, 'NORMS.md'), norms.normsMd, 'utf8');
-  if (norms?.claudeMd != null) writeFileSync(join(root, 'CLAUDE.md'), norms.claudeMd, 'utf8');
+  if (layout?.normsMd != null) writeFileSync(join(lib, 'NORMS.md'), layout.normsMd, 'utf8');
+  if (layout?.claudeMd != null) writeFileSync(join(root, 'CLAUDE.md'), layout.claudeMd, 'utf8');
+  for (const [where, dir] of [['lib', join(lib, 'agents')], ['user', join(root, 'agents')]]) {
+    for (const [name, text] of Object.entries(layout?.agents?.[where] ?? {})) {
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, name), text, 'utf8');
+    }
+  }
   if (status !== null) {
     writeFileSync(
       join(root, 'skills-update.json'),
@@ -60,7 +72,7 @@ function stage(status, cwdIsRepo, norms = null) {
       encoding: 'utf8',
     });
   }
-  return { root, hook: join(lib, 'hooks', 'session-recon.mjs'), cwd, env: norms?.env ?? {} };
+  return { root, hook: join(lib, 'hooks', 'session-recon.mjs'), cwd, env: layout?.env ?? {} };
 }
 
 function runHook(s) {
@@ -88,7 +100,7 @@ function runHook(s) {
 // against the wrong status file, which is the failure this suite exists to catch
 // in other people's code.
 const cases = [];
-const test = (name, fixture, fn, cwdIsRepo = false, norms = null) => cases.push({ name, fixture, fn, cwdIsRepo, norms });
+const test = (name, fixture, fn, cwdIsRepo = false, layout = null) => cases.push({ name, fixture, fn, cwdIsRepo, layout });
 
 test('no status file at all stays silent', null, async (r) => {
   if (r.code !== 0) return 'exit ' + r.code;
@@ -267,9 +279,113 @@ test(
   { normsMd: '# Layer 1 norms, markers lost\n', claudeMd: NO_BLOCK },
 );
 
+// The agents, 2026-09-28. Same rule as the norm cases: a silent case stages an unhealthy
+// update status, so the hook must visibly run before its silence counts.
+const agent = (name, body = 'Review the change.') =>
+  `---\nname: ${name}\ndescription: Reviews ${name} changes.\ntools: Read\n---\n\n${body}\n`;
+const ranAndSaidNothingAboutAgents = (r) => {
+  if (r.code !== 0) return 'exit ' + r.code;
+  if (!/staged fault/.test(r.context)) return 'the hook produced no context, so silence proves nothing: ' + r.out;
+  if (/Agents:/.test(r.out)) return 'reported the agents: ' + r.context;
+  return true;
+};
+
+test(
+  'library agents with matching copies stay silent, CRLF line endings included',
+  unhealthy,
+  async (r) => ranAndSaidNothingAboutAgents(r),
+  false,
+  {
+    agents: {
+      lib: { 'alpha.md': agent('alpha'), 'beta.md': agent('beta') },
+      user: { 'alpha.md': agent('alpha').replace(/\n/g, '\r\n'), 'beta.md': agent('beta') },
+    },
+  },
+);
+
+test(
+  'a library agent with no copy is reported as not loaded, to the person as well as the model',
+  { state: 'current', at: hoursAgo(1) },
+  async (r) => {
+    if (!/Not in .+?, so not loaded this session: alpha\.md\./.test(r.context)) return 'missing copy not reported to the model: ' + r.out;
+    if (!/Agents:/.test(r.system)) return 'no systemMessage for the person: ' + r.out;
+    if (!/Copy from .+agents\./.test(r.context)) return 'did not name the directory to copy from: ' + r.context;
+    return true;
+  },
+  false,
+  { agents: { lib: { 'alpha.md': agent('alpha') }, user: {} } },
+);
+
+test(
+  'a copy that differs from the library is reported as an old version, not as missing',
+  { state: 'current', at: hoursAgo(1) },
+  async (r) => {
+    if (!/Different from the library, so an old version runs: alpha\.md\./.test(r.context)) return 'drift not reported: ' + r.out;
+    if (/not loaded/.test(r.context)) return 'an old copy described as missing: ' + r.context;
+    return true;
+  },
+  false,
+  { agents: { lib: { 'alpha.md': agent('alpha', 'Review the change, new rules.') }, user: { 'alpha.md': agent('alpha') } } },
+);
+
+test(
+  'a missing copy and an old copy are named in separate clauses',
+  { state: 'current', at: hoursAgo(1) },
+  async (r) => {
+    if (!/not loaded this session: alpha\.md\. Different from the library, so an old version runs: beta\.md\./.test(r.context))
+      return 'the two failure modes were not separated: ' + r.context;
+    return true;
+  },
+  false,
+  { agents: { lib: { 'alpha.md': agent('alpha'), 'beta.md': agent('beta', 'New.') }, user: { 'beta.md': agent('beta') } } },
+);
+
+test(
+  'an agent kept only at user level is not reported, since those are machine-local by decision',
+  unhealthy,
+  async (r) => ranAndSaidNothingAboutAgents(r),
+  false,
+  { agents: { lib: { 'alpha.md': agent('alpha') }, user: { 'alpha.md': agent('alpha'), 'debugger.md': agent('debugger') } } },
+);
+
+test(
+  'a plugin install is skipped, since the plugin loads agents/ itself',
+  unhealthy,
+  async (r) => ranAndSaidNothingAboutAgents(r),
+  false,
+  { agents: { lib: { 'alpha.md': agent('alpha') }, user: {} }, env: { CLAUDE_PLUGIN_ROOT: 'C:/plugin' } },
+);
+
+test(
+  'a layout other than <config>/skills is skipped for agents too',
+  unhealthy,
+  async (r) => ranAndSaidNothingAboutAgents(r),
+  false,
+  { agents: { lib: { 'alpha.md': agent('alpha') }, user: {} }, dir: 'repo' },
+);
+
+test(
+  'a library with no agents/ directory stays silent',
+  unhealthy,
+  async (r) => ranAndSaidNothingAboutAgents(r),
+  false,
+  { agents: { user: { 'alpha.md': agent('alpha') } } },
+);
+
+test(
+  'a norms problem and an agents problem together both reach the person',
+  { state: 'current', at: hoursAgo(1) },
+  async (r) => {
+    if (!/Layer 1 norms/.test(r.system) || !/Agents:/.test(r.system)) return 'the person was not told both: ' + r.out;
+    return true;
+  },
+  false,
+  { normsMd: NORMS_MD, claudeMd: NO_BLOCK, agents: { lib: { 'alpha.md': agent('alpha') }, user: {} } },
+);
+
 const run = async () => {
   for (const c of cases) {
-    const s = stage(c.fixture, c.cwdIsRepo, c.norms);
+    const s = stage(c.fixture, c.cwdIsRepo, c.layout);
     try {
       const r = await c.fn(await runHook(s));
       if (r === true) pass(c.name);
