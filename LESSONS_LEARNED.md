@@ -1175,3 +1175,40 @@ class, which is what that class line was written for.
 
 **class:** recurrence of entry 23: a hand-maintained copy of canonical text on each machine,
 checked only by an instruction to compare it.
+
+## 27. A probe answered NONE, and the answer was nearly taken as the result
+
+**What happened.** Reviewing `quisbaum-prog/occam` on 2026-09-29, the open questions were
+whether its `sh` SessionStart hook runs on Windows and whether a project's `OCCAM_LEVEL` setting
+reaches it. Three headless sessions (`claude -p --plugin-dir`) were asked to quote any line in
+their "system prompt and context" beginning "OCCAM MODE", or to answer NONE. All three answered
+NONE, including the one with no settings, which should have shown `OCCAM MODE (full)`. Read at
+face value that says the hook does not run on Windows, and it nearly went into the review as
+such. A debug log (`--debug-file`) showed the hook had run and printed its block. The question
+was the fault. Asked again with the hook output named and with a positive control (also quote
+the session-recon block, known to be present), the same setup returned `OCCAM MODE (full)`, and
+the three projects then gave full, lite and NONE, with the control present in each.
+
+Earlier in the same session a tally script over the benchmark's result files read a key named
+`passed` where the files use `pass`, and counted every row as a failure. That one announced
+itself, because every run of every arm failing is implausible. The probe's NONE was plausible,
+and that is the difference. **verified**: the corrected runs are recorded in
+`docs/REVIEW_occam_2026-09-29.md`, section "Proven on this machine", including its
+"Correction" bullet and the debug line `Hook SessionStart:startup (SessionStart) success:`
+followed by `OCCAM MODE (full).`
+
+**The lesson.** A model asked "is X in your context?" is an instrument, and its NONE means
+nothing until the same question has returned a known-present item in the same run. An
+implausible negative gets checked by reflex; a plausible one gets written down. Put the positive
+control in the probe from the first run, and when a probe's negative would change a decision,
+confirm it from a second source (a debug log, a file on disk) before acting on it.
+
+**skill that should have prevented this:** `prove-it-can-fail`. It did not load. Its
+description says it "Triggers when writing or reviewing any test, smoke, seed, verification
+file, or CI job, when marking a test skipped, and when arming a new gate.", and an ad hoc
+question put to a headless model matched none of those. Candidate wording for its description at
+the next tier review, weighed against the description budget: "a probe or question put to a
+model to establish what it can see".
+
+**class:** the class `prove-it-can-fail` exists for, a check never shown able to report the
+other answer; new surface: a model questioned about its own context.
