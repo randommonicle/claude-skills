@@ -102,7 +102,10 @@ code discussion and citations only; never personal data, credentials, secrets, o
   a turn counts as answered **only if the reply body is non-empty** (a print timeout and a permission
   denial each returned `status: "SUCCESS"` with an empty reply and exit code 0), and a turn that did
   not answer gets a **visible failure note** in the file instead of a section, so "this seat was cut
-  off" never reads as "this seat had nothing to add".
+  off" never reads as "this seat had nothing to add". The note carries the CLI's own reason when
+  it states one: a codex usage limit arrives as a `turn.failed` event with the reset time in it
+  (observed 2026-10-02), and an agy envelope whose `status` is not `SUCCESS` is named by that
+  status.
   Ridden to convergence on 2026-09-15 (GPT via codex and GEMPRO via agy, three rounds, both seats
   resuming their threads; the record is `docs/REVIEW_run-seat-guards_2026-09-15.md`). What that ride
   fixed in the seat config: pass `--cwd <repo root>` so an agy seat's file reads are inside a
