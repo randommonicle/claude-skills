@@ -178,6 +178,13 @@ one-PR-at-a-time rule is common, and a newly arriving run can cancel an older qu
 required check never reports at all. A third builder in flight buys queue thrash and rework, not
 throughput. Non-PR work (design notes, probes, docs) runs alongside freely.
 
+**A gate is never "alongside".** A checkpoint, audit or sign-off certifies another step's final state, so it
+starts only after that state is committed. Launched beside the step it certifies, it sees an unfinished state and
+can only fail on the sequence, and the round is spent twice. Measured 2026-09-26 (passive income, L-058): a D-008
+checkpoint run beside the confirmation round it certifies returned NO-GO for exactly that reason, although every
+content check it made passed. If a gate must start early for time, brief it to check content only and give no
+verdict, and take the verdict in a turn after the sequence completes.
+
 ## The commission prompt
 
 Paste this at the top of any wave whose shape is not yet known. It is the operator's half; the
