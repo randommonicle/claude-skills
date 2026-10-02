@@ -1175,3 +1175,50 @@ class, which is what that class line was written for.
 
 **class:** recurrence of entry 23: a hand-maintained copy of canonical text on each machine,
 checked only by an instruction to compare it.
+
+## 27. The first real usage limit was recorded as an empty reply
+
+**What happened.** On 2026-10-02 the GPT seat (codex-cli 0.156.1) was out of usage. `codex exec
+--json` wrote an `error` event and a `turn.failed` event carrying "You've hit your usage limit
+... try again at 10:55 PM.", both on stdout, with empty stderr and exit 1. `run-seat.mjs`
+recorded "the seat returned an empty reply (in=? out=?)": the reason and the reset time were
+lost, and an exhausted allowance and an empty answer call for different next steps. The rule
+already existed. The agent-bus design of 2026-09-15 said "Three outcomes, three signals.
+Answered, rate-limited, and unreachable must be" distinguishable
+(`docs/DESIGN_agent-bus_2026-09-15.md:232`) and recorded the rate-limited value as unobserved
+(`:403`). The transport was built from that design, but the rule stayed in the note. **verified**:
+the transport-failure note in that evening's review record, and a direct `codex exec` run showing
+both events on stdout and nothing on stderr.
+
+**The lesson.** A failure distinction written in a design note is a comment until a fixture
+produces each failure and a test asserts its message. The fixtures were built from the failures
+observed on 2026-09-15 (timeout, denial, empty reply, crash) and covered exactly those; the one
+failure the design itself flagged as unobserved had no stand-in, so nothing could go red for it.
+Fixed in `9302344`: `classify()` reads codex's `turn.failed` and an envelope's non-SUCCESS
+`status`, flattens and caps the text so it cannot forge a section header, and four cases pin it,
+each shown red against the old code first. The fix was then ridden against the real, still
+limited seat.
+
+**skill that should have prevented this:** `enforce-invariants-in-build`: "must be
+distinguishable" was an invariant asserted in prose.
+
+**class:** a documented failure distinction that no fixture produces and no test pins.
+
+## 28. The suite that pins the transport runs nowhere
+
+**What happened.** Entry 27's cases were run by hand. `.github/workflows/check-index.yml` runs the
+index and archive checks and every `hooks/*.test.mjs`; `cross-agent-review/scripts/run-seat.test.mjs`,
+40 cases since `9302344`, is not in it, so nothing runs it on a push or a PR. The workflow's own
+comment records the same gap closing once before: the hooks job was "Added because seven of the
+eight suites were running nowhere." **verified**: `grep -n run-seat .github/workflows/check-index.yml`
+returned nothing before this entry's anchor was planted.
+
+**The lesson.** That gap was closed by directory, `hooks/*.test.mjs`, so a suite written anywhere
+else starts outside CI and stays there unless someone notices. Not fixed here: one case already
+skips itself off Windows, but whether the rest pass on the Linux runner is **unverified**, and a
+suite added red to CI would block every PR. FORWARD anchor planted in the workflow.
+
+**skill that should have prevented this:** `prove-it-can-fail`: a suite no automation runs cannot
+go red where anyone sees it.
+
+**class:** recurrence of the hooks job's gap: a test suite outside the CI glob runs nowhere.

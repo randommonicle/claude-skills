@@ -190,6 +190,21 @@ function turnCount(v) {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
+// codex states a failed turn itself: {"type":"error","message":...} and then
+// {"type":"turn.failed","error":{"message":...}}, both on stdout, then exit 1 (observed
+// 2026-10-02, codex-cli 0.156.1, on an exhausted usage allowance). turn.failed is the
+// turn's verdict, so it wins over an earlier error event.
+function codexError(stdout) {
+  let fallback = '';
+  for (const line of stdout.split('\n')) {
+    let o;
+    try { o = JSON.parse(line); } catch { continue; }
+    if (o?.type === 'turn.failed' && typeof o.error?.message === 'string') return o.error.message;
+    if (o?.type === 'error' && typeof o.message === 'string' && !fallback) fallback = o.message;
+  }
+  return fallback;
+}
+
 function readOutputs(res, cfg, replyFile) {
   if (cfg.outputFormat === 'envelope') {
     // The envelope is the whole of stdout (agy --output-format json) or one field of one
@@ -199,12 +214,20 @@ function readOutputs(res, cfg, replyFile) {
     if (cfg.envelopeFrom) env = pickEvent(res.stdout, cfg.envelopeFrom) ?? {};
     else { try { env = JSON.parse(res.stdout); } catch {} }
     if (typeof env !== 'object' || env === null) env = {};
+    // SUCCESS is not proof of an answer (see classify), but anything else is the CLI
+    // saying why there is none.
+    const status = env[cfg.statusPath ?? 'status'];
+    const statusError =
+      typeof status === 'string' && status !== 'SUCCESS'
+        ? `status ${status}${typeof env.error === 'string' && env.error ? `: ${env.error}` : ''}`
+        : '';
     return {
       reply: String(env[cfg.replyPath ?? 'response'] ?? ''),
       thread: env[cfg.threadIdPath ?? 'conversation_id'] ?? '',
       usage: env[cfg.usagePath ?? 'usage'] ?? {},
       denied: env[cfg.deniedPath ?? 'denied_actions'] ?? null,
       seatTurns: turnCount(env[cfg.seatTurnsPath ?? 'num_turns']),
+      cliError: statusError,
     };
   }
   return {
@@ -213,14 +236,23 @@ function readOutputs(res, cfg, replyFile) {
     usage: pickEvent(res.stdout, cfg.usageFrom) ?? {},
     denied: null,
     seatTurns: turnCount(pickEvent(res.stdout, cfg.seatTurnsFrom)),
+    cliError: codexError(res.stdout),
   };
+}
+
+// The CLI's error text is untrusted and goes into a file whose headers drive the turn
+// rule. One line, so it cannot start a line with a seat header; capped, so a runaway
+// message cannot swamp the note.
+function oneLine(text, max = 300) {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return flat.length > max ? flat.slice(0, max) + '...' : flat;
 }
 
 // One message per failure mode. status and exit code are both known liars: on this
 // machine a print timeout AND a permission denial each returned status "SUCCESS" with
 // an empty response and exit code 0. An empty reply is the only honest signal that the
 // seat did not answer; stderr says which failure it was.
-function classify({ res, reply, denied }) {
+function classify({ res, reply, denied, cliError }) {
   // spawnSync reports its own kill at timeoutMs as an ETIMEDOUT spawn error. That seat
   // DID start; it ran out of the transport's time, which is a different fact from a
   // binary that could not be launched, and it was reported as the latter until the
@@ -241,7 +273,15 @@ function classify({ res, reply, denied }) {
     const tool = res.stderr.match(/"([a-z_]+)" permission/);
     return { ok: false, reason: `a tool permission was auto-denied${tool ? ` (${tool[1]})` : ''}` };
   }
-  if (!reply.trim()) return { ok: false, reason: 'the seat returned an empty reply' };
+  // No reply, so say which kind of nothing: the CLI's own stated reason first, then a
+  // non-zero exit, and only then a genuinely empty answer. Until 2026-10-02 all three
+  // read "empty reply", and the first real usage limit lost its reason and reset time.
+  if (!reply.trim()) {
+    // The note appends its own full stop; drop the message's, but never a cap's "...".
+    if (cliError) return { ok: false, reason: `the CLI reported a failure: ${oneLine(cliError).replace(/(?<!\.)\.$/, '')}` };
+    if (res.status !== 0 && res.status !== null) return { ok: false, reason: `the CLI exited ${res.status} with no reply` };
+    return { ok: false, reason: 'the seat returned an empty reply' };
+  }
   if (res.status !== 0) return { ok: false, reason: `the CLI exited ${res.status}` };
   return { ok: true, reason: '' };
 }
@@ -378,7 +418,7 @@ const subst = (s) => s.replace(/\{(thread|replyFile|cwd|sandbox|prompt)\}/g, (_,
 const res = run(cfg, template.map(subst), stdinPayload, cfg.timeoutMs ?? 600000, cwd);
 const outs = readOutputs(res, cfg, replyFile);
 const reply = outs.reply;
-const verdict = classify({ res, reply, denied: outs.denied });
+const verdict = classify({ res, reply, denied: outs.denied, cliError: outs.cliError });
 
 const thread = outs.thread || st.thread;
 const usage = outs.usage;

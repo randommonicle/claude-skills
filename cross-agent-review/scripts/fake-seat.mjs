@@ -74,9 +74,17 @@ process.stdin.on('end', () => {
       process.stderr.write('[agy] print timeout after 5m30s with turn in progress; returning partial output\n');
     } else if (mode === 'empty') {
       env.response = '';
+    } else if (mode === 'error-status') {
+      // agy's own value for a usage limit is still unobserved. This models the one
+      // non-SUCCESS envelope it is known to produce, the malformed-input refusal below:
+      // status ERROR, an error string, no reply, exit 1. The error text is invented.
+      env.status = 'ERROR';
+      env.response = '';
+      env.error = 'model quota exhausted';
     } else {
       env.response = 'The guard at src/a.ts:12 is present four lines above where the report says it is missing.\n';
     }
+    const code = mode === 'error-status' ? 1 : 0;
     if (shape === 'stream-json') {
       // A malformed stdin line is what the real CLI refuses with status ERROR and no
       // turn; the fake does the same so a transport that sends the raw prompt instead of
@@ -90,10 +98,10 @@ process.stdin.on('end', () => {
       emit({ event: 'init', conversation_id: thread, init: { cwd: process.cwd() } });
       emit({ event: 'step_update', step: 1 });
       emit({ event: 'result', result: env });
-      process.exit(0);
+      process.exit(code);
     }
     process.stdout.write(JSON.stringify(env) + '\n');
-    process.exit(0);
+    process.exit(code);
   }
 
   emit({ type: 'thread.started', thread_id: thread });
@@ -125,6 +133,20 @@ process.stdin.on('end', () => {
     case 'crash':
       process.stderr.write('internal error: model provider unavailable\n');
       process.exit(3);
+
+    // Observed 2026-10-02, codex-cli 0.156.1, on an exhausted usage allowance: an error
+    // event, then turn.failed carrying the same message, both on stdout; no
+    // turn.completed, nothing written to -o, empty stderr, exit 1. FAKE_SEAT_ERROR
+    // replaces the message so a test can hand the transport hostile text.
+    case 'usage-limit': {
+      const message =
+        process.env.FAKE_SEAT_ERROR ??
+        'You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit ' +
+          'https://chatgpt.com/codex/settings/usage to purchase more credits or try again at 10:55 PM.';
+      emit({ type: 'error', message });
+      emit({ type: 'turn.failed', error: { message } });
+      process.exit(1);
+    }
 
     // A stale reply file left by an earlier turn must not be banked as this turn's
     // answer, so the success path proves the file is written fresh every time.
