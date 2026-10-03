@@ -115,7 +115,7 @@ jobs:
           exit $failed
       # The team-loop gate's suite lives beside the script, outside the glob above, so
       # it is named here rather than left to run nowhere (LESSONS_LEARNED 28). Plain
-      # node and git, throwaway repos under the temp dir; about 35 seconds.
+      # node and git, throwaway repos under the temp dir.
       - name: the team-loop gate suite
         if: always()
         run: node team-loop/scripts/gate.test.mjs
