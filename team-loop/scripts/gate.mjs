@@ -85,7 +85,9 @@ const sha = (repo, rev) => {
 export function parseBrief(text) {
   const lines = text.replace(/\r\n/g, '\n').split('\n');
   const label = (l) => l.replace(/[*_`]/g, '').replace(/^\s*#+\s*/, '').trim();
-  const find = (name) => lines.findIndex((l) => new RegExp('^' + name + '\\b', 'i').test(label(l)));
+  // A field line is the name, an optional parenthesised note, then a colon or the line's end, so
+  // a heading such as "Scope of work" is never taken for the SCOPE field.
+  const find = (name) => lines.findIndex((l) => new RegExp('^' + name + '\\s*(?:\\([^)]*\\))?\\s*(?::|$)', 'i').test(label(l)));
   const bullets = (from) => {
     const out = [];
     for (const l of lines.slice(from + 1)) {
@@ -249,12 +251,15 @@ export function gate(argv) {
     for (const line of changes) {
       const [status, path] = line.split('\t');
       if (testsChanged.includes(path)) continue;
+      // A file T added is the tests commit's own (a test, fixture, helper or proof script): the
+      // lead read it at step 5 and check 3's first half froze it, so SCOPE does not apply.
+      const addedByT = status === 'A' && tSet.has(path);
       const fixture = matchesAny(path, fixtureGlobs);
       if (matchesAny(path, configGlobs)) weakened.push(path + ' (test config, ' + status + ')');
       else if (fixture || matchesAny(path, testGlobs)) {
-        if (!(status === 'A' && tSet.has(path)))
+        if (!addedByT)
           weakened.push(path + (status === 'A' ? ' (added after T, A)' : fixture ? ' (existing fixture, ' + status + ')' : ' (existing test, ' + status + ')'));
-      } else if (!matchesAny(path, scope)) outside.push(path);
+      } else if (!addedByT && !matchesAny(path, scope)) outside.push(path);
     }
     if (watchScripts && !testsChanged.includes('package.json')) {
       const before = packageScripts(repo, B);

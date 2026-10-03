@@ -161,3 +161,13 @@ bulleted lists and reports a malformed JUDGED BY line instead of dropping it. Sk
 carries one-real-ride at step 8, the verdict file format and reviewer worktree isolation.
 Ten new gate cases; nine red against f2140f9 (the pretest case cannot red against a gate that
 flagged every key).
+
+### Commit 5: stage 2 review round 2 fixes (GEMPRO)
+
+Three claims, all held. A file T adds (a helper, a proof script outside the test globs) is now
+exempt from SCOPE, since the lead reads T at step 5 and T's files are frozen afterwards;
+without this the passive income pilot's proof scripts would fail an honest package. Field
+detection requires the name, an optional parenthesised note, then a colon or line end, so a
+heading such as "Scope of work" is no longer taken for SCOPE. A new script in `package.json`
+still needs `package.json` in SCOPE: kept strict on purpose, and the builder is now told to
+stop and ask. Two new cases, both red against aa43910.

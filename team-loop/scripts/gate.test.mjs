@@ -222,6 +222,17 @@ test(
   (r) => (r.pass ? true : 'refused a fixture T added: ' + (r.failure || r.error)),
 );
 
+// Round 2 of the same review.
+test(
+  'check 3: a helper T added outside SCOPE and outside the test globs is allowed',
+  () =>
+    fixture({
+      tTest: ADD_TEST.replace("import { add }", "import { four } from '../support/four.mjs';\nimport { add }").replace('add(2, 2), 4', 'add(2, 2), four'),
+      beforeT: (f) => f.w('support/four.mjs', 'export const four = 4;\n'),
+    }),
+  (r) => (r.pass ? true : 'refused a helper T added: ' + (r.failure || r.error)),
+);
+
 test(
   'check 3: a new non-hook test script passes when package.json is in SCOPE',
   () =>
@@ -276,6 +287,14 @@ test('a brief with no regulated line stops the gate as unrunnable', () => fixtur
 );
 
 const unit = [];
+unit.push([
+  'a descriptive heading is never taken for the SCOPE or regulated field',
+  () => {
+    const b = parseBrief('# WP-003\n\n## Scope of work\nWe fix the adder.\n\n## Regulated domain context\nNone.\n\nregulated: no\n\nSCOPE: src/**\n\nJUDGED BY:\n- a: cmd\n');
+    if (JSON.stringify(b.scope) !== '["src/**"]') return 'scope: ' + JSON.stringify(b.scope);
+    return b.regulated === false || 'regulated: ' + b.regulated;
+  },
+]);
 unit.push([
   'parseBrief tolerates headings, bold and bulleted lists',
   () => {

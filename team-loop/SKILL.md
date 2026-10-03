@@ -177,7 +177,7 @@ run without them rather than default. It checks that T is an ancestor of the hea
 check fails at T (a check that already passes is hollow or skipped); that since the package
 base no test or fixture file changed except those T added, no test config changed, no existing
 `package.json` test script changed and no pre or post hook was added, unless `TESTS CHANGED`
-names the path; that every other change sits inside `SCOPE`; that every check and the full
+names the path; that every other change, except a file T added, sits inside `SCOPE`; that every check and the full
 suite pass on the committed merge into the milestone tip; and, for a regulated package, that
 the verdict file has no `[open]` line naming Critical or High. Only then does it keep the
 tested merge at `refs/team-loop/tested/WP-nnn`, deleting any earlier one first. It writes T, B,
