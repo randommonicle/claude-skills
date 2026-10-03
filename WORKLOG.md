@@ -18,7 +18,7 @@ no merge into main (Ben, 2026-10-03 12:47 BST: "re-clone and build").
 - [x] `legal-citation-integrity` + `verified-citations` Routes bullet, count 48
 - [x] `statute-to-obligations-register`, count 49
 - [x] `legal-notice-handling` (three modes), count 50
-- [ ] Wiring: README fork sentence and forks row, NOTICE
+- [x] Wiring: README fork sentence, NOTICE (forks row left as is, see entry)
 - [ ] Gates: check-index (50), check-archives (unchanged 5/17), unslop scan high 0 on each new
       SKILL.md, section 11 trigger-orthogonality grep, hooks/*.test.mjs loop
 - [ ] property-reg-reviewer over the four SKILL.md files; Critical/High re-derived and fixed
@@ -86,3 +86,14 @@ residential leasehold notices Ben handles: s.166 ground rent window, s.47 name a
 s.21B summary, and s.81 as the empty-threat case (forfeiture or a s.146 notice over an
 undetermined, unadmitted service charge). Every provision read via `/data.xml` today; s.81(2)
 quoted rather than paraphrased after a first draft shortened its 14-day wording.
+
+**Wiring.** README fork sentence now names the four legal forks; NOTICE carries the
+legal-ai-skills attribution beside the vibecoded-design-tells one (NOTICE was not in the plan's
+section 9; it lists derived skills, so it is a blast-radius site). The shared unslop forks row at
+the foot of the README table is left alone: each legal skill has its own row ending "Fork, see
+its UPSTREAM.md", and adding four more names to a slash row would muddle the index gate's
+reading of it. Section 11.4 orthogonality grep: outside the four new skills, the only matches
+are engineering uses of "citation" (blast-radius-grep, cross-agent-review,
+deliverable-integrity, substantiate-outward-claims, trace-one-record), each already deferring
+to verified-citations, and "release" in reproduce-the-real-build matching `lease`. Lanes clean.
+`hooks/*.test.mjs` loop: no failures.

@@ -28,7 +28,9 @@ test that cannot go red is not a test.
 It installs once per machine and applies to every project on it. You never run any of it by hand.
 
 **This repository is licensed under Apache-2.0** (see the `LICENSE` file). The three `unslop-*`
-skills are forks and carry their upstream's terms, recorded in their own `UPSTREAM.md`.
+skills and the four legal skills (`contract-review`, `legal-citation-integrity`,
+`statute-to-obligations-register`, `legal-notice-handling`) are forks and carry their
+upstream's terms, recorded in their own `UPSTREAM.md`.
 
 ## Install
 
