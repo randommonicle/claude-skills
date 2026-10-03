@@ -42,7 +42,7 @@ const BRIEF = ({ judged = '- adds: node --test tests/add.test.mjs', regulated = 
   '\n\nTESTS CHANGED (existing test, config or fixture files this package may alter): ' + tc + '\n```\n';
 const BOARD = '# BOARD: fixture\n\n| WP | status | role | branch | T | B | tested merge | red | green | gate |\n|---|---|---|---|---|---|---|---|---|---|\n| WP-001 | building | tl-builder | wp1 | - | - | - | - | - | - |\n';
 
-function fixture({ brief = BRIEF(), tTest = ADD_TEST, beforeT = null, build = (f) => f.w('src/add.mjs', FIXED), onMilestone = null, verdict = null } = {}) {
+function fixture({ brief = BRIEF(), tTest = ADD_TEST, beforeT = null, build = (f) => f.w('src/add.mjs', FIXED), onMilestone = null, verdict = null, gateCfg = GATE_CFG, local = null } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'gate-test-'));
   const g = (...args) => {
     const r = spawnSync('git', ['-C', dir, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { encoding: 'utf8' });
@@ -64,7 +64,11 @@ function fixture({ brief = BRIEF(), tTest = ADD_TEST, beforeT = null, build = (f
   w('src/add.mjs', BUGGY);
   w('src/two.mjs', 'export const two = () => 2;\n');
   w('tests/existing.test.mjs', EXISTING_TEST);
-  w('team/gate.json', GATE_CFG);
+  w('team/gate.json', gateCfg);
+  if (local) {
+    w('.gitignore', 'local/\n');
+    w('local/four.json', local);
+  }
   w('team/packages/WP-001.md', brief);
   if (verdict !== null) w('team/packages/WP-001.verdict.md', verdict);
   w('team/BOARD.md', BOARD);
@@ -220,6 +224,25 @@ test(
       beforeT: (f) => f.w('tests/fixtures/two.json', '{"a":2}\n'),
     }),
   (r) => (r.pass ? true : 'refused a fixture T added: ' + (r.failure || r.error)),
+);
+
+// Round 3: a check that needs local, gitignored state.
+const NEEDS_LOCAL = ADD_TEST.replace("import { add }", "import four from '../local/four.json' with { type: 'json' };\nimport { add }").replace('add(2, 2), 4', 'add(2, 2), four.n');
+const WITH_COPY = JSON.stringify({ ...JSON.parse(GATE_CFG), copy: ['local/four.json'] });
+test(
+  'gate.json copy carries gitignored local state into the scratch worktrees',
+  () => fixture({ tTest: NEEDS_LOCAL, local: '{"n":4}\n', gateCfg: WITH_COPY }),
+  (r) => (r.pass ? true : 'did not pass with the copy entry: ' + (r.failure || r.error)),
+);
+test(
+  'without the copy entry the same package cannot go green',
+  () => fixture({ tTest: NEEDS_LOCAL, local: '{"n":4}\n' }),
+  failsAt(4, /adds exits/),
+);
+test(
+  'a copy entry that leaves the repo stops the gate',
+  () => fixture({ gateCfg: JSON.stringify({ ...JSON.parse(GATE_CFG), copy: ['../outside.json'] }) }),
+  (r) => (r.error && /not a path inside the repo/.test(r.error) ? true : 'expected unrunnable: ' + JSON.stringify(r.error || r.failure || r.pass)),
 );
 
 // Round 2 of the same review.

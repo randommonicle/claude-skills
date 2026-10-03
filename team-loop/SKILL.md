@@ -196,8 +196,16 @@ and they share no stateful resource (a local database, a fixed port, shared fixt
 project's `.claude/settings.json`, so builders branch from the milestone branch rather than the
 remote default (worktrees documentation); `.claude/worktrees/` in `.gitignore`, and the test runner excludes it; `.worktreeinclude` copies no
 secrets; the build and test commands are pre-approved (on Windows an approval given inside a
-worktree stays with that worktree); and `team/gate.json` names the setup, suite, test and
-test-config globs.
+worktree stays with that worktree); and `team/gate.json` names the setup command, the full
+suite, the test, fixture and test-config globs, and under `copy` any gitignored local state a
+check needs (a virtual environment, a data file; never a secret), since the gate's scratch
+worktrees hold only committed files.
+
+**A check command must block until its check has finished and exit non-zero when it fails.**
+On Windows the gate runs commands through `cmd.exe`. A GUI program, or a tool whose exit code
+does not report failure (a compiler that writes errors only to a log), needs a wrapper script
+that waits for it and reads its output. Without one, the command returns 0 at T and the gate
+refuses the package as hollow, which is safe but blocks the package until the wrapper exists.
 
 **Rounds.** Every third milestone close, an optimisation round over `LEDGER.jsonl`
 (`price-the-spend`), proposals filed on the Ask queue. When a new model ships, re-run two

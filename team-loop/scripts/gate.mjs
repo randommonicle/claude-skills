@@ -34,9 +34,9 @@
 //
 // Exit 0: pass. Exit 1: the package failed a check. Exit 2: the gate could not run.
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 class GateError extends Error {}
@@ -160,7 +160,17 @@ function scratch(repo, rev, label, cleanup) {
   return dir;
 }
 
-function setup(cfg, dir, where) {
+// A scratch worktree holds only committed files. A check that needs local, gitignored state (a
+// virtual environment, a data file) names it in gate.json's `copy`, a list of repo-relative
+// paths copied from the lead's checkout before `setup` runs. Never secrets: the same rule as
+// .worktreeinclude. A path that leaves the repo, or does not exist, stops the gate.
+function setup(cfg, dir, where, repo) {
+  for (const p of Array.isArray(cfg.copy) ? cfg.copy : []) {
+    if (typeof p !== 'string' || isAbsolute(p) || p.split(/[\\/]/).includes('..'))
+      throw new Unrunnable('gate.json copy entry is not a path inside the repo: ' + p);
+    if (!existsSync(join(repo, p))) throw new Unrunnable('gate.json copy entry does not exist in the checkout: ' + p);
+    cpSync(join(repo, p), join(dir, p), { recursive: true });
+  }
   if (!cfg.setup) return;
   const r = run(cfg.setup, dir, cfg.timeoutMs);
   if (r.code !== 0) throw new Unrunnable('setup failed ' + where + (r.timedOut ? ' (timed out)' : '') + ': ' + r.tail);
@@ -225,7 +235,7 @@ export function gate(argv) {
 
     // 2. Red at T.
     const atT = scratch(repo, T, 'red', cleanup);
-    setup(cfg, atT, 'at T');
+    setup(cfg, atT, 'at T', repo);
     for (const j of judged) {
       const r = run(j.command, atT, cfg.timeoutMs);
       if (r.timedOut) throw new GateError('check 2: ' + j.id + ' timed out at T, so whether it fails there is unknown');
@@ -282,7 +292,7 @@ export function gate(argv) {
     });
     if (!m.ok) throw new GateError('check 4: the head does not merge cleanly into the milestone tip');
     const tested = git(atMerge, ['rev-parse', 'HEAD']).out;
-    setup(cfg, atMerge, 'on the merge');
+    setup(cfg, atMerge, 'on the merge', repo);
     for (const j of judged) {
       const r = run(j.command, atMerge, cfg.timeoutMs);
       if (r.code !== 0)

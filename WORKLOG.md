@@ -171,3 +171,15 @@ detection requires the name, an optional parenthesised note, then a colon or lin
 heading such as "Scope of work" is no longer taken for SCOPE. A new script in `package.json`
 still needs `package.json` in SCOPE: kept strict on purpose, and the builder is now told to
 stop and ask. Two new cases, both red against aa43910.
+
+### Commit 6: stage 2 review round 3 (GEMPRO, attack on the convergence)
+
+Two claims. Held: the gate's scratch worktrees carry only committed files, so a check needing
+gitignored local state (a venv, a data file) fails there; `gate.json` gains `copy`, a list of
+repo-relative paths copied from the lead's checkout before setup, refusing any path that leaves
+the repo. Partly held: a GUI program or a log-only compiler run through `cmd.exe` may return 0
+at once; the gate already refuses that as hollow at T (safe), so the fix is documentation, a
+command contract in the skill, not code. Not verified on this machine which way `cmd /c`
+treats a GUI executable; the contract covers both. Three new cases, two red against f4fc1b6.
+GPT's seat (codex) is over its usage limit until 14:42Z, so stage 2 has had one external
+model; its round is owed.
