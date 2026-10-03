@@ -1,10 +1,10 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-03 11:10Z, desktop session in Projects\Unslop (operator away all day)
-topic: team-loop stages 1 and 2 built and ridden locally; GPT review rounds owed after 14:42Z
-next: 12:33 BST, ride 2 (Python script checks on Windows) as a subagent; 15:51 BST, GPT on both exchange records
-branches: feat/team-loop-stage1 (~/.claude/skills-wt-team-loop-s1), feat/team-loop-stage2 (~/.claude/skills-wt-team-loop-s2), fix/run-seat-double-end (~/.claude/skills-wt-run-seat-end)
+updated: 2026-10-03 13:25 BST, desktop session in ProjectsUnslop, amber band (67%); dated handover written
+topic: team-loop stages 1 and 2 built, reviewed and ridden (3 rides); legal fork and GPT rounds in flight
+next: read docs/HANDOVER_team-loop-build_2026-10-03.md section 8; GPT rounds at 15:51 BST; legal fork result in ~/.claude/skills-wt-legal-fork
+branches: feat/team-loop-stage1 (~/.claude/skills-wt-team-loop-s1), feat/team-loop-stage2 (~/.claude/skills-wt-team-loop-s2), fix/run-seat-double-end (~/.claude/skills-wt-run-seat-end), feat/legal-fork (~/.claude/skills-wt-legal-fork)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
