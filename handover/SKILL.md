@@ -65,6 +65,15 @@ from proven until a smoke forced the correction.
 
 Write the note to the project's handover location, or to `DECISIONS.md` / `LESSONS_LEARNED.md` where an item qualifies for those. If no handover location is established, write to `HANDOVER.md` in the project root. Append; do not overwrite. The history of handovers is itself useful, and an overwrite loses the trail. If something this session qualifies as a documented decision or a lesson learned, prompt to record it.
 
+**In a project that keeps `team/NOW.md`** (the team-loop skill), a routine session end lands
+there instead: overwrite NOW.md from `team-loop/templates/NOW.md`, at most 40 lines, with this
+note's items 2, 4, 5, 6 and 8 in that shape, its `branches:` and `ask:` lines current. Git
+keeps the trail, so the overwrite loses nothing. Open questions go to the project's Ask queue,
+not into NOW.md. A dated `docs/HANDOVER_<topic>_<date>.md` in the full shape above is still
+written for an unusual end: context in the amber or red band, a crash or forced stop, a move
+to another machine, or a scheduled run that stopped on a usage limit. Steps 1, 2 and 4 apply
+either way.
+
 Then get the note committed before the session ends, with the user's per-action yes. A
 note left untracked reaches neither the other machine nor the next reader's `git log`,
 and it is invisible to the session that resumes from a different checkout. On 2026-09-14

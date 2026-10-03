@@ -19,11 +19,11 @@ Checklist:
 - [x] Ask board probe (design section 6, step 0): page published, items seeded, reads and writes observed
 - [x] Probe record `docs/PROBE_ask-board_2026-10-03.md`
 - [x] `team-loop/SKILL.md`, `team-loop/templates/NOW.md`, `team-loop/templates/ASK.md`, `team-loop/ask-board.html`
-- [ ] `handover/SKILL.md`: routine notes land in `team/NOW.md`; dated file kept for unusual ends
+- [x] `handover/SKILL.md`: routine notes land in `team/NOW.md`; dated file kept for unusual ends
 - [x] `hooks/session-recon.mjs`: NOW.md check, with tests in `hooks/session-recon.test.mjs` that go red on a missing branch
-- [ ] Effort pins on `agents/code-reviewer.md` and `agents/property-reg-reviewer.md`
+- [x] Effort pins on `agents/code-reviewer.md` and `agents/property-reg-reviewer.md`
 - [x] Index: README table row and the three count sites (`hooks/check-index.mjs` green)
-- [ ] `team/NOW.md` for this repo (dogfood)
+- [x] `team/NOW.md` for this repo (dogfood)
 - [ ] Cross-agent review of the stage 1 commits (GPT via codex on the code, GEMPRO via agy on the prose), then an attack-the-convergence pass
 - [ ] Closing walk
 
@@ -55,3 +55,12 @@ new cases; six went red against the hook at f7de1a1, and the two silence cases r
 version that reports every branch. First draft of the junk-entry case expected `$(whoami)`
 whole, but the parser cuts at `(` by design (for `name (worktree ...)`), so the fixture changed,
 not the code.
+
+### Commit 3: handover routes routine ends to NOW.md; effort pins; this repo's NOW.md
+
+The handover skill keeps every step; Step 3 gains a paragraph for team-loop projects: a
+routine end overwrites `team/NOW.md`, an unusual end (amber or red band, crash, machine move,
+a scheduled run stopped by a usage limit) still writes the dated file. Both library agents pin
+`effort: high` (field confirmed in the sub-agents documentation, 2026-10-03); `debugger` and
+`refactorer` exist only in `~/.claude/agents` on this machine and were left alone, since that
+directory is live for other sessions today. This repo's own `team/NOW.md` is the dogfood copy.
