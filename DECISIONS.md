@@ -5,6 +5,20 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-10-03 Team loop: the gate judges by exit code; the pilot is set up today (ASK-0007, ASK-0006)
+
+Answered by Ben in the session at 12:47 BST, not on the board.
+
+- **ASK-0007, "commands": a brief's JUDGED BY lines are commands judged by exit code,** red
+  at T and green on the merge, not per-test ids read from JUnit results as the design had it.
+  It fits the pilot, whose proofs are Python scripts, and any normal test suite. Two rides
+  tested it (`docs/RIDE_team-loop-stage2_2026-10-03.md`). The guarantee that no check is
+  skipped moves to red-at-T plus check 3, and the gate prints each check's red-at-T reason
+  because it cannot judge a wrong reason.
+- **ASK-0006, "today-branch": the passive income pilot is set up today on its own branch,**
+  a `team/` folder, the worktree setting and `gate.json`, without touching the work of the
+  sessions active in that repo.
+
 ## 2026-10-03 Team loop: the first Ask board's answers (ASK-0002 to ASK-0005)
 
 Answered by Ben on the Ask board between 09:58Z and 09:59Z on 2026-10-03, from the page, with
