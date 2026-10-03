@@ -21,7 +21,7 @@ in full on 2026-10-03 before distilling (the plan had it as spot-checked only).
 4. Added a commencement status column and the rule that a pending change becomes a review
    control.
 5. Added a worked example from the Landlord and Tenant Act 1985 (ss.20B and 21B), each provision
-   read on legislation.gov.uk on 2026-10-03 and cited with its URL and revised-text date.
+   read on legislation.gov.uk on 2026-10-03 and cited with its URL.
 6. Upstream routes to skills not in this library (an applicability analyst; Indian domain skills)
    removed. Description rewritten for this library's trigger lanes; day counting deferred to
    verified-citations.

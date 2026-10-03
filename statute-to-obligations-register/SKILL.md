@@ -29,7 +29,7 @@ failures recur:
 session, and its status says what the page shows about commencement.** Run this over the
 finished register and print the result line:
 
-`Provisions read: s.18 to s.30 | Extracted 14 | Register 11 | Powers and rights 3 | Dropped 0 | Empty cells 0 | Status unread 0`
+`Provisions read: s.18 to s.30 | Extracted 14 | Register 11 | Powers and rights 3 | Dropped 0 | Empty cells 0 | Status unread 0 | Pending changes 2 (2 with review trigger)`
 
 Red output, any of:
 
@@ -38,6 +38,8 @@ Red output, any of:
   vanished. Every extracted item lands in the register, the powers-and-rights list, or the
   dropped list with a reason.
 - `Status unread 1: R9`. Re-open the page and record what it says about commencement.
+- `Pending changes 2 (1 with review trigger): R2`. Add the review trigger to R2's Control cell
+  (rule 8).
 
 `Section` means Act, section and subsection (`LTA 1985 s.20B(2)`), with the URL and the date you
 read it in the source column. A row whose section you cannot cite does not go in the register;
@@ -46,10 +48,11 @@ it goes in the verification list.
 ## Supporting rules
 
 1. **Read the current official text, and record three things from the page.** For UK
-   legislation that is the revised version on legislation.gov.uk. Record the date the revised
-   text is valid from, every outstanding or prospective change the page lists for the
-   provision, and its extent (England, Wales, or both). Never map from a summary, a guidance
-   note, or an earlier version.
+   legislation that is the latest revised version on legislation.gov.uk. Record the date you
+   read it, every outstanding or prospective change the page lists for the provision, and its
+   extent (England, Wales, or both). The date the Act's revised text was last updated is a
+   date for the whole Act, not the date this provision came into force; never record it as
+   the provision's date. Never map from a summary, a guidance note, or an earlier version.
 2. **Read scope, definitions and exemptions before extracting.** Who the provision applies to,
    the defined terms it turns on, and any threshold or phased commencement. A threshold often
    sits in a statutory instrument rather than the Act; cite the instrument that holds it.
@@ -88,22 +91,25 @@ prospective changes.
 
 | Ref | Section | Type | Obligation | Trigger | Deadline (statute's words) | Owner | Evidence | Control | Status |
 |---|---|---|---|---|---|---|---|---|---|
-| R1 | LTA 1985 s.20B(1)-(2) | Condition on recovery | Serve the demand for each relevant cost, or notify the tenant in writing that the cost was incurred and that they will be required under the lease to contribute to it by a service charge, within the period in the next cell | Each relevant cost incurred | "within the period of 18 months beginning with the date when the relevant costs in question were incurred" (s.20B(2)) | Proposed: service-charge accountant | Dated demand or s.20B(2) notice, with proof of service | Monthly list of costs incurred over 15 months ago and not yet demanded or notified | In force; prospective changes pending (Leasehold and Freehold Reform Act 2024 ss.53-54) |
-| R2 | LTA 1985 s.21B(1), (3)-(4) | Duty | Accompany every service-charge demand with the summary of tenants' rights and obligations | Each service-charge demand | With the demand | Proposed: credit control | Copy of each demand as sent, with the summary attached | Demand template cannot be issued without the summary | In force; whole section prospectively omitted (Leasehold and Freehold Reform Act 2024 s.55(2)(c)) |
+| R1 | LTA 1985 s.20B(1)-(2) | Condition on recovery | Serve the demand for each relevant cost, or notify the tenant in writing that the cost was incurred and that they will be required under the lease to contribute to it by a service charge, within the period in the next cell | Each relevant cost incurred | Demand limb: costs "incurred more than 18 months before a demand for payment of the service charge is served" are not payable (s.20B(1)). Notice limb: "within the period of 18 months beginning with the date when the relevant costs in question were incurred" (s.20B(2)) | Proposed: service-charge accountant | Dated demand or s.20B(2) notice, with proof of service | Monthly list of costs incurred over 15 months ago and not yet demanded or notified; review trigger on commencement of Leasehold and Freehold Reform Act 2024 ss.53-54 | In force; prospective changes pending (Leasehold and Freehold Reform Act 2024 ss.53-54) |
+| R2 | LTA 1985 s.21B(1), (3)-(4) | Duty | Accompany every service-charge demand with the summary of tenants' rights and obligations | Each service-charge demand | With the demand | Proposed: credit control | Copy of each demand as sent, with the summary attached | Demand template cannot be issued without the summary; review trigger on commencement of Leasehold and Freehold Reform Act 2024 s.55 | In force; whole section prospectively omitted (Leasehold and Freehold Reform Act 2024 s.55(2)(c)); s.55(3) prospectively inserts a new s.21C |
 
-Sources, revised text as shown on 2026-10-03:
-[s.20B](https://www.legislation.gov.uk/ukpga/1985/70/section/20B) (valid from 2026-06-29) and
-[s.21B](https://www.legislation.gov.uk/ukpga/1985/70/section/21B) (valid from 2026-06-29). The
+Sources, latest revised text, read 2026-10-03:
+[s.20B](https://www.legislation.gov.uk/ukpga/1985/70/section/20B) and
+[s.21B](https://www.legislation.gov.uk/ukpga/1985/70/section/21B). The
 consequence for R2 is in s.21B(3) and (4): the tenant may withhold, and the lease's late-payment
-provisions do not bite while they do. The form and content of the summary are prescribed by
-regulations under s.21B(2); cite those regulations, read, before mapping the content.
+provisions do not bite while they do. The form and content of the summary are for regulations
+under s.21B(2), and England and Wales each have their own: the Service Charges (Summary of
+Rights and Obligations, and Transitional Provision) (England) Regulations 2007 (SI 2007/1257)
+and the Welsh equivalent (SI 2007/3160). Read the one for the dwelling's nation before mapping
+the content. When s.55 commences, R2 is re-mapped from the new s.21C, read then.
 
 Verification list for these rows: when a cost counts as "incurred" for s.20B is a question for
 an authority, not for the register's author; settle it before setting R1's clock.
 
 ## Output contract
 
-1. **Header.** Instrument mapped (full title and year), provisions read, URL, revised-text date,
+1. **Header.** Instrument mapped (full title and year), provisions read, URL, date read,
    extent, entity described, date of mapping.
 2. **Result line** from the rule above.
 3. **Register.** `Ref | Section | Type | Obligation | Trigger | Deadline (statute's words) |

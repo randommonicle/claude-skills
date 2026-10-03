@@ -29,19 +29,22 @@ Notices fail on the details a reader checks later, usually in front of a tribuna
 **Build the deadline table and the consequence table before writing prose, and in a reply,
 the allegation table. Print the result line; any failure is red.**
 
-`Deadlines 3 (3 with calendar date and arithmetic) | Consequences 2 (2 confirmed, 2 with basis) | Allegations 6 in notice, 6 answered (0 admissions without a characterisation entry)`
+`Deadlines 3 (3 with calendar date and arithmetic) | Consequences 2 (2 confirmed, 2 with basis, 2 available now) | Allegations 6 in notice, 6 answered (0 admissions without a characterisation entry)`
 
 1. **Deadline table.** `Deadline | Source of the period (notice, lease clause, or statute, with the
    words quoted) | Start event and its date | Counting convention | Calendar date | Margin`.
    Every deadline in a notice you draft, and every deadline found in a notice received, gets a
    row. Red output: `Deadline 2 ("within 21 days"): no calendar date`. Search your draft for
-   `within`, `days`, `weeks`, `months`, `promptly`, `forthwith`, `immediately` and
-   `reasonable`; each hit maps to a row or is rewritten.
+   `within`, `days`, `weeks`, `months`, `promptly`, `forthwith`, `immediately`, `reasonable`,
+   `on demand`, `by return`, `without delay` and `as soon as`; each hit maps to a row or is
+   rewritten.
 2. **Consequence table** (drafting). `Stated consequence | Client confirmed they will pursue it
    (who, when) | Basis (lease clause quoted, or statute read this session with URL and date) |
-   Available now? (yes, or the step that must come first)`. Red output:
-   `Consequence 1 ("we will forfeit the lease"): basis not retrieved` or `not confirmed`. A
-   consequence that fails either test is cut, not softened.
+   Available now? (yes, with the provisions checked, or the step that must come first)`. Red
+   output: `Consequence 1 ("we will forfeit the lease"): not confirmed`, `basis not retrieved`,
+   or `Available now? not established`. A lease clause giving the right is a basis; it does not
+   answer `Available now?`, which needs the statutory restrictions on that step read this
+   session. A consequence that fails any of the three is cut, not softened.
 3. **Allegation table** (replying or analysing). Count the allegations in the notice and
    number them in the notice's own order. `No. | Allegation as stated | Fact: admitted / denied
    with the client's account / not known / admitted in part | Legal characterisation: not
@@ -51,8 +54,10 @@ the allegation table. Print the result line; any failure is red.**
 ## Supporting rules
 
 1. **Choose the date with margin.** Where a statute or lease sets a window, pick a date that is
-   valid under any plausible counting convention and any plausible date of giving (post adds
-   days). State the convention you used. verified-citations owns the inclusive-counting rule.
+   valid under any plausible counting convention and any plausible date of giving. When a
+   posted notice counts as given depends on the lease's notice clause or the statute's service
+   provision; read it, or treat the date as uncertain and widen the margin. State the convention
+   you used. verified-citations owns the inclusive-counting rule.
 2. **Facts are particularised from the user, never supplied.** Who, what, when, with dates and
    document references. No invented fact, legal basis, clause or statute. If no legal basis was
    given, draft on the facts and say no basis is named.
@@ -82,43 +87,69 @@ the allegation table. Print the result line; any failure is red.**
 
 ## Worked examples: England and Wales residential leasehold
 
-Read on legislation.gov.uk on 2026-10-03, revised text. Re-read before relying on any of them:
-two carry prospective changes. These show what the tables catch; they are not advice on a file.
+Each provision below was read on legislation.gov.uk on 2026-10-03 (latest available revised
+text). Several carry prospective changes; re-read before relying on any of them. They show what
+the tables catch; they are not advice on a file.
 
 - **Ground rent on a long lease of a dwelling.** The tenant is not liable to pay unless the
   landlord has given a notice, and the payment date in it must be neither less than 30 days nor
   more than 60 days "after the day on which the notice is given", nor earlier than the date the
-  lease itself makes it payable ([CLRA 2002 s.166(1), (3)](https://www.legislation.gov.uk/ukpga/2002/15/section/166),
-  valid from 2025-03-03). The notice must be in the prescribed form (s.166(5)(a)); read the
-  regulations before drafting. Deadline table: start event is the day the notice is given, which
-  for a posted notice is uncertain, so the margin column matters.
-- **Any written demand for rent or other sums under a tenancy.** It must contain the landlord's name and
-  address, and an address in England and Wales for notices if the landlord's address is
+  lease itself makes it payable
+  ([CLRA 2002 s.166(1), (3)](https://www.legislation.gov.uk/ukpga/2002/15/section/166)). The
+  notice must be in the prescribed form (s.166(5)(a)); read the regulations before drafting. A
+  posted notice goes to the dwelling unless the tenant has notified another address in England
+  and Wales in writing (s.166(6)). "Rent" here excludes service charges and administration
+  charges (s.166(7)). Deadline table: the start event is the day the notice is given, so the
+  margin column matters.
+- **Any written demand for rent or other sums under a tenancy.** It must contain the landlord's
+  name and address, and an address in England and Wales for notices if the landlord's address is
   elsewhere; without that, the service-charge or administration-charge part is treated as not
   due until the information is given by notice
-  ([LTA 1987 s.47(1)-(2)](https://www.legislation.gov.uk/ukpga/1987/31/section/47), valid from
-  2026-06-29, with an exception in s.47(3) while a tribunal- or court-appointed receiver or
-  manager collects those charges). Part VI applies to premises consisting of or including a
-  dwelling, not held on a business tenancy under Part II of the Landlord and Tenant Act 1954, and
-  not to a dwelling in Wales subject to an occupation contract
-  ([s.46(1), (1A)](https://www.legislation.gov.uk/ukpga/1987/31/section/46)). Consequence table:
-  a late-payment charge running from a deadline on a sum not yet due has no basis.
-- **A service-charge demand.** It must be accompanied by the summary of tenants' rights and
-  obligations, or the tenant may withhold and the lease's late-payment provisions do not apply
-  for that period ([LTA 1985 s.21B(1), (3)-(4)](https://www.legislation.gov.uk/ukpga/1985/70/section/21B),
-  valid from 2026-06-29; the whole section is prospectively omitted by the Leasehold and Freehold
-  Reform Act 2024 s.55(2)(c)).
+  ([LTA 1987 s.47(1)-(2)](https://www.legislation.gov.uk/ukpga/1987/31/section/47), with an
+  exception in s.47(3) while a tribunal- or court-appointed receiver or manager collects those
+  charges; a new s.47(3A) is prospectively inserted by the Leasehold and Freehold Reform Act
+  2024 s.55(4)(a)). Separately, until the landlord has given notice of an address in England and
+  Wales for service, rent, service charges and administration charges are treated as not due
+  ([s.48(1)-(2)](https://www.legislation.gov.uk/ukpga/1987/31/section/48)). Part VI applies to
+  premises consisting of or including a dwelling, not held on a business tenancy under Part II of
+  the Landlord and Tenant Act 1954, and not to a dwelling in Wales subject to an occupation
+  contract ([s.46(1), (1A)](https://www.legislation.gov.uk/ukpga/1987/31/section/46)).
+  Consequence table: interest or a late-payment charge running on a sum not yet due has no basis.
+- **A service-charge or administration-charge demand.** A service-charge demand must be
+  accompanied by the summary of tenants' rights and obligations, or the tenant may withhold and
+  the lease's late-payment provisions do not apply for that period
+  ([LTA 1985 s.21B(1), (3)-(4)](https://www.legislation.gov.uk/ukpga/1985/70/section/21B); the
+  whole section is prospectively omitted by the Leasehold and Freehold Reform Act 2024
+  s.55(2)(c)). An administration-charge demand needs its own summary, with the same right to
+  withhold ([CLRA 2002 Sch.11 para 4](https://www.legislation.gov.uk/ukpga/2002/15/schedule/11/paragraph/4);
+  prospectively omitted by the 2024 Act s.61(a)). Costs incurred more than 18 months before the
+  demand is served are irrecoverable unless the tenant was notified in writing within the period
+  in [LTA 1985 s.20B(2)](https://www.legislation.gov.uk/ukpga/1985/70/section/20B) (see
+  statute-to-obligations-register for that row). Draft mode treats each of these as a blocking
+  input: read it, check it against the demand, or list it as open.
 - **Threatening forfeiture over service charges.** For premises let as a dwelling, a landlord
   may not exercise a right of re-entry or forfeiture for failure to pay a service charge or
-  administration charge unless the amount is finally determined by a tribunal, court or
-  post-dispute arbitral tribunal, or admitted by the tenant
-  ([HA 1996 s.81(1)](https://www.legislation.gov.uk/ukpga/1996/52/section/81), valid from
-  2026-09-01), and after a determination not "until after the end of the period of 14 days
-  beginning with the day after that on which the final determination is made" (s.81(2)). Serving a notice
-  under section 146(1) of the Law of Property Act 1925 counts as exercising that right
-  (s.81(4A)). Business tenancies under Part II of the 1954 Act, agricultural holdings and farm
-  business tenancies are outside it (s.81(4)). Consequence table: a demand that threatens forfeiture, or a section 146
-  notice, over an undetermined and unadmitted service charge fails `Available now?` and is cut.
+  administration charge unless it is finally determined by a tribunal, court or post-dispute
+  arbitral tribunal that the amount is payable by the tenant, or the tenant has admitted that it
+  is so payable ([HA 1996 s.81(1)](https://www.legislation.gov.uk/ukpga/1996/52/section/81)).
+  "Finally determined" has its own meaning: only once the time for an appeal or other challenge
+  has run out, or any appeal or challenge has been disposed of (s.81(3), (3A)). Even then, not
+  "until after the end of the period of 14 days beginning with the day after that on which the
+  final determination is made" (s.81(2)). Serving a notice under section 146(1) of the Law of
+  Property Act 1925 counts as exercising that right (s.81(4A)). Business tenancies under Part II
+  of the 1954 Act, agricultural holdings and farm business tenancies are outside it (s.81(4)).
+- **Threatening forfeiture on a long lease of a dwelling for small or recent arrears, or for
+  another breach.** A landlord may not forfeit for unpaid rent, service charges or
+  administration charges (or a mix) unless the unpaid amount exceeds the prescribed sum or
+  includes an amount payable for more than the prescribed period; the prescribed sum may not
+  exceed £500, and a default charge is left out of the count
+  ([CLRA 2002 s.167(1)-(3)](https://www.legislation.gov.uk/ukpga/2002/15/section/167); the sum
+  and period are set by regulations, read the ones for England or Wales). For a breach of a
+  covenant or condition in the lease, no section 146 notice may be served until the breach is
+  finally determined or admitted, and after a determination not until the 14-day period in
+  s.168(3) has ended ([s.168(1)-(3)](https://www.legislation.gov.uk/ukpga/2002/15/section/168)).
+  Consequence table: a threat of forfeiture, or of a section 146 notice, not checked against
+  s.81, s.167 and s.168 fails `Available now? not established` and is cut.
 
 ## Do not
 

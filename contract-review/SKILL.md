@@ -32,11 +32,14 @@ result line. Any failure is red; fix it before the review goes out.**
    `Quoted words` cell holding the operative words copied from that clause. Red output:
    `Row 4: Clause empty` or `Row 4: no quoted words`. A heading is not operative wording.
 2. **Law check.** Search every section of your output except the verification list for statute,
-   regulation and case markers (`Act`, `section`, `s.`, `Sch.`, `reg.`, `Regulations`, a year
-   in square brackets, ` v `). Each hit is either quoted from the supplied document (and cites
-   its clause) or has a row in the verification list marked `Retrieved` with the source and
-   date read this session. Anything else moves to the verification list as an open question.
-   Red output: `Law check: "s.146" in row 7, no retrieval, moved to verification list`.
+   regulation and case markers (`Act`, `section`, `s.`, `ss.`, `Sch.`, `para`, `Part`, `reg.`,
+   `Regulations`, `SI`, an Act abbreviation such as `LTA` or `CLRA`, a year in square brackets,
+   ` v `) and for statements of legal effect (`void`, `unenforceable`, `by law`, `statutory`,
+   `may withhold`, `is not liable`, `is not due`, `is entitled`). Each hit is either quoted
+   from the supplied document (and cites its clause) or has a row in the verification list
+   marked `Retrieved` with the source and date read this session. Anything else moves to the
+   verification list as an open question. Red output:
+   `Law check: "s.146" in row 7, no retrieval, moved to verification list`.
 3. **Interaction check.** Every row about a cap, exclusion, indemnity, insurance, guarantee,
    termination, break, forfeiture or re-entry has a non-empty `Read with` cell naming the
    clauses that qualify it, or the words `none found after reading cl. N to M`. Red output:

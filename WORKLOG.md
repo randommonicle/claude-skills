@@ -21,7 +21,7 @@ no merge into main (Ben, 2026-10-03 12:47 BST: "re-clone and build").
 - [x] Wiring: README fork sentence, NOTICE (forks row left as is, see entry)
 - [ ] Gates: check-index (50), check-archives (unchanged 5/17), unslop scan high 0 on each new
       SKILL.md, section 11 trigger-orthogonality grep, hooks/*.test.mjs loop
-- [ ] property-reg-reviewer over the four SKILL.md files; Critical/High re-derived and fixed
+- [x] property-reg-reviewer over the four SKILL.md files; Critical/High re-derived and fixed
 - [ ] Section 11.5 ride (manual application of contract-review)
 - [ ] Close: checklist walk, closing summary
 
@@ -31,18 +31,27 @@ count (to 47). Whichever lands second must reconcile the count in README (two si
 
 ### Statutory claims verified (read on legislation.gov.uk, 2026-10-03)
 
-Read through the `/data.xml` endpoint of each page (revised text, unapplied effects, extent).
-Pending amendments listed are those the page marks prospective, not yet in force.
+Read through the `/data.xml` endpoint of each page (latest revised text, unapplied effects,
+extent) with `scratchpad/leg.py`. Pending amendments listed are those the page marks
+prospective, not yet in force. Correction, made after the reviewer pass: the first version of
+this table and of the skills gave a "revised text valid from" date per provision. Those dates
+were the Act-level `<Body>` dates, not the provision's; they are removed, and the skills now say
+not to record that date as the provision's.
 
-| Claim used in | Provision | URL | Revised text valid from | Extent | Pending (prospective) |
+| Used in | Provision | URL | Words read (excerpt) | Extent | Pending (prospective) |
 |---|---|---|---|---|---|
-| obligations register | LTA 1985 s.20B (18-month limit) | https://www.legislation.gov.uk/ukpga/1985/70/section/20B | 2026-06-29 | E+W | s.20B(1) words, s.20B(3)-(10): LFRA 2024 ss.53-54 |
-| obligations register, notices | LTA 1985 s.21B (summary of rights with demand) | https://www.legislation.gov.uk/ukpga/1985/70/section/21B | 2026-06-29 | E+W | whole section omitted: LFRA 2024 s.55(2)(c) |
-| notices | LTA 1987 s.46(1), (1A) (scope of Part VI) | https://www.legislation.gov.uk/ukpga/1987/31/section/46 | 2026-06-29 | E+W | none listed |
-| notices | LTA 1987 s.47 (landlord's name and address in demand) | https://www.legislation.gov.uk/ukpga/1987/31/section/47 | 2026-06-29 | E+W | s.47(3A) inserted: LFRA 2024 s.55(4)(a) |
-| notices | HA 1996 s.81 (forfeiture for service charge) incl. s.81(4A) | https://www.legislation.gov.uk/ukpga/1996/52/section/81 | 2026-09-01 | E+W | none listed |
-| notices | CLRA 2002 s.166 (ground rent notice, 30 to 60 days) | https://www.legislation.gov.uk/ukpga/2002/15/section/166 | 2025-03-03 | E+W | none listed |
-| obligations register (description) | Building Safety Act 2022 exists (2022 c.30) | https://www.legislation.gov.uk/ukpga/2022/30/contents | 2026-07-01 | n/a | n/a |
+| register, notices | LTA 1985 s.20B(1)-(2) | https://www.legislation.gov.uk/ukpga/1985/70/section/20B | "incurred more than 18 months before a demand ... is served"; "within the period of 18 months beginning with the date when the relevant costs in question were incurred" | E+W | s.20B(1) words, s.20B(3)-(10): LFRA 2024 ss.53-54 |
+| register, notices | LTA 1985 s.21B(1)-(4) | https://www.legislation.gov.uk/ukpga/1985/70/section/21B | "must be accompanied by a summary of the rights and obligations"; "may withhold payment" | E+W | whole section omitted: LFRA 2024 s.55(2)(c); new s.21C inserted: s.55(3) |
+| notices | LTA 1987 s.46(1), (1A) | https://www.legislation.gov.uk/ukpga/1987/31/section/46 | "premises which consist of or include a dwelling and are not held under a tenancy to which Part II of the Landlord and Tenant Act 1954 applies"; Wales occupation-contract exclusion | E+W | none listed |
+| notices | LTA 1987 s.47(1)-(4) | https://www.legislation.gov.uk/ukpga/1987/31/section/47 | "the name and address of the landlord"; "treated for all purposes as not being due" | E+W | s.47(3A) inserted: LFRA 2024 s.55(4)(a) |
+| notices | LTA 1987 s.48(1)-(3) | https://www.legislation.gov.uk/ukpga/1987/31/section/48 | "an address in England and Wales at which notices ... may be served"; rent, service charge or administration charge "treated for all purposes as not being due" | E+W | none listed |
+| notices | HA 1996 s.81(1)-(4A) | https://www.legislation.gov.uk/ukpga/1996/52/section/81 | "finally determined ... that the amount ... is payable by him"; "14 days beginning with the day after"; s.81(3), (3A) meaning of finally determined; "(4A) ... include the service of a notice under section 146(1)" | E+W | none listed |
+| notices | CLRA 2002 s.166(1)-(7) | https://www.legislation.gov.uk/ukpga/2002/15/section/166 | "either less than 30 days or more than 60 days after the day on which the notice is given"; "must be in the prescribed form" | E+W | none listed |
+| notices | CLRA 2002 s.167(1)-(3) | https://www.legislation.gov.uk/ukpga/2002/15/section/167 | "exceeds the prescribed sum"; "must not exceed £500"; default charge deducted | E+W | s.167(1), (5) words: LFRA 2024 s.53(11) |
+| notices | CLRA 2002 s.168(1)-(3) | https://www.legislation.gov.uk/ukpga/2002/15/section/168 | "may not serve a notice under section 146(1)"; "finally determined"; "14 days beginning with the day after" | E+W | none listed |
+| notices | CLRA 2002 Sch.11 para 4 | https://www.legislation.gov.uk/ukpga/2002/15/schedule/11/paragraph/4 | "A demand for the payment of an administration charge must be accompanied by a summary"; "may withhold" | E+W | para 4 omitted: LFRA 2024 s.61(a) |
+| register | SI 2007/1257 (England) and SI 2007/3160 (Wales), titles only | https://www.legislation.gov.uk/uksi/2007/1257 and https://www.legislation.gov.uk/wsi/2007/3160 | "The Service Charges (Summary of Rights and Obligations, and Transitional Provision) (England) Regulations 2007"; "(Wales) Regulations 2007" (Transitional Provisions) | n/a | not checked; content not relied on |
+| register (description) | Building Safety Act 2022 (2022 c.30), title only | https://www.legislation.gov.uk/ukpga/2022/30/contents | "Building Safety Act 2022" | n/a | n/a |
 
 LFRA 2024 = Leasehold and Freehold Reform Act 2024 (2024 c.22), title read at
 https://www.legislation.gov.uk/ukpga/2024/22/contents.
@@ -97,3 +106,24 @@ are engineering uses of "citation" (blast-radius-grep, cross-agent-review,
 deliverable-integrity, substantiate-outward-claims, trace-one-record), each already deferring
 to verified-citations, and "release" in reproduce-the-real-build matching `lease`. Lanes clean.
 `hooks/*.test.mjs` loop: no failures.
+
+**Reviewer fixes.** property-reg-reviewer returned 0 Critical, 4 High, 3 Medium, 7 Low. Each High
+re-derived from the page before editing:
+H1 (s.81(3)-(3A) "finally determined" omitted, so an agent could start the 14 days on the
+decision date) confirmed and fixed. H2 (CLRA 2002 s.167 small-arrears bar and s.168 no s.146
+notice before determination missing from the forfeiture example) confirmed by reading both
+sections; added, without stating the prescribed sum, which sits in regulations not read. H3
+(`Available now?` had no red output, so a quoted lease forfeiture clause passed) confirmed and
+fixed: a third red output, and a line that a lease clause is a basis but not availability. H4
+("valid from" dates were Act-level, not section-level) confirmed in the XML: the dates sat on
+`<Body>`; the `P1group` dates differ and are themselves unreliable as commencement dates
+(s.167 shows 2002-07-26, its Royal Assent), so all such dates are removed and the register and
+citation skills now say not to record the Act's revision date as the provision's. This was my
+error from the first pass. Mediums fixed: M1 (s.48, Sch.11 para 4, s.20B added to the demand
+example as blocking inputs), M2 (s.21C insertion and review triggers on R1 and R2; the result
+line now counts pending changes with a review trigger), M3 (law-check markers widened, including
+statements of legal effect). Lows fixed: L1 (both s.20B limbs quoted), L2 (s.47(3A) flagged), L3
+(s.166(6), (7)), L4 ("payable by him" restored), L5 (posting rule no longer asserted), L6 (more
+deadline search terms), L7 (England and Wales summary regulations named, titles read). The
+reviewer's remaining note, that a retrieval is self-reported in legal-citation-integrity, is
+narrowed by requiring quoted words in every retrieval; it cannot be closed by prose.

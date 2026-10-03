@@ -23,7 +23,9 @@ follow from that, and both are invisible from inside the pass that commits them:
 **Count, then match.** Extract every citation first, number it with its location, and print the
 count. The audit table then has exactly one row per extracted citation, and every row marked
 `Confirmed` names its retrieval: the source, the date read, and the words read there that match
-the attribution. Print the result line before the table:
+the attribution. A retrieval with no quoted words counts as no retrieval, because the quoted
+words are what lets a reviewer re-open the source and compare. Print the result line before the
+table:
 
 `Extracted 23 | Table rows 23 | Confirmed 9 (9 with retrieval) | Contradicted 1 | Could not confirm 4 | Not attempted 9`
 
@@ -55,9 +57,10 @@ with a word on why.
    - Internal cross-reference: the target exists in this document and says what the reference
      implies.
 2. **Read primary sources, not summaries.** For UK legislation read the revised text on
-   legislation.gov.uk and note three things the page shows: the date the revised version is
-   valid from, any outstanding or prospective changes, and the extent. A point-in-time version
-   is needed when the document concerns an earlier date. For a judgment read the judgment
+   legislation.gov.uk and note the date you read it, any outstanding or prospective changes the
+   page lists for that provision, and the extent. The date the Act's revised text was last
+   updated belongs to the whole Act; it is not the date the provision came into force. A
+   point-in-time version is needed when the document concerns an earlier date. For a judgment read the judgment
    itself (for example on the National Archives' Find Case Law service or BAILII), not a
    headnote, blog or AI summary.
 3. **Four results, never blurred.** Confirmed, Contradicted, Could not confirm, Not attempted.

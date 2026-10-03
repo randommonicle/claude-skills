@@ -22,9 +22,9 @@ were read in full on 2026-10-03 before distilling (the plan had them as spot-che
    go red (deadline, consequence, allegation tables), printed as a result line.
 4. Added the rule that a threatened consequence must be both confirmed by the client and
    available in law at that point, not only confirmed.
-5. Added worked examples from England and Wales residential leasehold (CLRA 2002 s.166, LTA 1987
-   ss.46-47, LTA 1985 s.21B, HA 1996 s.81), each read on legislation.gov.uk on 2026-10-03 and
-   cited with its URL and revised-text date.
+5. Added worked examples from England and Wales residential leasehold (CLRA 2002 ss.166-168 and
+   Sch.11 para 4, LTA 1987 ss.46-48, LTA 1985 ss.20B and 21B, HA 1996 s.81), each read on
+   legislation.gov.uk on 2026-10-03 and cited with its URL.
 6. Description rewritten for this library's trigger lanes; routes point only at skills on disk.
 
 ## Licence
