@@ -43,7 +43,7 @@ const BRIEF = ({ judged = '- adds: node --test tests/add.test.mjs', regulated = 
   '\n\nTESTS CHANGED (existing test, config or fixture files this package may alter): ' + tc + '\n```\n';
 const BOARD = '# BOARD: fixture\n\n| WP | status | role | branch | T | B | tested merge | red | green | gate |\n|---|---|---|---|---|---|---|---|---|---|\n| WP-001 | building | tl-builder | wp1 | - | - | - | - | - | - |\n';
 
-function fixture({ brief = BRIEF(), tTest = ADD_TEST, beforeT = null, build = (f) => f.w('src/add.mjs', FIXED), onMilestone = null, verdict = null, gateCfg = GATE_CFG, local = null } = {}) {
+function fixture({ brief = BRIEF(), base = null, tTest = ADD_TEST, beforeT = null, build = (f) => f.w('src/add.mjs', FIXED), onMilestone = null, verdict = null, gateCfg = GATE_CFG, local = null } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'gate-test-'));
   const g = (...args) => {
     const r = spawnSync('git', ['-C', dir, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { encoding: 'utf8' });
@@ -56,7 +56,7 @@ function fixture({ brief = BRIEF(), tTest = ADD_TEST, beforeT = null, build = (f
   };
   const commit = (m) => {
     g('add', '-A');
-    g('commit', '-qm', m);
+    g('commit', '-q', '--allow-empty', '-m', m);
     return g('rev-parse', 'HEAD');
   };
   const f = { dir, g, w, commit };
@@ -73,6 +73,7 @@ function fixture({ brief = BRIEF(), tTest = ADD_TEST, beforeT = null, build = (f
   w('team/packages/WP-001.md', brief);
   if (verdict !== null) w('team/packages/WP-001.verdict.md', verdict);
   w('team/BOARD.md', BOARD);
+  if (base) base(f);
   commit('milestone base');
   g('checkout', '-q', '-b', 'wp1');
   w('tests/add.test.mjs', tTest);
@@ -144,6 +145,34 @@ test(
       build: (f) => (f.w('src/add.mjs', FIXED), f.w('tests/existing.test.mjs', EXISTING_TEST.replace('two(), 2', 'two(), two()'))),
     }),
   (r) => (r.pass ? true : 'refused an edit TESTS CHANGED allows: ' + (r.failure || r.error)),
+);
+
+// GPT round 1 on stage 2 (2026-10-03 evening): an empty T, team/ files under a wide SCOPE, and a
+// TESTS CHANGED path that is no test, config or fixture file.
+test(
+  'check 3: a T that changes no files is refused, even when an older test is red at T',
+  () => fixture({ base: (f) => f.w('tests/add.test.mjs', ADD_TEST) }),
+  failsAt(3, /T changes no files/),
+);
+
+test(
+  'check 3: a change under team/ is refused even when SCOPE covers it',
+  () =>
+    fixture({
+      brief: BRIEF({ scope: '**' }),
+      build: (f) => (f.w('src/add.mjs', FIXED), f.w('team/gate.json', GATE_CFG.replace('"node --test"', '""'))),
+    }),
+  failsAt(3, /team\/gate\.json/),
+);
+
+test(
+  'a TESTS CHANGED path that is no test, config or fixture file stops the gate as unrunnable',
+  () =>
+    fixture({
+      brief: BRIEF({ scope: 'src/add.mjs, tests/add.test.mjs', tc: 'src/two.mjs' }),
+      build: (f) => (f.w('src/add.mjs', FIXED), f.w('src/two.mjs', 'export const two = () => 1 + 1;\n')),
+    }),
+  (r) => (r.error && /TESTS CHANGED/.test(r.error) && !r.pass ? true : 'expected unrunnable: ' + JSON.stringify(r.error || r.failure || r.pass)),
 );
 
 test(
@@ -328,6 +357,13 @@ cases[cases.length - 1].check = (r) => {
 };
 
 const unit = [];
+unit.push([
+  'parseBrief reads regulated with a parenthesised note, as its field rule allows',
+  () => {
+    const r = parseBrief('regulated (domain): yes\n').regulated;
+    return r === true || 'regulated: ' + r;
+  },
+]);
 unit.push([
   'a descriptive heading is never taken for the SCOPE or regulated field',
   () => {

@@ -596,6 +596,11 @@ shadowCase('a project agent whose frontmatter name is tl-* is caught whatever it
   return true;
 });
 
+shadowCase('a quoted frontmatter name is caught', true, [['project', 'q.md', tlAgent('"tl-builder"')]], async (r) => {
+  if (!/Team-loop agents shadowed: tl-builder \(project/.test(r.system)) return 'a quoted name slipped past: ' + r.out;
+  return true;
+});
+
 shadowCase('outside a plugin install a user tl- agent is expected and stays silent', false, [['user', 'tl-builder.md', tlAgent('tl-builder')]], async (r) => {
   if (/shadowed/.test(r.out)) return 'reported a direct-clone copy as shadowing: ' + r.out;
   return true;

@@ -102,7 +102,8 @@ function shadowLine(cwd) {
       if (!existsSync(dir)) continue;
       for (const file of readdirSync(dir)) {
         if (!file.endsWith('.md')) continue;
-        const name = /^name:\s*(\S+)/m.exec(readFileSync(join(dir, file), 'utf8'))?.[1] ?? file.slice(0, -3);
+        // YAML may quote the name: "tl-builder" and 'tl-builder' are the same agent.
+        const name = /^name:\s*(["']?)(\S+?)\1\s*$/m.exec(readFileSync(join(dir, file), 'utf8'))?.[2] ?? file.slice(0, -3);
         if (/^tl-/i.test(name)) found.push(name + ' (' + where + ', ' + join(dir, file) + ')');
       }
     }

@@ -271,3 +271,24 @@ list is in the ride record. Changed: the red-reason line, the check 5 severity m
 builder contracts (no unstated behaviour) and the test writer's (throwaway mutants allowed
 outside the repo). Two test expectations tightened, both red against 5b8454d. The answers to
 ASK-0006 and ASK-0007 came in the session at 12:47 BST and are in DECISIONS.md (8036bad).
+
+### Commit 12: GPT's first round on stage 2 (evening 2026-10-03)
+
+GPT joined at CLAUDE round 4 (its section is headed "GPT round 1", its first turn) with six
+findings, each re-derived against the code before fixing. Finding 5 was stage 1 code and landed
+there (6f15d35, merged in as 8cf0d85). The other five, here, each with a case red before the fix:
+1. An empty T passed when an older test was already red at T: check 2 alone held, and an empty
+   T froze nothing. GPT called it Critical; re-derived as Medium, because the lead reads T at
+   step 5. Check 3 now refuses a T that changes no files.
+2. With a wide SCOPE a package could change `team/` (the brief, `gate.json`, a verdict). The run
+   that judges it reads the milestone's copies, so the harm is to the next run once merged.
+   Check 3 now refuses any `team/` change, and TESTS CHANGED cannot exempt one.
+3. TESTS CHANGED exempted any path, production code included. The brief is the lead's, so this is
+   a brief error rather than a builder bypass (GPT said High; re-derived as Low). The gate now
+   stops as unrunnable on a TESTS CHANGED path that is no test, test config or fixture file.
+4. `regulated (domain): yes` was found by the field rule but read as null, so the gate refused a
+   valid brief (fails safe). The value now drops the optional note.
+6. A quoted frontmatter name (`name: "tl-builder"`) evaded `shadowLine`. Quotes are now stripped.
+Gate suite: the four new gate cases red with the parent `gate.mjs`, all cases green after; the
+recon suite's new case red before, all green after. `agents/tl-builder.md`, the skill's gate
+paragraph and the gate's header now name the `team/` rule and the TESTS CHANGED limit.
