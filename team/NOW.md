@@ -20,7 +20,7 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## In flight
 
-- Nothing running. ASK-0006 and ASK-0007 were answered in the session (8036bad); the board's answers collection was empty at 17:25 BST. Pushes and PRs wait for Ben.
+- Nothing running. ASK-0006 and ASK-0007 were answered in the session (8036bad); the board's answers collection was empty when this session started. Pushes and PRs wait for Ben.
 
 ## Deferred, with grep anchors
 

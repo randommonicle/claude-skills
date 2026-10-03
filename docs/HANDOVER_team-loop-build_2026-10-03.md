@@ -167,3 +167,6 @@ skills, all indexed, all named, all three counts agree". Stage 1 at 6f15d35: eve
    - Git Bash `date` printed GMT on this machine (no TZ database), so log times read an hour
      early; use PowerShell `Get-Date` for BST.
 4. Optional: a second GPT turn on a7ecf0d and 9839abb; the board page in a real browser.
+5. **unverified**: a7ecf0d makes the gate refuse a TESTS CHANGED path that no `tests`,
+   `testConfig` or `fixtures` glob in `team/gate.json` matches. The pilot's `team/gate.json`
+   (passive income, `team-loop/pilot-setup`) was not re-read against this rule.
