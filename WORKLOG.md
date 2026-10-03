@@ -103,3 +103,9 @@ item 2. ASK-0001 ("team-loop", note: "This one is correct") was steering, so it 
 here and not in DECISIONS.md. ASK-0002 to ASK-0005 are in DECISIONS.md under one dated entry
 naming each item id. The board rows are deleted after this commit, per the skill's step 4.
 This is the lifecycle's first real run.
+
+### Commit 7: HOOKS.md describes the NOW.md check
+
+A wiring step the first three commits missed: `hooks/HOOKS.md` is the hook catalogue and its
+`session-recon` row did not mention the NOW.md check. Found while adding stage 2's shadowing
+check, which needs the same row.
