@@ -183,3 +183,25 @@ command contract in the skill, not code. Not verified on this machine which way 
 treats a GUI executable; the contract covers both. Three new cases, two red against f4fc1b6.
 GPT's seat (codex) is over its usage limit until 14:42Z, so stage 2 has had one external
 model; its round is owed.
+
+### 2026-10-03 11:15Z: the stage 2 ride, opened
+
+One real ride of the loop (`one-real-ride`) before any pilot: a throwaway local repo in the
+session scratchpad, `ride-repo`, milestone branch `milestone/ride`, spec rev 1 and brief WP-001
+(an unregulated `apportion()` in pence) committed before any spawn. The legal-skills fork was
+the operator-recommended next unit but needs its upstream repo downloaded again (the 09-11
+scratchpad clone is corrupt), and a download needs the operator's yes in a session, so it is
+not started; ASK-0008 withdrawn, operator emailed.
+
+Roster:
+
+| # | Role | Model | Effort | maxTurns | Budget | Scope | Artifact | Fresh/resume |
+|---|---|---|---|---|---|---|---|---|
+| 1 | tl-builder contract, run as a general-purpose subagent | sonnet | the session's (no spawn-time effort) | none (not settable on a spawn) | ~60k | src/apportion.mjs | T, then the build | fresh, then resume |
+
+Deviation, stated: the agent definition is not installed for this session (the library's
+`agents/` on a local branch is not loaded), so the contract is handed over as a file to read
+and the worktree is created by the agent with `git worktree add`, since this session's
+directory is not a git repo and `isolation: worktree` needs one. The ride therefore proves the
+contract and the gate, not the frontmatter loading or harness isolation (that was probed
+2026-10-02, design 5.4).
