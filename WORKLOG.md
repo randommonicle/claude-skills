@@ -15,7 +15,7 @@ no merge into main (Ben, 2026-10-03 12:47 BST: "re-clone and build").
       full (compliance-obligations-mapper, demand-notice-drafter, notice-reply-drafter,
       legal-notice-analyser); security grep over them clean
 - [x] `contract-review` (SKILL.md, UPSTREAM.md, three verbatim references), count 47
-- [ ] `legal-citation-integrity` + `verified-citations` Routes bullet, count 48
+- [x] `legal-citation-integrity` + `verified-citations` Routes bullet, count 48
 - [ ] `statute-to-obligations-register`, count 49
 - [ ] `legal-notice-handling` (three modes), count 50
 - [ ] Wiring: README fork sentence and forks row, NOTICE
@@ -56,3 +56,11 @@ copies (`cmp`); their upstream artefacts (em dashes, `contract-reviewer` name,
 "leave-and-licence") are listed in UPSTREAM.md rather than patched, so an upstream sync stays a
 plain diff. No statutory claims in this skill. Description trimmed from the handover draft to
 about 70 words against the ~60 soft cap.
+
+**legal-citation-integrity.** The red check is a count match (extracted citations against table
+rows) plus a Confirmed-with-retrieval count, printed as one result line. Extraction is a search
+list, so a plausible fabrication cannot be skipped by eye. Routed from verified-citations (Routes
+bullet plus the README hub row). Deviation from the plan: adding the bullet made
+`check-archives` red, because `verified-citations` ships a `.skill` archive the handover did not
+mention; repacked it with `node hooks/pack-skill.mjs verified-citations` (still 5 archives, 17
+members). No statutory claims in this skill.
