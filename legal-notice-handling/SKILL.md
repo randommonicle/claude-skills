@@ -144,7 +144,8 @@ the tables catch; they are not advice on a file.
   includes an amount payable for more than the prescribed period; the prescribed sum may not
   exceed £500, and a default charge is left out of the count
   ([CLRA 2002 s.167(1)-(3)](https://www.legislation.gov.uk/ukpga/2002/15/section/167); the sum
-  and period are set by regulations, read the ones for England or Wales). For a breach of a
+  and period are set by regulations, read the ones for England or Wales; words in s.167(1) and
+  (5) are prospectively substituted by the Leasehold and Freehold Reform Act 2024 s.53(11)). For a breach of a
   covenant or condition in the lease, no section 146 notice may be served until the breach is
   finally determined or admitted, and after a determination not until the 14-day period in
   s.168(3) has ended ([s.168(1)-(3)](https://www.legislation.gov.uk/ukpga/2002/15/section/168)).

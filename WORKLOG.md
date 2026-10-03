@@ -50,7 +50,7 @@ not to record that date as the provision's.
 | notices | CLRA 2002 s.167(1)-(3) | https://www.legislation.gov.uk/ukpga/2002/15/section/167 | "exceeds the prescribed sum"; "must not exceed £500"; default charge deducted | E+W | s.167(1), (5) words: LFRA 2024 s.53(11) |
 | notices | CLRA 2002 s.168(1)-(3) | https://www.legislation.gov.uk/ukpga/2002/15/section/168 | "may not serve a notice under section 146(1)"; "finally determined"; "14 days beginning with the day after" | E+W | none listed |
 | notices | CLRA 2002 Sch.11 para 4 | https://www.legislation.gov.uk/ukpga/2002/15/schedule/11/paragraph/4 | "A demand for the payment of an administration charge must be accompanied by a summary"; "may withhold" | E+W | para 4 omitted: LFRA 2024 s.61(a) |
-| register | SI 2007/1257 (England) and SI 2007/3160 (Wales), titles only | https://www.legislation.gov.uk/uksi/2007/1257 and https://www.legislation.gov.uk/wsi/2007/3160 | "The Service Charges (Summary of Rights and Obligations, and Transitional Provision) (England) Regulations 2007"; "(Wales) Regulations 2007" (Transitional Provisions) | n/a | not checked; content not relied on |
+| register | SI 2007/1257 (England) and SI 2007/3160 (Wales), titles and preambles | https://www.legislation.gov.uk/uksi/2007/1257 and https://www.legislation.gov.uk/wsi/2007/3160 | both preambles: "in exercise of the powers conferred by section 21B of the Landlord and Tenant Act 1985" (Wales: conferred on the Secretary of State and "now vested in" the Welsh Ministers) | n/a | not checked; content not relied on |
 | register (description) | Building Safety Act 2022 (2022 c.30), title only | https://www.legislation.gov.uk/ukpga/2022/30/contents | "Building Safety Act 2022" | n/a | n/a |
 
 LFRA 2024 = Leasehold and Freehold Reform Act 2024 (2024 c.22), title read at
@@ -117,7 +117,8 @@ sections; added, without stating the prescribed sum, which sits in regulations n
 fixed: a third red output, and a line that a lease clause is a basis but not availability. H4
 ("valid from" dates were Act-level, not section-level) confirmed in the XML: the dates sat on
 `<Body>`; the `P1group` dates differ and are themselves unreliable as commencement dates
-(s.167 shows 2002-07-26, its Royal Assent), so all such dates are removed and the register and
+(s.167's shows 2002-07-26, the same date as on LTA 1985 s.21B, so it is not a reliable
+commencement date for either), so all such dates are removed and the register and
 citation skills now say not to record the Act's revision date as the provision's. This was my
 error from the first pass. Mediums fixed: M1 (s.48, Sch.11 para 4, s.20B added to the demand
 example as blocking inputs), M2 (s.21C insertion and review triggers on R1 and R2; the result
@@ -158,3 +159,10 @@ own, caught by the reviewer and fixed: Act-level revision dates were first recor
 provisions' "valid from" dates. Lesson candidate for Ben: read statute text from the page's
 `/data.xml`, never a summarising fetch, and never take the page's top-level date as the
 provision's.
+
+**Tidy after the closing advisor pass.** Removed an unverified label ("Royal Assent") from the
+reviewer-fixes entry; read the preambles of SI 2007/1257 and SI 2007/3160, both made under LTA
+1985 s.21B, and updated the table row; flagged the pending LFRA 2024 s.53(11) change on s.167 in
+legal-notice-handling, matching the s.47(3A) flag. The reviewer read the pre-fix text, so the
+wording added in the fix commit (s.48, ss.167-168, Sch.11 para 4, s.21C, s.166(6)-(7)) has been
+checked against the XML by me only; a scoped re-review is Ben's call.
