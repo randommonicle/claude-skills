@@ -141,3 +141,12 @@ race: `sync()` keeps Send disabled while saving and the click returns early. New
 `team-loop/ask-board.test.mjs` (stub DOM, stdlib only): 4 of 5 cases red against the parent
 page, the control case green; all 5 green after. It runs nowhere in CI yet, a `FORWARD:` line
 beside the run-seat one says so. Still unverified in a real browser.
+
+### Commit 10: nowLine speaks when a committed NOW.md is deleted
+
+GPT's first round on stage 2 (finding 5) reached stage 1 code: `nowLine` returned at once when
+`team/NOW.md` was absent, so a resume board that HEAD tracks but the working copy had deleted
+produced no line. It now asks `git ls-tree HEAD` and, when HEAD has the file, says it is
+missing from the working copy and to restore it; a git failure stays silent (fail-open). New
+case in `hooks/session-recon.test.mjs`, red before the fix; every `hooks/*.test.mjs` suite
+green after.

@@ -151,9 +151,13 @@ function nowLine(cwd, fetched) {
   try {
     const rel = 'team/NOW.md';
     const path = join(cwd, 'team', 'NOW.md');
-    if (!existsSync(path)) return null;
-    const text = readFileSync(path, 'utf8');
     const git = (...args) => run('git', ['-C', cwd, ...args], LOCAL_GIT_MS);
+    if (!existsSync(path))
+      // Silent unless HEAD tracks it: a deleted resume board is a state to act on.
+      return git('ls-tree', '--name-only', 'HEAD', '--', rel)
+        ? rel + ' is committed but missing from the working copy: restore it (git restore ' + rel + ') and read it before acting.'
+        : null;
+    const text = readFileSync(path, 'utf8');
     const out = [];
     // Committed means present in HEAD. `git log -- path` alone also finds the commit that
     // deleted it, which would call a recreated, untracked NOW.md committed.
