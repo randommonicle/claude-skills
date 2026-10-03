@@ -161,8 +161,8 @@ project config, from `templates/gate.json`).
 | 4 | Milestone roster: package, role, model, budget, scope, artifact | lead publishes, operator approves | the operator's yes **in the session** (`commission-the-roster` Rule 1), never from the board |
 | 5 | Tests first: the builder (stops after its tests commit) or `tl-test-writer` | agent | the lead reads the tests and pins T from the tool result |
 | 6 | Build: `tl-builder` resumed, or `tl-builder-regulated` | agent | |
-| 7 | Review against the spec, regulated packages only | reviewers, cross-agent seats | the lead's verdict file: no open Critical or High |
-| 8 | Gate and merge | lead, by `scripts/gate.mjs` | the gate passes, and for a deployed surface `one-real-ride` has been ridden; then `git merge --ff-only refs/team-loop/tested/WP-nnn`, a ledger line, the worktree and branch removed |
+| 7 | Review against the spec, regulated packages only | reviewers, cross-agent seats | the lead's verdict file: no open Critical or High; a finding against the spec itself is fixed by the lead in a spec revision committed before step 8, or recorded as accepted |
+| 8 | Gate and merge | lead, by `scripts/gate.mjs` | the gate passes, and for a deployed surface `one-real-ride` has been ridden; then, in this order, `git merge --ff-only refs/team-loop/tested/WP-nnn`, and only after it the BOARD row and ledger line committed (committing them first moves the milestone and the fast-forward is refused), the worktree and branch removed |
 | 9 | Build to review | operator, on the Ask queue (a `review` item saying how to run it) | the answer, on the ledger line |
 | 10 | Release | operator, in the session | `push-gate` asks per action |
 

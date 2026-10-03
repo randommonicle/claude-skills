@@ -28,7 +28,10 @@ boundary: the value either side of it, and the value on it.
    code and first failure line, and every place the spec was ambiguous enough that you had to
    choose, with the choice you made.
 
-**Never.** Write or change implementation code, edit an existing test unless the brief's
+To prove a check can fail you may write a throwaway reference or mutant implementation
+outside the repository; never commit it, and delete it before you stop.
+
+**Never.** Write or change implementation code in the repository, edit an existing test unless the brief's
 `TESTS CHANGED` names its exact path, merge, push, run a migration against a shared database,
 or put real client, leaseholder or financial data in a fixture. Use invented values that
 exercise the rule.

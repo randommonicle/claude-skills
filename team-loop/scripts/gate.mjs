@@ -143,7 +143,12 @@ const matchesAny = (path, globs) => globs.some((g) => globToRegExp(g).test(path)
 
 function run(command, cwd, timeoutMs) {
   const r = spawnSync(command, { cwd, shell: true, encoding: 'utf8', timeout: timeoutMs, maxBuffer: 64 * 1024 * 1024 });
-  const tail = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').slice(-3).join(' | ').slice(0, 300);
+  // The reason, not the last lines: node's test runner ends a failure with stack frames, so
+  // the last lines hid why a check was red (ride 3, 2026-10-03). Both node and Python put the
+  // reason on an "<Name>Error[ [code]]: message" line; take the last such line, else the tail.
+  const lines = ((r.stdout || '') + (r.stderr || '')).trim().split(/\r?\n/);
+  const reason = lines.filter((l) => /\b\w*(Error|Exception)\b( \[[^\]]*\])?:/.test(l)).pop();
+  const tail = (reason ? reason.trim() : lines.slice(-3).join(' | ')).slice(0, 300);
   if (r.error && r.error.code === 'ETIMEDOUT') return { code: null, timedOut: true, tail };
   if (r.error) return { code: null, timedOut: false, tail: r.error.message };
   return { code: r.status, timedOut: false, tail };
@@ -314,7 +319,10 @@ export function gate(argv) {
       const vPath = 'team/packages/' + a.wp + '.verdict.md';
       const v = git(repo, ['show', milestone + ':' + vPath], { allowFail: true });
       if (!v.ok) throw new GateError('check 5: regulated package with no ' + vPath + ' committed on the milestone branch');
-      const open = v.out.split('\n').filter((l) => /\[\s*open\s*\]/i.test(l) && /\b(critical|high)\b/i.test(l));
+      // The severity is the first word after [open], through any bold, pipe or colon dressing,
+      // so "- [open] Low: a high-level note" no longer blocks (ride 3) while "**High**" and a
+      // table cell still do (stage 2 review round 1).
+      const open = v.out.split('\n').filter((l) => /\[\s*open\s*\][\s*_|:-]*(critical|high)\b/i.test(l));
       if (open.length) throw new GateError('check 5: open Critical or High in ' + vPath + ': ' + open.map((l) => l.trim()).join(' / '));
       step('verdict', 'no open Critical or High');
     }

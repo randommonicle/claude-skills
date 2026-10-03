@@ -179,6 +179,12 @@ test(
 );
 
 test(
+  'check 5: an open Low that mentions "high" in its text does not block, and a table-cell High does',
+  () => fixture({ brief: BRIEF({ regulated: 'yes' }), verdict: '# Verdict\n\n- [open] Low: a high-level naming note\n| [open] | High | rounding |\n' }),
+  failsAt(5, /verdict\.md: \| \[open\] \| High \| rounding \|$/),
+);
+
+test(
   'check 5: a verdict with nothing open passes',
   () => fixture({ brief: BRIEF({ regulated: 'yes' }), verdict: '# Verdict\n\n- [closed] High: fixed in b2\n- [open] Low: naming\n' }),
   (r) => (r.pass ? true : 'refused a clean verdict: ' + (r.failure || r.error)),
@@ -317,7 +323,8 @@ cases[cases.length - 1].run = (f) =>
   spawnSync(process.execPath, [fileURLToPath(new URL('./gate.mjs', import.meta.url)), '--repo', f.dir, '--wp', 'WP-001', '--t', f.T, '--head', 'wp1', '--milestone', 'milestone', '--no-board'], { encoding: 'utf8' });
 cases[cases.length - 1].check = (r) => {
   if (r.status !== 0) return 'exit ' + r.status + ': ' + r.stdout + r.stderr;
-  return /^red   \| adds \(exit 1 at T\): .+/m.test(r.stdout) || 'no red line with a reason: ' + r.stdout;
+  // The reason itself, not stack frames: an assertion message names the expected value.
+  return /^red   \| adds \(exit 1 at T\): .*AssertionError.*4/m.test(r.stdout) || 'no red line with a reason: ' + r.stdout;
 };
 
 const unit = [];

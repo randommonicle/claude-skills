@@ -66,3 +66,45 @@ lead to read at step 8, asserted in the suite.
 
 **Still not covered:** a regulated package, two packages at once, MT5 compile or Tester
 commands.
+
+## Ride 3: a regulated package, 13:00 BST
+
+The regulated half of the loop on a throwaway repo, `ride3-repo`, run by one orchestrating
+subagent (opus) acting as lead. Synthetic code only: `needsConsultation(costPence, sharesPence)`,
+true when any leaseholder's share exceeds 25,000 pence, the section 20 threshold as the lead
+stated it in the spec.
+
+| Role | Model | Tokens | Result |
+|---|---|---|---|
+| Test writer (`tl-test-writer` contract) | sonnet | 92,177 | T 6d9b861; boundaries 24,999 / 25,000 / 25,001 asserted strictly; both checks red at T for their own reasons |
+| Regulated builder (`tl-builder-regulated` contract) | opus | 88,238 | head f9122cf, T merged first |
+| Reviewer (`property-reg-reviewer`) | opus, high | 59,737 | "approve with changes": one Medium, six Low, all `[open]` in the verdict file |
+| Lead (orchestrator) | opus | 129,422 | gate passed first run (all five checks), fast-forward, 39 of 39 tests on the milestone |
+
+**Statutory check.** The reviewer read legislation.gov.uk and confirmed section 20 of the 1985
+Act, SI 2003/1987 regulation 6, £250 and strict "more than"; it corrected the regulations'
+title in the lead's spec, to "The Service Charges (Consultation Requirements) (England)
+Regulations 2003". The orchestrator re-read regulation 6 there. The correction merged as an
+open Medium, which is the gap below.
+
+**Friction it found, and what changed (commit after this record):**
+- The red-at-T reason printed node's stack frames. The gate now takes the last
+  `<Name>Error[ [code]]: message` line, which carries the reason in both node and Python.
+- Check 5 blocked any open line containing "high", so a Low about a "high-level" note needed
+  rewording. The severity is now the first word after `[open]`, through bold, pipe or colon
+  dressing; a table-cell High still blocks.
+- Nothing in the loop let the lead fix their own spec before the merge: step 7 now says a
+  finding against the spec is fixed in a committed spec revision before step 8, or accepted.
+- Committing the BOARD row before the fast-forward moves the milestone and the fast-forward is
+  refused: step 8 now states the order.
+- The builder added behaviour the spec did not state (a safe-integer limit, a TypeError) that
+  only the reviewer saw: both builder contracts now forbid it and ask for it in the report.
+- The test writer wrote throwaway mutants to prove its tests: its contract now allows that
+  outside the repo, never committed.
+- Known and unchanged: a spawn with a model override drops the contract's effort, `maxTurns`
+  and isolation; a BUDGET line is unenforceable (92k and 88k against ~60k); one reviewer ran
+  where the skill lists three.
+
+**Covered by the three rides:** both package kinds, both check styles (node tests, Python
+scripts), `copy`, every gate check passing and failing. **Not yet:** two packages at once, the
+Ask queue steps 2 and 9, MT5 compile or Tester commands.

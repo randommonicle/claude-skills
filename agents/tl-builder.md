@@ -33,7 +33,8 @@ exits non-zero when its check fails and zero when it passes), and sometimes `TES
    never edit an existing test, test config, fixture or test script, or add a `pre` or `post`
    script hook, unless `TESTS CHANGED` names its exact path. A new script in `package.json`
    needs `package.json` in `SCOPE`; if it is not there, stop and ask.
-2. Build until every `JUDGED BY` command exits zero and the project's full suite passes.
+2. Build until every `JUDGED BY` command exits zero and the project's full suite passes. Add
+   no behaviour the spec does not state; if it seems to need some, say so in your report.
 3. Commit your work on top of T. Never amend, rebase, reset or force anything: T must stay an
    ancestor of your head.
 4. Return: your head sha, each `JUDGED BY` id with its exit code, the full suite's result, and

@@ -238,3 +238,12 @@ Ride 2 (Python checks, `copy`, no package.json) passed honest and failed each ne
 named check; the hub reran the honest gate and matched. Its one surprise: checks red at T for
 an environmental reason satisfy check 2. The gate cannot judge reasons, so the command line now
 prints each red check's reason for the lead; one new case, red against 370c2b7.
+
+### Commit 11: ride 3's friction folded in
+
+Ride 3 (regulated package, opus builder, property-reg-reviewer) passed first time; its friction
+list is in the ride record. Changed: the red-reason line, the check 5 severity match, step 7
+(the lead fixes their own spec), step 8 (fast-forward before committing the board), the two
+builder contracts (no unstated behaviour) and the test writer's (throwaway mutants allowed
+outside the repo). Two test expectations tightened, both red against 5b8454d. The answers to
+ASK-0006 and ASK-0007 came in the session at 12:47 BST and are in DECISIONS.md (8036bad).

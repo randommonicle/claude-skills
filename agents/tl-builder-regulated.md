@@ -22,6 +22,8 @@ tests. The brief has `SCOPE`, `JUDGED BY` (`- <id>: <command>`) and possibly `TE
    command and confirm each fails before you change anything.
 2. Build inside `SCOPE` until every `JUDGED BY` command exits zero and the full suite passes.
    Where the spec and T disagree, stop and report it; do not resolve it by changing either.
+   Add no behaviour the spec does not state (an extra limit, an extra error type): the gate
+   cannot see what T does not test. If the spec seems to need it, say so in your report.
 3. Commit on top of the merge. Never amend, rebase, reset or force: T must stay an ancestor of
    your head.
 4. Return: your head sha, each `JUDGED BY` id with its exit code, the full suite's result, and
