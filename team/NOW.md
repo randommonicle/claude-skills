@@ -26,7 +26,7 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Verification outstanding
 
-- Ask board: the operator answers from a phone; unverified until an answer row appears
+- Ask board answering: verified 2026-10-03 09:58Z, five answers written from the page (device not recorded)
 - The board page's draft guard and save path: no test exercises the script; unverified
 - worktree.baseRef "head" against a repo with a remote (design 5.4); unverified
 

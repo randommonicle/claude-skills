@@ -16,7 +16,7 @@ design's recommendations as defaults where the work cannot wait.
 Checklist:
 
 - [x] Worktree `~/.claude/skills-wt-team-loop-s1` on `feat/team-loop-stage1` from `origin/main` f7de1a1
-- [x] Ask board probe (design section 6, step 0): page published, items seeded, reads and writes observed
+- [x] Ask board probe (design section 6, step 0): page published, items seeded, reads and writes observed, the operator answered all five from the page
 - [x] Probe record `docs/PROBE_ask-board_2026-10-03.md`
 - [x] `team-loop/SKILL.md`, `team-loop/templates/NOW.md`, `team-loop/templates/ASK.md`, `team-loop/ask-board.html`
 - [x] `handover/SKILL.md`: routine notes land in `team/NOW.md`; dated file kept for unusual ends
@@ -95,3 +95,11 @@ and can still exceed 20 s together under slow conditions, noted, not fixed here.
 once the store confirms the write. Skill: a free note is always recorded (by its document id)
 before deletion, an ASK.md deletion is committed, and a park with nothing unblocked writes
 NOW.md before stopping. Three new hook cases, red against 6df27b1.
+
+### Commit 6: the first Ask board answers, recorded
+
+The operator answered ASK-0001 to ASK-0005 from the page at 09:58-09:59Z, which closes probe
+item 2. ASK-0001 ("team-loop", note: "This one is correct") was steering, so it is recorded
+here and not in DECISIONS.md. ASK-0002 to ASK-0005 are in DECISIONS.md under one dated entry
+naming each item id. The board rows are deleted after this commit, per the skill's step 4.
+This is the lifecycle's first real run.
