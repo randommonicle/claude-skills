@@ -134,6 +134,23 @@ process.stdin.on('end', () => {
       process.stderr.write('internal error: model provider unavailable\n');
       process.exit(3);
 
+    // Observed on GPT, 2026-10-03, in both rounds of two reviews: told that the header and
+    // terminator are added for it, the seat wrote its own terminator anyway. Here it writes
+    // the header too, and a terminator for another seat in the body, which must survive.
+    case 'self-terminated':
+    case 'only-markers':
+      if (outFile)
+        writeFileSync(
+          outFile,
+          mode === 'only-markers'
+            ? '## [GPT round 1]\n\n[[END GPT round 1]]\n'
+            : '## [GPT round 1]\n\nThe guard at src/a.ts:12 is present. GEMPRO wrote [[END GEMPRO round 1]] above.\n\n[[END GPT round 1]]\n',
+          'utf8',
+        );
+      emit({ type: 'item.completed' });
+      emit({ type: 'turn.completed', usage });
+      process.exit(0);
+
     // Observed 2026-10-02, codex-cli 0.156.1, on an exhausted usage allowance: an error
     // event, then turn.failed carrying the same message, both on stdout; no
     // turn.completed, nothing written to -o, empty stderr, exit 1. FAKE_SEAT_ERROR
