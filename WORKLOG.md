@@ -64,3 +64,20 @@ a scheduled run stopped by a usage limit) still writes the dated file. Both libr
 `effort: high` (field confirmed in the sub-agents documentation, 2026-10-03); `debugger` and
 `refactorer` exist only in `~/.claude/agents` on this machine and were left alone, since that
 directory is live for other sessions today. This repo's own `team/NOW.md` is the dogfood copy.
+
+### Commit 4: cross-agent review round 1 fixes
+
+Round 1 (GPT on the code, GEMPRO on the prose; GEMPRO's first turn ended empty on an
+auto-denied command and was re-run with every command forbidden) returned ten claims. All ten
+were re-derived against the files and held at least in part. Code: a dirty NOW.md read as
+clean; up to 2N branch lookups at 6 s each could overrun the hook's 20 s budget, now one
+`for-each-ref` listing so no entry reaches git; the template's own `branches:` placeholder
+holds a comma inside parentheses, which split the entry; `origin/<name>` read as missing; and
+a `team/ASK.md` queue was told "never report it empty", which is wrong for a file that is
+empty when current. Page: a snapshot could wipe a form being filled in when another view
+answered, and a rejected `use('db')` would leave the page silent. Prose: edit access must
+still never be shared (an Editor can republish looser rules); the lifecycle lost the
+operator's notes and had no delete point for a PR-comment record; the handover edit dropped
+items 3 and 9, and its "amber is unusual" line meant a disciplined wrap-up would never update
+NOW.md, so NOW.md is now written at every end and the dated file is the extra for unusual
+ends. Five new hook cases, all red against 1c10fbd.

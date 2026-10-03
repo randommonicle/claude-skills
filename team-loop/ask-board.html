@@ -199,11 +199,11 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
       const body = { item: id, choice: d.choice, note: d.note.trim(), answeredAt: new Date().toISOString(), by: uid, via: 'page' };
       try {
         await db.doc('answers/' + id).set(body);
-        d.editing = false;
+        d.editing = false; d.justSaved = true;
         msg.className = 'msg ok'; msg.textContent = 'Saved.';
       } catch (e) {
         if (e && e.code === 'unavailable') {
-          try { await new Promise((r) => setTimeout(r, 600 + Math.random() * 900)); await db.doc('answers/' + id).set(body); d.editing = false; msg.className = 'msg ok'; msg.textContent = 'Saved.'; return; }
+          try { await new Promise((r) => setTimeout(r, 600 + Math.random() * 900)); await db.doc('answers/' + id).set(body); d.editing = false; d.justSaved = true; msg.className = 'msg ok'; msg.textContent = 'Saved.'; return; }
           catch (e2) { e = e2; }
         }
         msg.className = 'msg bad'; msg.textContent = writeFailure(e); send.disabled = false;
@@ -227,8 +227,11 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
     const prev = cards.get(id);
     const d = drafts.get(id);
     if (!force && prev && prev.item === item && prev.answer === answer) return prev.node;
-    // A snapshot must not wipe an answer being typed: keep the open form unless the item itself changed.
-    if (!force && prev && prev.item === item && d && !answer && document.activeElement && prev.node.contains(document.activeElement)) return prev.node;
+    // A snapshot must not wipe a form being filled in, even when another view answers the same
+    // item meanwhile. This view's own save is the one snapshot allowed to close the form.
+    const filling = prev && d && !d.justSaved && (d.editing || !prev.answer) && document.activeElement && prev.node.contains(document.activeElement);
+    if (!force && filling && prev.item === item) return prev.node;
+    if (d) d.justSaved = false;
     const node = buildCard(id, item, answer);
     if (prev) prev.node.replaceWith(node);
     cards.set(id, { node, item, answer });
@@ -265,7 +268,7 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
   async function boot() {
     render();
     const c = window.claude;
-    db = c && typeof c.use === 'function' ? await c.use('db') : null;
+    try { db = c && typeof c.use === 'function' ? await c.use('db') : null; } catch { db = null; }
     if (!db) { failed = 'The queue could not be read on this view: the board needs a signed-in claude.ai viewer. This is not an empty queue: answer in a session instead.'; render(); return; }
     try { const u = await c.use('user'); uid = u ? await u.id() : null; } catch { uid = null; }
     const onErr = (e) => { failed = readFailure(e); render(); };

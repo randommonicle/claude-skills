@@ -387,6 +387,10 @@ test(
 // team/NOW.md cases (2026-10-03). They red against a version with no check, one that
 // treats an uncommitted NOW.md as current, one that never counts commits since it,
 // one that reports no branch at all or every branch, and one that drops the ask line.
+// After cross-agent review (exchange record, 2026-10-03) they also red against a
+// version that misses uncommitted edits to a committed NOW.md, splits a parenthesised
+// note at its comma, misses a branch written as origin/<name>, or tells a session
+// that an empty team/ASK.md is a fault.
 const NOW = (extra = '') => '# NOW\n\ntemplate: team-loop NOW v1\nnext: write the tests\n' + extra;
 const writeNow = (cwd, text) => {
   mkdirSync(join(cwd, 'team'), { recursive: true });
@@ -452,7 +456,7 @@ nowCase(
 );
 
 nowCase(
-  'an entry that is not a branch name is reported missing, never run as an option',
+  'an entry that is not a branch name is reported missing',
   (cwd, g) => commitNow(cwd, g, NOW('branches: --all, a;b\n')),
   async (r) => {
     if (!/do not exist here[^\n]*--all, a;b\./.test(r.context)) return 'junk entries not reported: ' + r.context;
@@ -466,6 +470,63 @@ nowCase(
   async (r) => {
     if (!/Ask queue: https:\/\/claude\.ai\/artifact\/EXAMPLE/.test(r.context)) return 'ask line not surfaced: ' + r.context;
     if (!/never report it empty/.test(r.context)) return 'the unreadable rule was dropped';
+    return true;
+  },
+);
+
+nowCase(
+  'uncommitted edits to a committed NOW.md are called out',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    writeNow(cwd, NOW('next: something newer\n'));
+  },
+  async (r) => {
+    if (!/uncommitted edits/.test(r.context)) return 'a dirty NOW.md read as clean: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'a comma inside a parenthesised note does not split a branch entry',
+  (cwd, g) => commitNow(cwd, g, NOW('branches: main (worktree at ../wt, clean), feat/gone\n')),
+  async (r) => {
+    if (/clean\)/.test(r.context)) return 'the note was split at its comma: ' + r.context;
+    if (!/do not exist here[^.]*: feat\/gone\./.test(r.context)) return 'feat/gone not named: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'a branch written as origin/<name>, or bare, is found on the remote',
+  (cwd, g) => {
+    g('update-ref', 'refs/remotes/origin/feat-r', 'HEAD');
+    commitNow(cwd, g, NOW('branches: origin/feat-r, feat-r\n'));
+  },
+  async (r) => {
+    if (/do not exist here/.test(r.context)) return 'a remote branch was reported missing: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'a file queue reports its open items and is never told empty is a fault',
+  (cwd, g) => {
+    mkdirSync(join(cwd, 'team'), { recursive: true });
+    writeFileSync(join(cwd, 'team', 'ASK.md'), '# ASK\n\n## ASK-0001 · decision\n\n## ASK-0002 · review\n', 'utf8');
+    commitNow(cwd, g, NOW('ask: team/ASK.md\n'));
+  },
+  async (r) => {
+    if (!/team\/ASK\.md holds 2 open item\(s\)/.test(r.context)) return 'open items not counted: ' + r.context;
+    if (/never report it empty/.test(r.context)) return 'a file queue was given the board rule';
+    return true;
+  },
+);
+
+nowCase(
+  'a file queue that does not exist is named',
+  (cwd, g) => commitNow(cwd, g, NOW('ask: team/ASK.md\n')),
+  async (r) => {
+    if (!/names team\/ASK\.md, which does not exist here/.test(r.context)) return 'missing ASK.md not named: ' + r.context;
     return true;
   },
 );

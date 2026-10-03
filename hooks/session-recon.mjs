@@ -135,11 +135,13 @@ function skillsUpdateLine() {
 
 // team/NOW.md is the team-loop resume board (team-loop/SKILL.md): described state, so a
 // session that resumes from it must check it against git first (live-state-first). This
-// does the mechanical half: how many commits HEAD has moved since NOW.md was committed,
-// whether it is committed at all, and which branches on its `branches:` line no longer
-// exist. It also surfaces the `ask:` line, because answers waiting on the operator's queue
-// are read at session start. Silent when the repo has no team/NOW.md. Fail-open.
-const BRANCH = /^[A-Za-z0-9._][A-Za-z0-9._\/-]*$/;
+// does the mechanical half: whether NOW.md is committed, whether the working copy differs
+// from that commit, how many commits HEAD has moved since, and which branches on its
+// `branches:` line exist neither locally nor on origin. It surfaces the `ask:` line too,
+// because the operator's answers are read at session start. Five git calls at most,
+// whatever NOW.md says, so a long branches line cannot push the hook past its timeout.
+// Silent when the repo has no team/NOW.md. Fail-open.
+const LOCAL_GIT_MS = 3000;
 
 function nowLine(cwd) {
   try {
@@ -147,42 +149,57 @@ function nowLine(cwd) {
     const path = join(cwd, 'team', 'NOW.md');
     if (!existsSync(path)) return null;
     const text = readFileSync(path, 'utf8');
+    const git = (...args) => run('git', ['-C', cwd, ...args], LOCAL_GIT_MS);
     const out = [];
-    const last = run('git', ['-C', cwd, 'log', '-1', '--format=%h %cs', '--', rel]);
+    const last = git('log', '-1', '--format=%h %cs', '--', rel);
     if (!last) {
       out.push(rel + ' exists but is not committed, so no other checkout or machine sees it. Read it, then commit it.');
     } else {
       const [sha, date] = last.split(' ');
-      const count = run('git', ['-C', cwd, 'rev-list', '--count', sha + '..HEAD']);
+      const count = git('rev-list', '--count', sha + '..HEAD');
       const behind = count === null ? NaN : Number(count);
+      const dirty = git('status', '--porcelain', '--', rel);
       out.push(
         rel + ' is the resume board: read it first. Last committed at ' + sha + ' on ' + date +
           (!Number.isFinite(behind)
             ? '; how far HEAD has moved since could not be counted, so check it against git log before acting on it.'
             : behind > 0
               ? '; ' + behind + ' commit(s) have landed on this branch since, so check it against git log before acting on it.'
-              : ', level with HEAD.'),
+              : ', level with HEAD.') +
+          (dirty ? ' Its working copy has uncommitted edits, so other checkouts still see the committed version.' : ''),
       );
     }
     const branches = /^branches:[ \t]*(.*)$/im.exec(text);
     if (branches) {
-      const missing = [];
-      for (const entry of branches[1].split(',')) {
-        const name = entry.trim().split(/[\s(]/)[0].replace(/`/g, '');
-        if (!name || /^none$/i.test(name)) continue;
-        const exists =
-          BRANCH.test(name) &&
-          (run('git', ['-C', cwd, 'rev-parse', '--verify', '--quiet', 'refs/heads/' + name]) ||
-            run('git', ['-C', cwd, 'rev-parse', '--verify', '--quiet', 'refs/remotes/origin/' + name]));
-        if (!exists) missing.push(name);
+      // One listing, so each entry is a set lookup and no entry ever reaches git.
+      const refs = git('for-each-ref', '--format=%(refname:short)', 'refs/heads', 'refs/remotes/origin');
+      if (refs === null) out.push('The branches NOW.md names could not be checked: git for-each-ref failed.');
+      else {
+        const known = new Set(refs.split('\n').map((s) => s.trim()).filter(Boolean));
+        const missing = [];
+        // A parenthesised note may hold commas, so notes go before the split.
+        for (const entry of branches[1].replace(/\([^)]*\)/g, '').split(',')) {
+          const name = entry.trim().split(/\s/)[0].replace(/`/g, '');
+          if (!name || /^none$/i.test(name)) continue;
+          if (!known.has(name) && !known.has('origin/' + name)) missing.push(name);
+        }
+        if (missing.length) out.push('Branches NOW.md names that do not exist here, locally or on origin: ' + missing.join(', ') + '.');
       }
-      if (missing.length) out.push('Branches NOW.md names that do not exist here, locally or on origin: ' + missing.join(', ') + '.');
     }
     const ask = /^ask:[ \t]*(\S.*)$/im.exec(text);
-    if (ask)
-      out.push(
-        'Ask queue: ' + ask[1].trim() + '. Read its answers before starting work; if it cannot be read, say so and ask in the session, never report it empty.',
-      );
+    if (ask) {
+      const where = ask[1].trim();
+      if (/^https?:\/\//i.test(where)) {
+        out.push(
+          'Ask queue: ' + where + '. Read its meta/status, answers and notes before starting work; if it cannot be read, say so and ask in the session, never report it empty.',
+        );
+      } else if (!existsSync(join(cwd, ...where.split('/')))) {
+        out.push('Ask queue: NOW.md names ' + where + ', which does not exist here.');
+      } else {
+        const open = (readFileSync(join(cwd, ...where.split('/')), 'utf8').match(/^## ASK-\d+/gm) || []).length;
+        out.push('Ask queue: ' + where + ' holds ' + open + ' open item(s); read their answers before starting work.');
+      }
+    }
     return out.join(' ');
   } catch {
     return null;

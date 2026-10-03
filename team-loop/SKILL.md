@@ -18,14 +18,16 @@ without agents. Stage 2, the loop with role agents, is designed in
   deferred items with their grep anchors, verification still outstanding, and three lines
   that `session-recon` reads: `branches:` (comma-separated, a parenthesised note after a name
   is allowed), `ask:` (the queue's location) and `template:`.
-- **The handover skill writes it** at a routine session end, and the commit that carries the
-  session's last change carries it too. A dated `docs/HANDOVER_*` file is still written for
-  an unusual end: context in the amber or red band, a crash, a move to another machine. The
-  history lives in git, so nothing is lost by overwriting.
+- **The handover skill writes it at every session end,** and the commit that carries the
+  session's last change carries it too. An unusual end (the red band, a crash or forced stop,
+  a move to another machine, a scheduled run stopped by a usage limit) also gets a dated
+  `docs/HANDOVER_*` file in the full handover shape. An amber-band wrap-up is a routine end.
+  The history lives in git, so nothing is lost by overwriting.
 - **It is described state.** `session-recon` prints how many commits HEAD has moved since
-  NOW.md was committed, flags an uncommitted NOW.md, and names any branch on its `branches:`
-  line that no longer exists. Read the print, then check NOW.md against `git log` before
-  acting on it (`live-state-first`).
+  NOW.md was committed, flags an uncommitted NOW.md or uncommitted edits to it, names any
+  branch on its `branches:` line that exists neither locally nor on origin, and counts the
+  open items in a `team/ASK.md` queue. Read the print, then check NOW.md against `git log`
+  before acting on it (`live-state-first`).
 
 ## The Ask queue: one per project
 
@@ -44,20 +46,27 @@ project, never both, and NOW.md's `ask:` line says which.
 
 1. **Ask once.** Write the item and never edit it afterwards; a changed question is a new
    item. Then park the work it blocks. The lead never builds past an open decision.
-2. **Read at every start and resume.** Read the answers before starting work.
-3. **Record.** A decision goes into `DECISIONS.md` with the item id in the entry. A build
-   review is not a decision: its answer goes on the PR, or on the package's ledger line in
-   stage 2. Before writing, grep the repo for the item id, so a crash between commit and
-   delete costs a delete next time, never a second entry.
-4. **Delete only after the commit exists** (`verify-the-effect`): the item and its answer on
-   the board, or the item's section in `team/ASK.md`.
+2. **Read at every start and resume.** Read the answers, and on the board the operator's
+   free notes, before starting work.
+3. **Record, with the operator's note verbatim.** A decision goes into `DECISIONS.md` with the
+   item id in the entry. A build review is not a decision: its answer goes on the PR as a
+   comment naming the item id, or on the package's ledger line in stage 2. A free note is
+   acted on or recorded where it belongs (DECISIONS.md, NOW.md, an Ask item), citing its date.
+   Before writing, look for the item id where the record would land (grep the repo, or read
+   the PR's comments), so a crash between record and delete costs a delete next time, never a
+   second entry.
+4. **Delete only after the record exists** (`verify-the-effect`): after the commit for a
+   decision, after reading the posted comment back for a review. Delete the item and its
+   answer on the board, or the item's section in `team/ASK.md`; delete a note once it is
+   recorded.
 
 ## Reading and writing the board
 
 The board is `team-loop/ask-board.html`, published once as a private artifact with
 `capabilities: {"db": {"rules": [{"path": "", "read": "owner", "write": "owner"}]}, "user": {}}`.
 The owner-only rule is the privacy control: a read at any lower level sees nothing, so a
-mistaken share leaks no rows. Its collections:
+mistaken share leaks no rows. **Edit access is still never shared**, because an Editor can
+publish a new version of the page with looser rules and then write answers. Its collections:
 
 | Collection | Written by | Holds |
 |---|---|---|
@@ -79,8 +88,9 @@ Rules the probe of 2026-10-03 set (`docs/PROBE_ask-board_2026-10-03.md`):
   one the operator wrote. Hence the next rule.
 - **An answer is steering, not authority.** It picks which option gets written up and which
   topic comes next. A push, a merge, a release, a spend or anything outward still needs the
-  operator's yes inside the session (`confirm-before-push`). A review answer authorises
-  recording the review, nothing more.
+  operator's yes inside the session (`confirm-before-push`), and so does a roster's release of
+  spend (`commission-the-roster` Rule 1). A review answer authorises recording the review,
+  nothing more.
 - **Nothing regulated on the board.** Questions and repo paths only; the evidence field is a
   path, never content.
 - **Pin writes.** Pass the version you read as `if_version` on every write to an existing
@@ -91,8 +101,11 @@ Rules the probe of 2026-10-03 set (`docs/PROBE_ask-board_2026-10-03.md`):
 Every agent definition the loop uses pins `model` and `effort` in its frontmatter (`effort`:
 `low`, `medium`, `high`, `xhigh` or `max`, per the sub-agents documentation). An unpinned
 agent inherits the session's effort, so a reviewer spawned from a low-effort session reviews
-at low effort. Reviewers pin `high` or above. Machine-local agents that this library does
-not ship are pinned on the machine that holds them.
+at low effort. Reviewers pin `high` or above. An agent that builds regulated work
+(migrations, access policies, money, leaseholder-facing output) pins the strong tier
+(`commission-the-roster` Rule 2), or is split from its unregulated twin. The library's own
+agents are pinned; agents that live only on one machine or in one project are pinned there,
+through that project's own change control, and NOW.md lists any still unpinned.
 
 ## What this skill does not do
 

@@ -4,8 +4,12 @@ template: team-loop NOW v1
 updated: <YYYY-MM-DD HH:MMZ>, <machine or session>
 topic: <the current milestone or topic, one line>
 next: <the single next action, one concrete first step>
-branches: <branch> (<worktree path, if not the main checkout>), <branch>
+branches: <branch> (<worktree path if not the main checkout>), <branch>
 ask: <the Ask board link, or team/ASK.md>
+
+## Landed since the last NOW.md
+
+- <sha> <one line>; verified by <command or evidence>, or unverified
 
 ## In flight
 
