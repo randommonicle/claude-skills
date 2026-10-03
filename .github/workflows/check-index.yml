@@ -122,6 +122,7 @@ jobs:
       # FORWARD: cross-agent-review/scripts/run-seat.test.mjs runs nowhere
       # (LESSONS_LEARNED 28). Add it as its own step once one run on this
       # runner is green; until then it is run by hand only.
+      # FORWARD: team-loop/ask-board.test.mjs runs nowhere either, on the same rule.
 
   # The win32 half of the hooks job. Only the PowerShell-driven suites run here:
   # everything else is already covered on Linux, and this job exists to close the gap

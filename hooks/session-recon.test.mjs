@@ -655,6 +655,15 @@ nowCase(
 );
 
 nowCase(
+  'a committed NOW.md missing from the working copy is reported, not silent',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    rmSync(join(cwd, 'team', 'NOW.md'));
+  },
+  async (r) => (/missing from the working copy/.test(r.context) ? true : 'a deleted resume board went unreported: ' + r.context),
+);
+
+nowCase(
   'an ask: path in backticks with a note is read, and ask: none is silent',
   (cwd, g) => {
     mkdirSync(join(cwd, 'team'), { recursive: true });

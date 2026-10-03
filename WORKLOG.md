@@ -127,6 +127,30 @@ cases, all red against c22724b; the stand-in's stub-DOM repros (scratchpad `s1`,
 `s3`, `s4`) re-run green on the fixed page. Not fixed: the hook's older calls can still near
 the 20 s limit on a slow machine; the comment no longer claims otherwise.
 
+### Commit 9: GPT's round 3, three page findings (evening 2026-10-03)
+
+GPT's own round 3, owed since the stand-in, ran at 17:2x BST (headless continuation). It held
+the convergence open with three findings in `team-loop/ask-board.html`, each reproduced on a
+stub DOM before fixing. An empty read arriving before `meta/status` said "No open decisions",
+and a failed `meta/status` read did the same (its error callback was empty): the empty state
+now waits while the sentinel is unread and says the status could not be read when it fails. A
+changed answer, confirmed with no echo from the store, showed the old choice because `saved()`
+only wrote the answer when none was held: the confirmed write is now always the shown answer.
+Any edit mid-write re-enabled Send and the click had no in-flight guard, so two writes could
+race: `sync()` keeps Send disabled while saving and the click returns early. New
+`team-loop/ask-board.test.mjs` (stub DOM, stdlib only): 4 of 5 cases red against the parent
+page, the control case green; all 5 green after. It runs nowhere in CI yet, a `FORWARD:` line
+beside the run-seat one says so. Still unverified in a real browser.
+
+### Commit 10: nowLine speaks when a committed NOW.md is deleted
+
+GPT's first round on stage 2 (finding 5) reached stage 1 code: `nowLine` returned at once when
+`team/NOW.md` was absent, so a resume board that HEAD tracks but the working copy had deleted
+produced no line. It now asks `git ls-tree HEAD` and, when HEAD has the file, says it is
+missing from the working copy and to restore it; a git failure stays silent (fail-open). New
+case in `hooks/session-recon.test.mjs`, red before the fix; every `hooks/*.test.mjs` suite
+green after.
+
 ## Team-loop stage 2, plugin pieces (branch `feat/team-loop-stage2`, opened 2026-10-03)
 
 Goal: the plugin side of `docs/DESIGN_team-loop_2026-10-02.md` section 5, inert until a project

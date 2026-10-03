@@ -91,7 +91,7 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
   let db = null, uid = null;
   let items = new Map(), answers = new Map(), notes = [];
   let itemsDefinitive = false, answersDefinitive = false, failed = null;
-  let meta = 'unread'; // 'unread' | 'present' | 'absent': the board's sentinel document
+  let meta = 'unread'; // 'unread' | 'present' | 'absent' | 'failed': the board's sentinel document
   const drafts = new Map();   // itemId -> { choice, note, editing }
   const cards = new Map();    // itemId -> { node, item, answer, editing }
 
@@ -137,11 +137,15 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
     s.hidden = items.size > 0;
     // An empty read means an empty queue only when the board's sentinel document is visible
     // too; without it, empty and unreadable look the same, so say that instead.
-    s.classList.toggle('bad', items.size === 0 && meta === 'absent');
+    s.classList.toggle('bad', items.size === 0 && (meta === 'absent' || meta === 'failed'));
     s.textContent =
       meta === 'absent'
         ? 'Nothing is visible on this view, and the board’s status document is missing as well, so an empty queue cannot be told from an unreadable one. Ask in a session.'
-        : 'No open decisions. The lead adds items here when a session needs your call; each one is recorded in its repo once you answer.';
+        : meta === 'failed'
+          ? 'Nothing is visible on this view, and the board’s status document could not be read, so an empty queue cannot be told from an unreadable one. Ask in a session.'
+          : meta === 'unread'
+            ? 'Reading the queue. Items appear here once the store answers.'
+            : 'No open decisions. The lead adds items here when a session needs your call; each one is recorded in its repo once you answer.';
   }
 
   function buildCard(id, item, answer) {
@@ -202,10 +206,11 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
     const msg = el('span', d.error ? 'msg bad' : 'msg', d.error || null); msg.setAttribute('role', 'status');
     function sync() {
       const needNote = d.choice === 'other' && !d.note.trim();
-      send.disabled = false;
+      send.disabled = !!d.saving; // one write at a time: an edit mid-flight must not re-arm Send
       send.title = !d.choice ? 'Pick an option first' : needNote ? 'Say what in the note' : '';
     }
     send.addEventListener('click', async () => {
+      if (d.saving) return;
       if (!d.choice) { msg.className = 'msg bad'; msg.textContent = 'Pick an option first.'; return; }
       if (d.choice === 'other' && !d.note.trim()) { msg.className = 'msg bad'; msg.textContent = 'Say what you want in the note.'; return; }
       send.disabled = true; msg.className = 'msg'; msg.textContent = 'Saving…';
@@ -215,7 +220,9 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
       // lie if it is then rejected. The form closes only on confirmation, by a forced refresh;
       // a rejection is kept on the draft, so it survives any rebuild of the card.
       d.saving = true; d.error = '';
-      const saved = () => { d.saving = false; if (!answers.has(id)) answers.set(id, body); d.editing = false; refreshCard(id, true); };
+      // The confirmed write is the answer, whether or not the store echoed it: a changed
+      // answer must not show the old one.
+      const saved = () => { d.saving = false; answers.set(id, body); d.editing = false; refreshCard(id, true); };
       try {
         await db.doc('answers/' + id).set(body);
         saved();
@@ -312,7 +319,7 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
       renderState();
       $('lead').hidden = !(v && v.text);
       if (v && v.text) { $('leadText').textContent = String(v.text); $('leadAt').textContent = v.at ? '· ' + fmt(v.at) : ''; }
-    }, () => {});
+    }, () => { if (meta !== 'present') { meta = 'failed'; renderState(); } });
     $('noteBox').hidden = false;
   }
   boot();
