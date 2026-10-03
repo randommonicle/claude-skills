@@ -106,6 +106,8 @@ test('an honest package passes, keeps the tested merge, writes the board row, le
   if (!row.includes(r.T.slice(0, 8)) || !row.includes('| pass |') || !row.includes('| adds |')) return 'board row not written: ' + row;
   f.g('merge', '--ff-only', 'refs/team-loop/tested/WP-001');
   if (f.g('rev-parse', 'HEAD') !== r.tested) return 'the printed fast-forward does not land on the tested merge';
+  const title = f.g('log', '-1', '--format=%s');
+  if (!/^Merge WP-001 \(wp1 at [0-9a-f]{8}\) into milestone$/.test(title)) return 'merge title: ' + title;
   return true;
 });
 

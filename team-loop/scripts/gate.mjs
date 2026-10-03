@@ -287,7 +287,10 @@ export function gate(argv) {
     // 4. Green on the merge that will be committed.
     const atMerge = scratch(repo, milestone, 'green', cleanup);
     const id = ['-c', 'user.name=team-loop gate', '-c', 'user.email=gate@team-loop.invalid', '-c', 'commit.gpgsign=false'];
-    const m = git(atMerge, [...id, 'merge', '--no-ff', '--no-edit', head], {
+    // A detached HEAD would title the merge "Merge commit '<sha>' into HEAD" (seen on the
+    // 2026-10-03 ride); this is the message the milestone keeps after the fast-forward.
+    const title = 'Merge ' + a.wp + ' (' + a.head + ' at ' + head.slice(0, 8) + ') into ' + a.milestone;
+    const m = git(atMerge, [...id, 'merge', '--no-ff', '-m', title, head], {
       allowFail: true,
     });
     if (!m.ok) throw new GateError('check 4: the head does not merge cleanly into the milestone tip');

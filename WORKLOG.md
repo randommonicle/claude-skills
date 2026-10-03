@@ -222,3 +222,12 @@ and the worktree is created by the agent with `git worktree add`, since this ses
 directory is not a git repo and `isolation: worktree` needs one. The ride therefore proves the
 contract and the gate, not the frontmatter loading or harness isolation (that was probed
 2026-10-02, design 5.4).
+
+### Commit 9: the ride, recorded; the tested merge gets a readable title
+
+The ride passed end to end: a real sonnet builder kept to the contract (tests first, stop,
+build on top of T, SCOPE only), the gate passed it and refused a copy with a weakened test,
+and the fast-forward landed with the milestone suite green. Record:
+`docs/RIDE_team-loop-stage2_2026-10-03.md`. One change from it: the gate's merge in a
+detached scratch worktree was titled "Merge commit '<sha>' into HEAD"; it now names the
+package, branch, sha and milestone, asserted in the honest-package case.
