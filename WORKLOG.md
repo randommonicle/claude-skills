@@ -16,7 +16,7 @@ no merge into main (Ben, 2026-10-03 12:47 BST: "re-clone and build").
       legal-notice-analyser); security grep over them clean
 - [x] `contract-review` (SKILL.md, UPSTREAM.md, three verbatim references), count 47
 - [x] `legal-citation-integrity` + `verified-citations` Routes bullet, count 48
-- [ ] `statute-to-obligations-register`, count 49
+- [x] `statute-to-obligations-register`, count 49
 - [ ] `legal-notice-handling` (three modes), count 50
 - [ ] Wiring: README fork sentence and forks row, NOTICE
 - [ ] Gates: check-index (50), check-archives (unchanged 5/17), unslop scan high 0 on each new
@@ -64,3 +64,14 @@ bullet plus the README hub row). Deviation from the plan: adding the bullet made
 `check-archives` red, because `verified-citations` ships a `.skill` archive the handover did not
 mention; repacked it with `node hooks/pack-skill.mjs verified-citations` (still 5 archives, 17
 members). No statutory claims in this skill.
+
+**statute-to-obligations-register.** Red check: no empty cell, extracted count equals register
+plus powers-and-rights plus dropped-with-reason, and every status read from the page. Added a
+type table so a power or a right never enters the register as a duty, and a commencement status
+column. The worked example uses LTA 1985 ss.20B and 21B because both carry prospective changes
+from the Leasehold and Freehold Reform Act 2024, which shows why the status column exists; both
+read on legislation.gov.uk today (table above). Dropped a planned s.21 example: WebFetch's
+summary of that page named the amending Act wrongly, and the page itself shows a layered
+substitution history too involved for a worked example. Lesson for the rest of the unit: read
+statute text through the page's `/data.xml`, not a summarising fetch. The first draft scanned
+high: 4 (bold lead-in labels in a list); rewritten as a table, now high: 0.
