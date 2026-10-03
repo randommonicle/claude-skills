@@ -1,22 +1,22 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-03 10:25Z, desktop session in Projects\Unslop (operator away all day)
-topic: team-loop stage 1, built on a local branch; cross-agent review round 2 next
-next: run round 2 of exchange/REVIEW_team-loop-s1_2026-10-03.md (both seats check the fixes)
-branches: feat/team-loop-stage1 (worktree ~/.claude/skills-wt-team-loop-s1)
+updated: 2026-10-03 11:00Z, desktop session in Projects\Unslop (operator away all day)
+topic: team-loop stages 1 and 2 built locally; GPT review rounds owed after 14:42Z
+next: at 15:51 BST run GPT on exchange/REVIEW_team-loop-s1 (round 3) and -s2 (round 1), in their worktrees
+branches: feat/team-loop-stage1 (~/.claude/skills-wt-team-loop-s1), feat/team-loop-stage2 (~/.claude/skills-wt-team-loop-s2), fix/run-seat-double-end (~/.claude/skills-wt-run-seat-end)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
-- d2c74c7 team-loop skill, templates, board page, probe record; verified by check-index
-- 1c10fbd session-recon NOW.md check; verified by the suite, six cases red on f7de1a1
-- 51ed6ef handover routing, effort pins, this file; unverified that pins change effort
-- review round 1 fixes (next commit); verified by the suite, five new cases red on 1c10fbd
+- stage 1: d2c74c7..c22724b (8 commits); verified by the suites, every new case red on its parent
+- stage 2: a2ab11a..2ef86fc (6 commits); 33 gate cases, each check mutated off goes red
+- fix/run-seat-double-end 28d5dac; two cases red on main
 
 ## In flight
 
-- Nothing half-edited. WORKLOG.md carries the checklist and the per-commit notes.
+- Stage 1 stand-in review (code-reviewer subagent, same model family as the hub) still running
+- Open board items: ASK-0006 (pilot setup timing), ASK-0007 (gate form), ASK-0008 (next unit)
 
 ## Deferred, with grep anchors
 
@@ -26,8 +26,8 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Verification outstanding
 
-- Ask board answering: verified 2026-10-03 09:58Z, five answers written from the page (device not recorded)
-- The board page's draft guard and save path: no test exercises the script; unverified
+- The gate suite as a CI step on the runner: not run, nothing pushed today
+- The board page script: no test exercises it; its fixes are unverified in a browser
 - worktree.baseRef "head" against a repo with a remote (design 5.4); unverified
 
 ## Traps
@@ -36,3 +36,4 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 - A scheduled desktop task runs in the creating session's folder and stalls on a write outside it
 - Mobile push is disabled in this app's config: reach the operator by email or the board
 - agy seats: forbid every command in the ask, or one denied command ends the turn empty
+- Heredocs and node -e eat backslashes in regexes: use the Edit tool for those edits
