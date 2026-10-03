@@ -1,0 +1,288 @@
+<title>Ask Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column docket, summary strip first, then one card per open item, oldest first. */
+:root {
+  --bg: #f3f5f8; --surface: #ffffff; --fg: #1b2330; --muted: #5b6576; --line: #d6dce5;
+  --accent: #2f5d8a; --accent-ink: #ffffff; --rec: #1f7a4d; --warn: #9a5800; --bad: #a3262a;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11151b; --surface: #1a2029; --fg: #e6eaf0; --muted: #9aa4b2; --line: #2c3440;
+  --accent: #86acd8; --accent-ink: #0d1117; --rec: #63c08f; --warn: #e2a654; --bad: #ef8a86; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11151b; --surface: #1a2029; --fg: #e6eaf0; --muted: #9aa4b2; --line: #2c3440;
+  --accent: #86acd8; --accent-ink: #0d1117; --rec: #63c08f; --warn: #e2a654; --bad: #ef8a86; color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.5 var(--body); }
+.wrap { max-width: 44rem; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 16px; }
+h1 { font-size: 1.5rem; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; font-size: .95rem; }
+.strip { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.strip b { color: var(--fg); }
+.lead { border-left: 3px solid var(--accent); padding: 8px 12px; background: var(--surface); border-radius: 4px; }
+.lead .lbl { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.lead p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.state { padding: 16px; border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); }
+.state.bad { border-style: solid; border-color: var(--bad); color: var(--fg); }
+.list { display: grid; gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.card.done { border-color: var(--rec); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font: 500 .78rem var(--mono); }
+.chip { padding: 1px 7px; border-radius: 3px; border: 1px solid var(--line); color: var(--muted); }
+.chip.id { color: var(--fg); }
+.chip.blocks { border-color: var(--warn); color: var(--warn); }
+.q { font-size: 1.08rem; font-weight: 700; margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
+.ctx { margin: 0; color: var(--fg); white-space: pre-wrap; overflow-wrap: anywhere; }
+.ev { font: .8rem var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; min-width: 0; }
+legend { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.opt { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; cursor: pointer; }
+.opt:has(input:checked) { border-color: var(--accent); outline: 1px solid var(--accent); }
+.opt input { margin-top: 4px; accent-color: var(--accent); }
+.opt span { min-width: 0; overflow-wrap: anywhere; }
+.rec { font: 500 .72rem var(--mono); color: var(--rec); margin-left: 6px; white-space: nowrap; }
+textarea { width: 100%; box-sizing: border-box; min-height: 3.2rem; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font: 700 .95rem var(--body); padding: 9px 16px; border-radius: 5px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+button.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: .55; cursor: not-allowed; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.msg { font-size: .9rem; }
+.msg.bad { color: var(--bad); }
+.msg.ok { color: var(--rec); }
+.ans { font-size: .95rem; }
+.ans b { color: var(--rec); }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; }
+summary { cursor: pointer; font-weight: 700; }
+details .inner { display: grid; gap: 10px; margin-top: 10px; }
+.sent { font-size: .85rem; color: var(--muted); display: grid; gap: 4px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Ask Board</h1>
+    <p class="sub">Open decisions from Claude Code sessions. Your answer steers what gets written up next. Pushes, merges and spending are still approved inside a session.</p>
+  </header>
+  <div class="strip" id="strip"><span>Reading the queue…</span></div>
+  <div class="lead" id="lead" hidden><div class="lbl">From the lead <span id="leadAt"></span></div><p id="leadText"></p></div>
+  <div class="state" id="state">Reading the queue. Items appear here once the store answers.</div>
+  <div class="list" id="list"></div>
+  <details id="noteBox" hidden>
+    <summary>Send the lead a note</summary>
+    <div class="inner">
+      <label for="noteText" class="sub">Anything not tied to one item: a redirect, a priority, a correction. The lead reads notes when a session starts or resumes.</label>
+      <textarea id="noteText" maxlength="2000"></textarea>
+      <div class="row"><button id="noteSend" type="button">Send note</button><span class="msg" id="noteMsg" role="status"></span></div>
+      <div class="sent" id="noteList"></div>
+    </div>
+  </details>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const fmt = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); };
+
+  let db = null, uid = null;
+  let items = new Map(), answers = new Map(), notes = [];
+  let itemsDefinitive = false, failed = null;
+  const drafts = new Map();   // itemId -> { choice, note, editing }
+  const cards = new Map();    // itemId -> { node, item, answer, editing }
+
+  // One message per failure mode. A read that failed must never show as an empty queue.
+  const readFailure = (e) => {
+    const code = e && e.code;
+    if (code === 'revoked') return 'Access to this board was withdrawn while it was open. Reload, or answer in a session.';
+    if (code === 'resource_exhausted') return 'The store is rate-limiting this view. Wait a minute and reload.';
+    return 'The queue could not be read (' + (code || 'unknown') + '). This is not an empty queue: answer in a session instead.';
+  };
+  const writeFailure = (e) => {
+    const code = e && e.code;
+    if (code === 'invalid_argument') return 'Not saved: this view cannot write to the board. Only its owner can answer.';
+    if (code === 'resource_exhausted') return 'Not saved: too many writes in a short time. Wait a minute, then send again.';
+    if (code === 'quota_exceeded') return 'Not saved: the board is full. Tell the lead in a session.';
+    if (code === 'revoked') return 'Not saved: access to this board was withdrawn. Reload the page.';
+    return 'Not saved: the store did not answer (' + (code || 'unknown') + '). Send again in a moment.';
+  };
+
+  function renderStrip() {
+    const strip = $('strip');
+    strip.replaceChildren();
+    if (failed) { strip.append(el('span', null, 'Queue unreadable')); return; }
+    if (!itemsDefinitive) { strip.append(el('span', null, 'Reading the queue…')); return; }
+    const open = [...items.keys()].filter((k) => !answers.has(k)).length;
+    const waiting = [...items.keys()].filter((k) => answers.has(k)).length;
+    const a = el('span'); a.append(el('b', null, String(open)), ' open');
+    const b = el('span'); b.append(el('b', null, String(waiting)), ' answered, not yet recorded');
+    strip.append(a, b, el('span', null, 'Read ' + fmt(new Date().toISOString())));
+  }
+
+  function renderState() {
+    const s = $('state');
+    s.classList.toggle('bad', !!failed);
+    if (failed) { s.hidden = false; s.textContent = failed; return; }
+    if (!itemsDefinitive) { s.hidden = false; s.textContent = 'Reading the queue. Items appear here once the store answers.'; return; }
+    s.hidden = items.size > 0;
+    s.textContent = 'No open decisions. The lead adds items here when a session needs your call; each one is recorded in its repo once you answer.';
+  }
+
+  function buildCard(id, item, answer) {
+    const d = drafts.get(id) || { choice: null, note: '', editing: false };
+    drafts.set(id, d);
+    const card = el('article', 'card' + (answer && !d.editing ? ' done' : ''));
+    card.id = 'card-' + id;
+    const meta = el('div', 'meta');
+    meta.append(el('span', 'chip id', id));
+    if (item.project) meta.append(el('span', 'chip', String(item.project)));
+    if (item.kind) meta.append(el('span', 'chip', String(item.kind)));
+    if (item.blocks) meta.append(el('span', 'chip blocks', 'blocks: ' + String(item.blocks)));
+    if (item.askedAt) meta.append(el('span', 'chip', 'asked ' + fmt(item.askedAt)));
+    card.append(meta, el('p', 'q', String(item.question || '(no question text)')));
+    if (item.context) card.append(el('p', 'ctx', String(item.context)));
+    if (item.evidence) card.append(el('div', 'ev', 'evidence: ' + String(item.evidence)));
+
+    if (answer && !d.editing) {
+      const opts = Array.isArray(item.options) ? item.options : [];
+      const picked = opts.find((o) => o && o.key === answer.choice);
+      const p = el('p', 'ans');
+      p.append('Answered ', el('b', null, picked ? String(picked.label) : String(answer.choice)), answer.answeredAt ? ' on ' + fmt(answer.answeredAt) : '', '. Waiting for the lead to record it.');
+      card.append(p);
+      if (answer.note) card.append(el('p', 'ctx', 'Your note: ' + String(answer.note)));
+      const row = el('div', 'row');
+      const change = el('button', 'ghost', 'Change answer');
+      change.type = 'button';
+      change.addEventListener('click', () => { d.editing = true; d.choice = answer.choice; d.note = answer.note || ''; refreshCard(id, true); });
+      row.append(change);
+      card.append(row);
+      return card;
+    }
+
+    const fs = el('fieldset');
+    fs.append(el('legend', null, 'Your call'));
+    const opts = Array.isArray(item.options) ? item.options.filter((o) => o && o.key) : [];
+    const all = opts.concat([{ key: 'other', label: 'Something else (say what in the note)' }]);
+    for (const o of all) {
+      const lab = el('label', 'opt');
+      const r = el('input');
+      r.type = 'radio'; r.name = 'opt-' + id; r.id = 'opt-' + id + '-' + o.key; r.value = o.key;
+      r.checked = d.choice === o.key;
+      r.addEventListener('change', () => { d.choice = o.key; sync(); });
+      const span = el('span', null, String(o.label));
+      if (item.recommend && item.recommend === o.key) span.append(el('span', 'rec', 'recommended'));
+      lab.append(r, span);
+      fs.append(lab);
+    }
+    card.append(fs);
+    const ta = el('textarea');
+    ta.id = 'note-' + id; ta.maxLength = 2000; ta.placeholder = 'Note for the lead (optional, required for "something else")';
+    ta.value = d.note;
+    ta.addEventListener('input', () => { d.note = ta.value; sync(); });
+    card.append(ta);
+    const row = el('div', 'row');
+    const send = el('button', null, 'Send answer');
+    send.type = 'button';
+    const msg = el('span', 'msg'); msg.setAttribute('role', 'status');
+    function sync() {
+      const needNote = d.choice === 'other' && !d.note.trim();
+      send.disabled = false;
+      send.title = !d.choice ? 'Pick an option first' : needNote ? 'Say what in the note' : '';
+    }
+    send.addEventListener('click', async () => {
+      if (!d.choice) { msg.className = 'msg bad'; msg.textContent = 'Pick an option first.'; return; }
+      if (d.choice === 'other' && !d.note.trim()) { msg.className = 'msg bad'; msg.textContent = 'Say what you want in the note.'; return; }
+      send.disabled = true; msg.className = 'msg'; msg.textContent = 'Saving…';
+      const body = { item: id, choice: d.choice, note: d.note.trim(), answeredAt: new Date().toISOString(), by: uid, via: 'page' };
+      try {
+        await db.doc('answers/' + id).set(body);
+        d.editing = false;
+        msg.className = 'msg ok'; msg.textContent = 'Saved.';
+      } catch (e) {
+        if (e && e.code === 'unavailable') {
+          try { await new Promise((r) => setTimeout(r, 600 + Math.random() * 900)); await db.doc('answers/' + id).set(body); d.editing = false; msg.className = 'msg ok'; msg.textContent = 'Saved.'; return; }
+          catch (e2) { e = e2; }
+        }
+        msg.className = 'msg bad'; msg.textContent = writeFailure(e); send.disabled = false;
+      }
+    });
+    row.append(send);
+    if (answer) {
+      const cancel = el('button', 'ghost', 'Keep my earlier answer');
+      cancel.type = 'button';
+      cancel.addEventListener('click', () => { d.editing = false; refreshCard(id, true); });
+      row.append(cancel);
+    }
+    row.append(msg);
+    card.append(row);
+    sync();
+    return card;
+  }
+
+  function refreshCard(id, force) {
+    const item = items.get(id), answer = answers.get(id);
+    const prev = cards.get(id);
+    const d = drafts.get(id);
+    if (!force && prev && prev.item === item && prev.answer === answer) return prev.node;
+    // A snapshot must not wipe an answer being typed: keep the open form unless the item itself changed.
+    if (!force && prev && prev.item === item && d && !answer && document.activeElement && prev.node.contains(document.activeElement)) return prev.node;
+    const node = buildCard(id, item, answer);
+    if (prev) prev.node.replaceWith(node);
+    cards.set(id, { node, item, answer });
+    return node;
+  }
+
+  function render() {
+    renderStrip(); renderState();
+    const list = $('list');
+    if (failed) { list.replaceChildren(); cards.clear(); return; }
+    const ids = [...items.keys()].sort((a, b) => String(items.get(a).askedAt || '').localeCompare(String(items.get(b).askedAt || '')) || a.localeCompare(b));
+    for (const id of [...cards.keys()]) if (!items.has(id)) { cards.get(id).node.remove(); cards.delete(id); drafts.delete(id); }
+    const nodes = ids.map((id) => refreshCard(id, false));
+    nodes.forEach((n, i) => { if (list.children[i] !== n) list.insertBefore(n, list.children[i] || null); });
+  }
+
+  function renderNotes() {
+    const box = $('noteList');
+    box.replaceChildren();
+    for (const n of notes) box.append(el('div', null, 'Sent ' + fmt(n.at) + ', not yet read by the lead: ' + String(n.text).slice(0, 140)));
+  }
+
+  $('noteSend').addEventListener('click', async () => {
+    const t = $('noteText').value.trim(), m = $('noteMsg');
+    if (!t) { m.className = 'msg bad'; m.textContent = 'Write the note first.'; return; }
+    $('noteSend').disabled = true; m.className = 'msg'; m.textContent = 'Saving…';
+    try {
+      await db.collection('notes').add({ text: t, at: new Date().toISOString(), by: uid, via: 'page' });
+      $('noteText').value = ''; m.className = 'msg ok'; m.textContent = 'Saved.';
+    } catch (e) { m.className = 'msg bad'; m.textContent = writeFailure(e); }
+    $('noteSend').disabled = false;
+  });
+
+  async function boot() {
+    render();
+    const c = window.claude;
+    db = c && typeof c.use === 'function' ? await c.use('db') : null;
+    if (!db) { failed = 'The queue could not be read on this view: the board needs a signed-in claude.ai viewer. This is not an empty queue: answer in a session instead.'; render(); return; }
+    try { const u = await c.use('user'); uid = u ? await u.id() : null; } catch { uid = null; }
+    const onErr = (e) => { failed = readFailure(e); render(); };
+    db.collection('items').onSnapshot((s) => {
+      items = new Map(s.docs.map((d) => [d.id, d.data()]));
+      if (!s.metadata.fromCache) itemsDefinitive = true;
+      render();
+    }, onErr);
+    db.collection('answers').onSnapshot((s) => { answers = new Map(s.docs.map((d) => [d.id, d.data()])); render(); }, onErr);
+    db.collection('notes').onSnapshot((s) => { notes = s.docs.map((d) => d.data()).sort((a, b) => String(a.at).localeCompare(String(b.at))); renderNotes(); }, () => {});
+    db.doc('meta/status').onSnapshot((s) => {
+      const v = s.exists ? s.data() : null;
+      $('lead').hidden = !(v && v.text);
+      if (v && v.text) { $('leadText').textContent = String(v.text); $('leadAt').textContent = v.at ? '· ' + fmt(v.at) : ''; }
+    }, () => {});
+    $('noteBox').hidden = false;
+  }
+  boot();
+})();
+</script>
