@@ -166,3 +166,16 @@ reviewer-fixes entry; read the preambles of SI 2007/1257 and SI 2007/3160, both 
 legal-notice-handling, matching the s.47(3A) flag. The reviewer read the pre-fix text, so the
 wording added in the fix commit (s.48, ss.167-168, Sch.11 para 4, s.21C, s.166(6)-(7)) has been
 checked against the XML by me only; a scoped re-review is Ben's call.
+
+**Scoped re-review, evening 2026-10-03 (headless continuation, 17:20 BST start).** Gates rerun
+before any change: check-index "ok: 50 skills, all indexed, all named, all three counts agree";
+check-archives "ok: 5 archives, 17 members, all match their skill directories"; unslop high 0
+medium 0 low 0 on all four new SKILL.md files. property-reg-reviewer, scoped to
+`git diff 3fc169c..6452578 -- '*/SKILL.md'`, read 15 sources as `/data.xml`: 0 Critical, 0 High,
+1 Medium, 1 Low; every "prospectively" flag matches an unapplied effect. Both fixed after I read
+the XML myself. Medium: s.48 "treated as not due" lacked the receiver or manager exception in
+s.48(3) ("shall not be so treated in relation to any time when ... there is in force an
+appointment of a receiver or manager"); added. Low: s.167(3) reduces the unpaid amount by a
+default charge "for the purposes of subsection (1)(a)" only, so "left out of the count" now reads
+"left out when testing the sum (not the period)". Not checked: whether LFRA 2024 commencement
+regulations made after the XML snapshot have brought s.53, s.55 or s.61 into force.

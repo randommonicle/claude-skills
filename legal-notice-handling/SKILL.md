@@ -110,7 +110,8 @@ the tables catch; they are not advice on a file.
   charges; a new s.47(3A) is prospectively inserted by the Leasehold and Freehold Reform Act
   2024 s.55(4)(a)). Separately, until the landlord has given notice of an address in England and
   Wales for service, rent, service charges and administration charges are treated as not due
-  ([s.48(1)-(2)](https://www.legislation.gov.uk/ukpga/1987/31/section/48)). Part VI applies to
+  ([s.48(1)-(2)](https://www.legislation.gov.uk/ukpga/1987/31/section/48)), again except while a
+  court- or tribunal-appointed receiver or manager collects them (s.48(3)). Part VI applies to
   premises consisting of or including a dwelling, not held on a business tenancy under Part II of
   the Landlord and Tenant Act 1954, and not to a dwelling in Wales subject to an occupation
   contract ([s.46(1), (1A)](https://www.legislation.gov.uk/ukpga/1987/31/section/46)).
@@ -142,7 +143,7 @@ the tables catch; they are not advice on a file.
   another breach.** A landlord may not forfeit for unpaid rent, service charges or
   administration charges (or a mix) unless the unpaid amount exceeds the prescribed sum or
   includes an amount payable for more than the prescribed period; the prescribed sum may not
-  exceed £500, and a default charge is left out of the count
+  exceed £500, and a default charge is left out when testing the sum (not the period)
   ([CLRA 2002 s.167(1)-(3)](https://www.legislation.gov.uk/ukpga/2002/15/section/167); the sum
   and period are set by regulations, read the ones for England or Wales; words in s.167(1) and
   (5) are prospectively substituted by the Leasehold and Freehold Reform Act 2024 s.53(11)). For a breach of a
