@@ -150,3 +150,10 @@ produced no line. It now asks `git ls-tree HEAD` and, when HEAD has the file, sa
 missing from the working copy and to restore it; a git failure stays silent (fail-open). New
 case in `hooks/session-recon.test.mjs`, red before the fix; every `hooks/*.test.mjs` suite
 green after.
+
+### Commit 11: the review record, closed and copied to docs/
+
+The stage 1 review closed at the round cap with a CLAUDE close section and a CLAUDE position
+(GPT's three rounds used; every finding fixed or recorded). The record is copied from the
+machine-local `exchange/` to `docs/REVIEW_team-loop-s1_2026-10-03.md` so it travels. Correction
+to commit 9's entry: GPT's round 3 answered at about 17:20 BST, not "17:2x".
