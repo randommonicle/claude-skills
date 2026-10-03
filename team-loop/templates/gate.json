@@ -2,6 +2,7 @@
   "setup": "npm ci",
   "suite": "npm test",
   "tests": ["test/**", "tests/**", "**/*.test.*", "**/*.spec.*"],
+  "fixtures": ["test/fixtures/**", "tests/fixtures/**", "**/__fixtures__/**", "**/__mocks__/**"],
   "testConfig": ["package.json#scripts", "vitest.config.*", "jest.config.*", "playwright.config.*"],
   "timeoutMs": 600000
 }

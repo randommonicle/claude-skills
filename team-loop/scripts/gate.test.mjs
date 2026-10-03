@@ -31,14 +31,18 @@ const ADD_TEST = "import test from 'node:test';\nimport assert from 'node:assert
 const HOLLOW_TEST = "import test from 'node:test';\nimport assert from 'node:assert';\nimport { add } from '../src/add.mjs';\ntest('adds', () => assert.equal(typeof add, 'function'));\n";
 const EXISTING_TEST = "import test from 'node:test';\nimport assert from 'node:assert';\nimport { two } from '../src/two.mjs';\ntest('two', () => assert.equal(two(), 2));\n";
 const PKG = (test = 'node --test') => JSON.stringify({ type: 'module', scripts: { test } }, null, 2) + '\n';
-const GATE_CFG = JSON.stringify({ setup: '', suite: 'node --test', tests: ['tests/**'], testConfig: ['package.json#scripts'], timeoutMs: 60000 }, null, 2);
-const BRIEF = ({ judged = '- adds: node --test tests/add.test.mjs', regulated = 'no', tc = 'none' } = {}) =>
-  '# WP-001: add two numbers\n\nregulated: ' + regulated + '\n\n```\nROLE: fix add\nSCOPE: src/**, tests/add.test.mjs\n\n' +
+const GATE_CFG = JSON.stringify(
+  { setup: '', suite: 'node --test', tests: ['tests/**'], fixtures: ['tests/fixtures/**'], testConfig: ['package.json#scripts'], timeoutMs: 60000 },
+  null,
+  2,
+);
+const BRIEF = ({ judged = '- adds: node --test tests/add.test.mjs', regulated = 'no', tc = 'none', scope = 'src/**, tests/add.test.mjs' } = {}) =>
+  '# WP-001: add two numbers\n\n' + (regulated === null ? '' : 'regulated: ' + regulated + '\n\n') + '```\nROLE: fix add\nSCOPE: ' + scope + '\n\n' +
   'JUDGED BY (each command exits non-zero while its check fails, zero once it passes):\n  ' + judged +
   '\n\nTESTS CHANGED (existing test, config or fixture files this package may alter): ' + tc + '\n```\n';
 const BOARD = '# BOARD: fixture\n\n| WP | status | role | branch | T | B | tested merge | red | green | gate |\n|---|---|---|---|---|---|---|---|---|---|\n| WP-001 | building | tl-builder | wp1 | - | - | - | - | - | - |\n';
 
-function fixture({ brief = BRIEF(), tTest = ADD_TEST, build = (f) => f.w('src/add.mjs', FIXED), onMilestone = null, verdict = null } = {}) {
+function fixture({ brief = BRIEF(), tTest = ADD_TEST, beforeT = null, build = (f) => f.w('src/add.mjs', FIXED), onMilestone = null, verdict = null } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'gate-test-'));
   const g = (...args) => {
     const r = spawnSync('git', ['-C', dir, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { encoding: 'utf8' });
@@ -67,6 +71,7 @@ function fixture({ brief = BRIEF(), tTest = ADD_TEST, build = (f) => f.w('src/ad
   commit('milestone base');
   g('checkout', '-q', '-b', 'wp1');
   w('tests/add.test.mjs', tTest);
+  if (beforeT) beforeT(f);
   f.T = commit('test(WP-001): pin add');
   build(f);
   f.head = commit('feat(WP-001): build');
@@ -184,7 +189,106 @@ cases[cases.length - 1].run = (f) => {
 };
 cases[cases.length - 1].check = (r) => (r.error && /not committed on the milestone/.test(r.error) && !r.pass ? true : 'expected an unrunnable result: ' + JSON.stringify(r));
 
+// Cases from the stage 2 cross-agent review, round 1 (exchange record, 2026-10-03).
+test(
+  'check 3: a file changed outside SCOPE is refused',
+  () => fixture({ build: (f) => (f.w('src/add.mjs', FIXED), f.w('docs/notes.md', 'x\n')) }),
+  failsAt(3, /outside SCOPE: docs\/notes\.md/),
+);
+
+test(
+  'check 3: a test file added after T is refused',
+  () => fixture({ build: (f) => (f.w('src/add.mjs', FIXED), f.w('tests/setup.test.mjs', "import test from 'node:test';\ntest('x', () => {});\n")) }),
+  failsAt(3, /tests\/setup\.test\.mjs \(added after T/),
+);
+
+test(
+  'check 3: a changed fixture is refused',
+  () =>
+    fixture({
+      build: (f) => (f.w('src/add.mjs', FIXED), f.w('tests/fixtures/data.json', '{"a":2}\n')),
+    }),
+  failsAt(3, /tests\/fixtures\/data\.json \(added after T/),
+);
+
+test(
+  'check 3: a fixture T itself added is allowed',
+  () =>
+    fixture({
+      tTest: ADD_TEST.replace("import { add }", "import data from './fixtures/two.json' with { type: 'json' };\nimport { add }").replace('add(2, 2), 4', 'add(data.a, data.a), 4'),
+      build: (f) => f.w('src/add.mjs', FIXED),
+      beforeT: (f) => f.w('tests/fixtures/two.json', '{"a":2}\n'),
+    }),
+  (r) => (r.pass ? true : 'refused a fixture T added: ' + (r.failure || r.error)),
+);
+
+test(
+  'check 3: a new non-hook test script passes when package.json is in SCOPE',
+  () =>
+    fixture({
+      brief: BRIEF({ scope: 'src/**, tests/add.test.mjs, package.json' }),
+      build: (f) => (f.w('src/add.mjs', FIXED), f.w('package.json', JSON.stringify({ type: 'module', scripts: { test: 'node --test', 'test:add': 'node --test tests/add.test.mjs' } }, null, 2))),
+    }),
+  (r) => (r.pass ? true : 'refused an added script: ' + (r.failure || r.error)),
+);
+
+test(
+  'check 3: an added pretest hook is refused',
+  () =>
+    fixture({
+      brief: BRIEF({ scope: 'src/**, tests/add.test.mjs, package.json' }),
+      build: (f) => (f.w('src/add.mjs', FIXED), f.w('package.json', JSON.stringify({ type: 'module', scripts: { test: 'node --test', pretest: 'echo patch' } }, null, 2))),
+    }),
+  failsAt(3, /package\.json scripts\.pretest/),
+);
+
+test(
+  'check 5: an open High dressed in bold is still refused, and no tested ref is left',
+  () => fixture({ brief: BRIEF({ regulated: 'yes' }), verdict: '# Verdict\n\n- [open] **High**: rounding at the boundary\n' }),
+  null,
+);
+cases[cases.length - 1].check = (r, f) => {
+  const v = failsAt(5, /open Critical or High/)(r);
+  if (v !== true) return v;
+  const ref = spawnSync('git', ['-C', f.dir, 'rev-parse', '--verify', '--quiet', 'refs/team-loop/tested/WP-001'], { encoding: 'utf8' });
+  return ref.status !== 0 || 'a tested ref was left by a run that failed check 5';
+};
+
+test('a passing run then a failing rerun leaves no stale tested ref', () => fixture(), null);
+cases[cases.length - 1].run = (f) => {
+  const first = runGate(f);
+  if (!first.pass) return { first };
+  f.g('checkout', '-q', 'wp1');
+  f.w('docs/stray.md', 'x\n');
+  f.commit('out of scope');
+  f.g('checkout', '-q', 'milestone');
+  return { first, second: runGate(f) };
+};
+cases[cases.length - 1].check = (r, f) => {
+  if (!r.first.pass) return 'the first run did not pass: ' + (r.first.failure || r.first.error);
+  if (r.second.pass) return 'the second run passed';
+  const ref = spawnSync('git', ['-C', f.dir, 'rev-parse', '--verify', '--quiet', 'refs/team-loop/tested/WP-001'], { encoding: 'utf8' });
+  return ref.status !== 0 || 'the first run\'s tested ref survived a failing rerun';
+};
+
+test('a brief with no regulated line stops the gate as unrunnable', () => fixture({ brief: BRIEF({ regulated: null }) }), (r) =>
+  r.error && /regulated: yes/.test(r.error) ? true : 'expected unrunnable: ' + JSON.stringify(r.error || r.failure || r.pass),
+);
+
 const unit = [];
+unit.push([
+  'parseBrief tolerates headings, bold and bulleted lists',
+  () => {
+    const b = parseBrief(
+      '# WP-002\n\n**Regulated:** yes\n\n## SCOPE\n- `src/**`\n- lib/a.mjs\n\n## JUDGED BY\n- **adds**: `node --test tests/a.test.mjs`\n- b: python x.py --flag=1:2\n\n## TESTS CHANGED\n- tests/old.test.mjs\n',
+    );
+    if (b.regulated !== true) return 'bold regulated not read';
+    if (JSON.stringify(b.scope) !== '["src/**","lib/a.mjs"]') return 'scope: ' + JSON.stringify(b.scope);
+    if (JSON.stringify(b.judged) !== JSON.stringify([{ id: 'adds', command: 'node --test tests/a.test.mjs' }, { id: 'b', command: 'python x.py --flag=1:2' }]))
+      return 'judged: ' + JSON.stringify(b.judged);
+    return JSON.stringify(b.testsChanged) === '["tests/old.test.mjs"]' || 'testsChanged: ' + JSON.stringify(b.testsChanged);
+  },
+]);
 unit.push([
   'parseBrief reads JUDGED BY lines, TESTS CHANGED and the regulated flag',
   () => {
@@ -195,11 +299,12 @@ unit.push([
   },
 ]);
 unit.push([
-  'the template brief yields no JUDGED BY lines, so an unfilled brief cannot pass',
+  'the template brief yields no checks and reports its placeholder lines, so an unfilled brief cannot run',
   () => {
     const t = readFileSync(new URL('../templates/WP.md', import.meta.url), 'utf8');
     const b = parseBrief(t);
-    return b.judged.length === 0 || 'parsed placeholders as checks: ' + JSON.stringify(b.judged);
+    if (b.judged.length) return 'parsed placeholders as checks: ' + JSON.stringify(b.judged);
+    return b.malformed.length === 2 || 'placeholders not reported as malformed: ' + JSON.stringify(b.malformed);
   },
 ]);
 unit.push([

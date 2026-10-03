@@ -127,7 +127,11 @@ repository. The others are agents shipped in `agents/`, each pinned to model, ef
 | `tl-builder-regulated` | opus, high | worktree | a regulated package, merging the test writer's commit first |
 
 Regulated packages are also reviewed by `code-reviewer`, `property-reg-reviewer` and a
-`cross-agent-review` seat; they return findings and the lead writes the verdict file.
+`cross-agent-review` seat; they return findings and the lead writes the verdict file,
+`team/packages/WP-nnn.verdict.md`, one finding per line marked `[open]` or `[closed]` with its
+severity, committed to the milestone branch. A reviewer that runs tests does so in its own
+worktree detached at the package head (`git worktree add --detach <dir> <head>`), so the main
+checkout never leaves the milestone branch.
 Unregulated packages get no spawned reviewer: the lead line-reviews the diff and the gate is
 mechanical. The `maxTurns` values are provisional until the first ledger. A model departure is
 a spawn-time override stated in the roster; an effort departure is a separately named agent.
@@ -158,7 +162,7 @@ project config, from `templates/gate.json`).
 | 5 | Tests first: the builder (stops after its tests commit) or `tl-test-writer` | agent | the lead reads the tests and pins T from the tool result |
 | 6 | Build: `tl-builder` resumed, or `tl-builder-regulated` | agent | |
 | 7 | Review against the spec, regulated packages only | reviewers, cross-agent seats | the lead's verdict file: no open Critical or High |
-| 8 | Gate and merge | lead, by `scripts/gate.mjs` | the gate passes; then `git merge --ff-only refs/team-loop/tested/WP-nnn`, a ledger line, the worktree and branch removed |
+| 8 | Gate and merge | lead, by `scripts/gate.mjs` | the gate passes, and for a deployed surface `one-real-ride` has been ridden; then `git merge --ff-only refs/team-loop/tested/WP-nnn`, a ledger line, the worktree and branch removed |
 | 9 | Build to review | operator, on the Ask queue (a `review` item saying how to run it) | the answer, on the ledger line |
 | 10 | Release | operator, in the session | `push-gate` asks per action |
 
@@ -167,15 +171,19 @@ project config, from `templates/gate.json`).
 reads the brief, `team/gate.json` and the verdict file from the milestone branch's committed
 tree, so a builder cannot edit what judges it. Each brief's `JUDGED BY` lines are
 `- <id>: <command>`: a command exits non-zero while its check fails and zero once it passes,
-which fits a test suite (one command per test file) and a project whose proofs are scripts. It
-checks that T is an ancestor of the head; that every check fails at T (a check that already
-passes is hollow or skipped); that T's files are unchanged after T and existing tests, test
-config and `package.json`'s test scripts are unchanged from the package base unless
-`TESTS CHANGED` names the path; that every check and the full suite pass on the committed merge
-into the milestone tip; and, for a regulated package, that the verdict file lists no
-`- [open] Critical` or `- [open] High` line. It writes T, B, the tested merge, the red and green
-ids and the result onto the package's BOARD row. Run it only after the builder has finished
-and committed: a gate run alongside the step it certifies sees an unfinished state.
+which fits a test suite (one command per test file) and a project whose proofs are scripts.
+The brief must also say `regulated: yes` or `no` and list `SCOPE` globs; the gate refuses to
+run without them rather than default. It checks that T is an ancestor of the head; that every
+check fails at T (a check that already passes is hollow or skipped); that since the package
+base no test or fixture file changed except those T added, no test config changed, no existing
+`package.json` test script changed and no pre or post hook was added, unless `TESTS CHANGED`
+names the path; that every other change sits inside `SCOPE`; that every check and the full
+suite pass on the committed merge into the milestone tip; and, for a regulated package, that
+the verdict file has no `[open]` line naming Critical or High. Only then does it keep the
+tested merge at `refs/team-loop/tested/WP-nnn`, deleting any earlier one first. It writes T, B,
+the tested merge, the red and green ids and the result onto the package's BOARD row. Run it
+only after the builder has finished and committed: a gate run alongside the step it certifies
+sees an unfinished state.
 
 **A ledger line** is one JSON object: `{"wp", "milestone", "date", "agents": [{"agent",
 "model", "effort", "tokens", "turns"}], "wall_minutes", "gate": "pass" | "fail", "tested",

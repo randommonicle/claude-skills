@@ -28,9 +28,10 @@ exits non-zero when its check fails and zero when it passes), and sometimes `TES
 
 **Phase 2, only when the lead resumes you: build.**
 
-1. Change only files inside `SCOPE`. Never edit, rename or delete a file T added or changed,
-   and never edit an existing test, test config, fixture or test script unless `TESTS CHANGED`
-   names its exact path.
+1. Change only files inside `SCOPE`; the gate refuses anything else. Never edit, rename or
+   delete a file T added or changed, add no new test or fixture file (those belong in T), and
+   never edit an existing test, test config, fixture or test script, or add a `pre` or `post`
+   script hook, unless `TESTS CHANGED` names its exact path.
 2. Build until every `JUDGED BY` command exits zero and the project's full suite passes.
 3. Commit your work on top of T. Never amend, rebase, reset or force anything: T must stay an
    ancestor of your head.

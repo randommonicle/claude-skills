@@ -19,14 +19,18 @@
 // Checks, in order; the first failure ends the run:
 //   1. T is an ancestor of the package head.
 //   2. Red at T: every JUDGED BY command exits non-zero in a scratch worktree at T.
-//   3. Not weakened: T's own files are unchanged from T to the head; existing test files,
-//      test config, and package.json's test scripts are unchanged from B (the package base)
-//      unless the brief's TESTS CHANGED names the exact path.
+//   3. Not weakened, not out of scope: T's own files are unchanged from T to the head; since
+//      B (the package base) no test or fixture file changed except those T added, no test
+//      config changed, no existing package.json test script changed and no pre/post hook was
+//      added, and every other change sits inside the brief's SCOPE globs. TESTS CHANGED
+//      exempts an exact path.
 //   4. Green on the merge that will be committed: in a scratch worktree the head is merged
 //      into the milestone tip and committed; every JUDGED BY command and the full suite exit
-//      zero there. The tested merge is kept at refs/team-loop/tested/<wp>; the lead moves the
-//      milestone with `git merge --ff-only`, which refuses if the milestone moved meanwhile.
+//      zero there.
 //   5. A regulated package's verdict file exists and lists no open Critical or High.
+// Only when all pass is the tested merge kept at refs/team-loop/tested/<wp> (a stale one from an
+// earlier run is deleted first); the lead moves the
+// milestone with `git merge --ff-only`, which refuses if the milestone moved meanwhile.
 //
 // Exit 0: pass. Exit 1: the package failed a check. Exit 2: the gate could not run.
 import { spawnSync } from 'node:child_process';
@@ -73,25 +77,46 @@ const sha = (repo, rev) => {
   return r.out;
 };
 
-// The brief, as the milestone branch holds it.
+// The brief, as the milestone branch holds it. A brief is written by hand, so markdown dressing
+// is tolerated: a field may be a heading or bold, and a list may be inline or bulleted. A field
+// that is missing comes back null and the gate refuses to run, never defaults, because a
+// default would silently skip a check. A JUDGED BY bullet that is not `<id>: <command>` is
+// returned in `malformed`, never dropped.
 export function parseBrief(text) {
-  const judged = [];
   const lines = text.replace(/\r\n/g, '\n').split('\n');
-  const at = lines.findIndex((l) => /^\s*JUDGED BY\b/.test(l));
-  if (at >= 0) {
-    for (const l of lines.slice(at + 1)) {
-      const m = /^\s*-\s*([A-Za-z0-9._-]+):\s*(\S.*)$/.exec(l);
-      if (m) judged.push({ id: m[1], command: m[2].trim() });
+  const label = (l) => l.replace(/[*_`]/g, '').replace(/^\s*#+\s*/, '').trim();
+  const find = (name) => lines.findIndex((l) => new RegExp('^' + name + '\\b', 'i').test(label(l)));
+  const bullets = (from) => {
+    const out = [];
+    for (const l of lines.slice(from + 1)) {
+      const m = /^\s*[-*]\s+(.*\S)\s*$/.exec(l);
+      if (m) out.push(m[1]);
       else if (l.trim() !== '') break;
     }
-  }
-  const tc = /^\s*TESTS CHANGED\b[^:]*:\s*(.*)$/m.exec(text);
-  const testsChanged =
-    tc && !/^none\b/i.test(tc[1].trim())
-      ? tc[1].split(',').map((s) => s.trim().replace(/`/g, '')).filter(Boolean)
-      : [];
-  const regulated = /^regulated:\s*yes\b/im.test(text);
-  return { judged, testsChanged, regulated };
+    return out;
+  };
+  const clean = (s) => s.trim().replace(/^\*+\s+/, '').replace(/^`(.*)`$/, '$1').trim();
+  // The value after the field line's last colon, plus any bullets under it.
+  const list = (name) => {
+    const at = find(name);
+    if (at < 0) return null;
+    const line = lines[at];
+    const inline = line.includes(':') ? line.slice(line.lastIndexOf(':') + 1) : '';
+    return [...inline.split(','), ...bullets(at)].map(clean).filter((s) => s && !/^none$/i.test(s));
+  };
+  const judged = [];
+  const malformed = [];
+  const jAt = find('JUDGED BY');
+  if (jAt >= 0)
+    for (const b of bullets(jAt)) {
+      const m = /^(?:\*\*|`)?([A-Za-z0-9._-]+)(?:\*\*|`)?:\s*(\S.*)$/.exec(b);
+      if (m) judged.push({ id: m[1], command: clean(m[2]) });
+      else malformed.push(b);
+    }
+  const rAt = find('regulated');
+  const rVal = rAt < 0 ? '' : label(lines[rAt]).replace(/^regulated\s*:?\s*/i, '');
+  const regulated = /^yes\b/i.test(rVal) ? true : /^no\b/i.test(rVal) ? false : null;
+  return { judged, malformed, testsChanged: list('TESTS CHANGED') ?? [], scope: list('SCOPE'), regulated };
 }
 
 // Glob to RegExp: ** spans directories, * and ? stay inside one segment.
@@ -139,6 +164,8 @@ function setup(cfg, dir, where) {
   if (r.code !== 0) throw new Unrunnable('setup failed ' + where + (r.timedOut ? ' (timed out)' : '') + ': ' + r.tail);
 }
 
+// package.json's test-related scripts at a revision. A key added since the base is allowed,
+// except a pre or post hook, which npm runs around the script and so can rewrite what it tests.
 function packageScripts(repo, rev) {
   const r = git(repo, ['show', rev + ':package.json'], { allowFail: true });
   if (!r.ok) return {};
@@ -166,8 +193,13 @@ export function gate(argv) {
     const briefPath = 'team/packages/' + a.wp + '.md';
     const brief = git(repo, ['show', milestone + ':' + briefPath], { allowFail: true });
     if (!brief.ok) throw new Unrunnable(briefPath + ' is not committed on the milestone branch');
-    const { judged, testsChanged, regulated } = parseBrief(brief.out);
+    const { judged, malformed, testsChanged, scope, regulated } = parseBrief(brief.out);
+    if (malformed.length) throw new Unrunnable(briefPath + ' has JUDGED BY lines that are not "<id>: <command>": ' + malformed.join(' / '));
     if (!judged.length) throw new Unrunnable(briefPath + ' has no JUDGED BY lines');
+    if (regulated === null) throw new Unrunnable(briefPath + ' must say "regulated: yes" or "regulated: no"');
+    if (!scope || !scope.length) throw new Unrunnable(briefPath + ' has no SCOPE globs');
+    // A tested ref from an earlier run must not outlive this one: it is rewritten only on a pass.
+    git(repo, ['update-ref', '-d', 'refs/team-loop/tested/' + a.wp], { allowFail: true });
     const cfgText = git(repo, ['show', milestone + ':team/gate.json'], { allowFail: true });
     if (!cfgText.ok) throw new Unrunnable('team/gate.json is not committed on the milestone branch');
     let cfg;
@@ -179,6 +211,7 @@ export function gate(argv) {
     cfg.timeoutMs = Number(cfg.timeoutMs) > 0 ? Number(cfg.timeoutMs) : 600000;
     const testGlobs = Array.isArray(cfg.tests) ? cfg.tests : [];
     const configGlobs = (Array.isArray(cfg.testConfig) ? cfg.testConfig : []).filter((g) => !g.includes('#'));
+    const fixtureGlobs = Array.isArray(cfg.fixtures) ? cfg.fixtures : [];
     const watchScripts = (cfg.testConfig ?? []).includes('package.json#scripts');
 
     // 1. T is an ancestor of the head.
@@ -206,27 +239,40 @@ export function gate(argv) {
       ? git(repo, ['diff', '--name-only', T, head, '--', ...tFiles]).out.split('\n').filter(Boolean)
       : [];
     if (touchedAfterT.length) throw new GateError('check 3: T\'s own files changed after T: ' + touchedAfterT.join(', '));
+    // Since the package base: a test or fixture file may only be one T added; test config may
+    // not change at all; anything else must sit inside SCOPE. TESTS CHANGED exempts an
+    // exact path from all three.
+    const tSet = new Set(tFiles);
     const changes = git(repo, ['diff', '--name-status', '--no-renames', B, head]).out.split('\n').filter(Boolean);
     const weakened = [];
+    const outside = [];
     for (const line of changes) {
       const [status, path] = line.split('\t');
       if (testsChanged.includes(path)) continue;
+      const fixture = matchesAny(path, fixtureGlobs);
       if (matchesAny(path, configGlobs)) weakened.push(path + ' (test config, ' + status + ')');
-      else if (matchesAny(path, testGlobs) && status !== 'A') weakened.push(path + ' (existing test, ' + status + ')');
+      else if (fixture || matchesAny(path, testGlobs)) {
+        if (!(status === 'A' && tSet.has(path)))
+          weakened.push(path + (status === 'A' ? ' (added after T, A)' : fixture ? ' (existing fixture, ' + status + ')' : ' (existing test, ' + status + ')'));
+      } else if (!matchesAny(path, scope)) outside.push(path);
     }
     if (watchScripts && !testsChanged.includes('package.json')) {
       const before = packageScripts(repo, B);
       const after = packageScripts(repo, head);
-      for (const k of new Set([...Object.keys(before), ...Object.keys(after)]))
-        if (before[k] !== after[k]) weakened.push('package.json scripts.' + k);
+      for (const k of new Set([...Object.keys(before), ...Object.keys(after)])) {
+        const hook = /^(pre|post)/i.test(k);
+        if (k in before ? before[k] !== after[k] : hook) weakened.push('package.json scripts.' + k);
+      }
     }
     if (weakened.length)
       throw new GateError('check 3: changed since the package base without TESTS CHANGED naming them: ' + weakened.join(', '));
-    step('not weakened', 'T\'s files, existing tests and test config unchanged');
+    if (outside.length) throw new GateError('check 3: changed outside SCOPE: ' + outside.join(', '));
+    step('not weakened', 'T\'s files, existing tests, test config and fixtures unchanged; every change inside SCOPE');
 
     // 4. Green on the merge that will be committed.
     const atMerge = scratch(repo, milestone, 'green', cleanup);
-    const m = git(atMerge, ['-c', 'user.name=team-loop gate', '-c', 'user.email=gate@team-loop.invalid', 'merge', '--no-ff', '--no-edit', head], {
+    const id = ['-c', 'user.name=team-loop gate', '-c', 'user.email=gate@team-loop.invalid', '-c', 'commit.gpgsign=false'];
+    const m = git(atMerge, [...id, 'merge', '--no-ff', '--no-edit', head], {
       allowFail: true,
     });
     if (!m.ok) throw new GateError('check 4: the head does not merge cleanly into the milestone tip');
@@ -242,19 +288,21 @@ export function gate(argv) {
       const r = run(cfg.suite, atMerge, cfg.timeoutMs);
       if (r.code !== 0) throw new GateError('check 4: the full suite ' + (r.timedOut ? 'timed out' : 'exits ' + r.code) + ' on the merge: ' + r.tail);
     }
-    git(repo, ['update-ref', 'refs/team-loop/tested/' + a.wp, tested]);
-    result.tested = tested;
     step('green on the merge', 'all checks' + (cfg.suite ? ' and the full suite' : '') + ' pass on ' + tested.slice(0, 8));
 
-    // 5. Regulated: the verdict file.
+    // 5. Regulated: the verdict file. Any line marked [open] that names Critical or High blocks,
+    // however it is dressed (bold, a table cell, a different bullet).
     if (regulated) {
       const vPath = 'team/packages/' + a.wp + '.verdict.md';
       const v = git(repo, ['show', milestone + ':' + vPath], { allowFail: true });
       if (!v.ok) throw new GateError('check 5: regulated package with no ' + vPath + ' committed on the milestone branch');
-      const open = v.out.split('\n').filter((l) => /^\s*[-*]\s*\[open\]\s*(critical|high)\b/i.test(l));
+      const open = v.out.split('\n').filter((l) => /\[\s*open\s*\]/i.test(l) && /\b(critical|high)\b/i.test(l));
       if (open.length) throw new GateError('check 5: open Critical or High in ' + vPath + ': ' + open.map((l) => l.trim()).join(' / '));
       step('verdict', 'no open Critical or High');
     }
+    // The tested merge is published only once every check has passed.
+    git(repo, ['update-ref', 'refs/team-loop/tested/' + a.wp, tested]);
+    result.tested = tested;
     result.pass = true;
   } catch (e) {
     if (e instanceof GateError) result.failure = e.message;

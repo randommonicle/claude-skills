@@ -144,3 +144,20 @@ frontmatter `name`, not its file name, and runs only under `CLAUDE_PLUGIN_ROOT`,
 direct clone the tl- agents belong in the user's agents directory. The gate suite lives outside
 the CI loop's `hooks/*.test.mjs` glob, so it is a named CI step (LESSONS 28); not yet run on
 the runner, since nothing is pushed today.
+
+### Commit 4: stage 2 review round 1 fixes (GEMPRO)
+
+Eleven claims, all re-derived against the code and held. The three that mattered most: a
+passing run's `refs/team-loop/tested/<wp>` survived a later failing run, so a lead could
+fast-forward onto stale code (the ref is now deleted at the start of every run and written
+only after check 5, which also closes a gap of my own: it was written before check 5); a
+bold `**Regulated:** yes` read as unregulated and silently skipped the verdict check (a
+missing or unreadable `regulated:` line now stops the gate); and SCOPE was never enforced
+(every change outside the test, fixture and config globs must now match SCOPE). Also: tests
+or fixtures added after T are refused, fixtures are a config key, only changed or removed
+test scripts and added pre/post hooks are flagged, the verdict match tolerates bold and
+tables, the scratch merge does not sign, and the brief parser accepts headings, bold and
+bulleted lists and reports a malformed JUDGED BY line instead of dropping it. Skill text now
+carries one-real-ride at step 8, the verdict file format and reviewer worktree isolation.
+Ten new gate cases; nine red against f2140f9 (the pretest case cannot red against a gate that
+flagged every key).

@@ -27,8 +27,9 @@ tests. The brief has `SCOPE`, `JUDGED BY` (`- <id>: <command>`) and possibly `TE
 4. Return: your head sha, each `JUDGED BY` id with its exit code, the full suite's result, and
    every judgement call the spec left to you, with what you chose and why.
 
-**Never.** Edit T's tests or any existing test, config, fixture or test script outside
-`TESTS CHANGED`; apply a migration to any shared or remote database; merge, push or open a PR;
+**Never.** Change a file outside `SCOPE`; edit T's tests or any existing test, config, fixture
+or test script outside `TESTS CHANGED`; add a test or fixture file of your own (the gate
+refuses any after T); apply a migration to any shared or remote database; merge, push or open a PR;
 touch a secret; put real client, leaseholder or financial data anywhere. Money is stored and
 computed in the unit the spec names, and a rounding rule is the spec's, never a library default.
 

@@ -22,7 +22,7 @@ JUDGED BY (each command exits non-zero while its check fails, zero once it passe
   - <id>: <command, run from the repo root>
   - <id>: <command>
 
-TESTS CHANGED (existing test, config or fixture files this package may alter): <exact paths, or "none">
+TESTS CHANGED (existing test, config or fixture files this package may alter): <exact paths, or none>
 
 BUDGET: ~<n>k tokens. If you approach it, stop and report what remains undone.
 DELIVERABLE: <phase 1: commit T, the tests alone; phase 2: the build on top of T>.
