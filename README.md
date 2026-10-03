@@ -16,7 +16,7 @@ test that cannot go red is not a test.
 
 **Four kinds of thing live here.**
 
-- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 49.
+- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 50.
 - **Hooks**: small scripts that run automatically around what Claude does. One stops and asks you
   before Claude uploads any code to GitHub. One checks a file Claude has just edited for mistakes,
   using whatever checker that project already uses. One looks up what has changed in your project
@@ -62,7 +62,7 @@ it in [CONTRIBUTING.md](CONTRIBUTING.md).
 Skills are installed at the **user level**, so they apply to every project on the machine with no
 per-project setup.
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 49 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 50 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
@@ -121,6 +121,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **contract-review** | leaf (domain) | Review a contract or lease for one named party; every graded finding quotes its clause, caps and exits are read with their interacting clauses, and statutory points go to a verification list unless retrieved. Fork, see its `UPSTREAM.md`. |
 | **legal-citation-integrity** | leaf (routed by verified-citations) | Audit every citation in a finished or received legal document; extracted count must equal table rows, and Confirmed needs a named retrieval. Fork, see its `UPSTREAM.md`. |
 | **statute-to-obligations-register** | leaf (domain) | Turn a statute, regulation or code into an obligations register read from the current official text; no empty cell, every extracted item accounted for, commencement status from the page. Fork, see its `UPSTREAM.md`. |
+| **legal-notice-handling** | leaf (domain) | Draft, reply to, or analyse a legal notice; every deadline a calendar date with its arithmetic, every threatened consequence confirmed and lawfully available, every admission of fact kept apart from the legal conclusion. Fork, see its `UPSTREAM.md`. |
 | **ai-surface-discipline / unslop-ui / unslop-text / unslop-code** | see rows above / forks | The three **unslop-\*** skills are forks of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches — see each skill's `UPSTREAM.md`. |
 
 ## Agents

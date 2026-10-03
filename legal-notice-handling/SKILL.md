@@ -1,0 +1,142 @@
+---
+name: legal-notice-handling
+description: Draft, reply to, or analyse a legal notice (rent or service-charge demand, forfeiture or breach notice, statutory notice, letter before action). Every deadline is a calendar date with its arithmetic; every threatened consequence is confirmed and lawfully available; an admitted fact never concedes a legal conclusion. Triggers on "draft a demand", "reply to this notice". Does not fire on a whole-contract review (contract-review) or the output file's integrity (deliverable-integrity).
+---
+
+# Legal notice handling
+
+A notice is evidence of what was demanded and by when. Every date in it is a calendar date,
+every consequence is one the sender will carry out and is allowed to, and every admission is of
+fact only.
+
+## Why this exists
+
+Notices fail on the details a reader checks later, usually in front of a tribunal:
+
+- **The soft deadline.** "Within 14 days" or "promptly" leaves the recipient to choose the
+  start date and the counting rule, and a statutory notice with a date outside its permitted
+  window can be invalid.
+- **The empty threat.** A consequence the client will not pursue, or cannot lawfully pursue
+  yet, weakens the notice and can be used against the sender. In residential leasehold this is
+  common: forfeiture threatened over a service charge that has been neither determined nor
+  admitted (see the worked examples).
+- **The careless concession.** "Yes, the payment was late" written so it also reads as "we are
+  in breach". The fact can be conceded; the legal conclusion the other side draws from it is a
+  separate question.
+
+## The rule that does the work
+
+**Build the deadline table and the consequence table before writing prose, and in a reply,
+the allegation table. Print the result line; any failure is red.**
+
+`Deadlines 3 (3 with calendar date and arithmetic) | Consequences 2 (2 confirmed, 2 with basis) | Allegations 6 in notice, 6 answered (0 admissions without a characterisation entry)`
+
+1. **Deadline table.** `Deadline | Source of the period (notice, lease clause, or statute, with the
+   words quoted) | Start event and its date | Counting convention | Calendar date | Margin`.
+   Every deadline in a notice you draft, and every deadline found in a notice received, gets a
+   row. Red output: `Deadline 2 ("within 21 days"): no calendar date`. Search your draft for
+   `within`, `days`, `weeks`, `months`, `promptly`, `forthwith`, `immediately` and
+   `reasonable`; each hit maps to a row or is rewritten.
+2. **Consequence table** (drafting). `Stated consequence | Client confirmed they will pursue it
+   (who, when) | Basis (lease clause quoted, or statute read this session with URL and date) |
+   Available now? (yes, or the step that must come first)`. Red output:
+   `Consequence 1 ("we will forfeit the lease"): basis not retrieved` or `not confirmed`. A
+   consequence that fails either test is cut, not softened.
+3. **Allegation table** (replying or analysing). Count the allegations in the notice and
+   number them in the notice's own order. `No. | Allegation as stated | Fact: admitted / denied
+   with the client's account / not known / admitted in part | Legal characterisation: not
+   admitted / denied / conceded on instruction | Client's own words (source)`. Red output:
+   `Allegations 6 in notice, 5 answered` or `Allegation 3: fact admitted, characterisation blank`.
+
+## Supporting rules
+
+1. **Choose the date with margin.** Where a statute or lease sets a window, pick a date that is
+   valid under any plausible counting convention and any plausible date of giving (post adds
+   days). State the convention you used. verified-citations owns the inclusive-counting rule.
+2. **Facts are particularised from the user, never supplied.** Who, what, when, with dates and
+   document references. No invented fact, legal basis, clause or statute. If no legal basis was
+   given, draft on the facts and say no basis is named.
+3. **Money is shown with its arithmetic.** Principal, each charge, any interest with its rate and
+   the clause or provision it rests on, and the sum.
+4. **Formal requirements are a verification list, not an assertion.** Prescribed form, required
+   content, method of service, minimum periods: cite what you read this session, or list it as
+   open. Never state that a notice satisfies a statutory requirement you did not read.
+5. **Service note on every drafted notice.** How it is to be served, to which address, and what
+   to keep as proof of the date and method.
+6. **Global points first in a reply.** A defective notice, wrong party, limitation, or a missing
+   pre-condition can dispose of several allegations at once. State it before the
+   allegation-by-allegation answers, as a point to raise rather than a settled defence.
+7. **Silence is a decision.** If the client wants an allegation left unanswered, flag the risk
+   that silence may be read as acceptance and record the client's instruction.
+8. **Analysis does not draft.** In analysis mode, produce the tables, the evidence needed per
+   allegation, the admissions to avoid, and the urgency (does any deadline need a holding reply
+   first). Draft the reply only when asked.
+
+## Modes
+
+| Mode | Blocking inputs | Tables required | Output adds |
+|---|---|---|---|
+| Draft a demand or notice | The facts, the exact sum or action demanded, the client's instruction on consequences, the governing law | Deadline, consequence | The notice, a service note, a verification list |
+| Reply to a notice received | The notice in full, the client's position on each allegation | Deadline, allegation | Global points, numbered answers, the client's own position, reservation of rights, verification list |
+| Analyse a notice received | The notice in full, which side you advise | Deadline, allegation | Evidence per allegation, admissions to avoid, procedural points to consider, recommended posture pending instructions |
+
+## Worked examples: England and Wales residential leasehold
+
+Read on legislation.gov.uk on 2026-10-03, revised text. Re-read before relying on any of them:
+two carry prospective changes. These show what the tables catch; they are not advice on a file.
+
+- **Ground rent on a long lease of a dwelling.** The tenant is not liable to pay unless the
+  landlord has given a notice, and the payment date in it must be neither less than 30 days nor
+  more than 60 days "after the day on which the notice is given", nor earlier than the date the
+  lease itself makes it payable ([CLRA 2002 s.166(1), (3)](https://www.legislation.gov.uk/ukpga/2002/15/section/166),
+  valid from 2025-03-03). The notice must be in the prescribed form (s.166(5)(a)); read the
+  regulations before drafting. Deadline table: start event is the day the notice is given, which
+  for a posted notice is uncertain, so the margin column matters.
+- **Any written demand for rent or other sums under a tenancy.** It must contain the landlord's name and
+  address, and an address in England and Wales for notices if the landlord's address is
+  elsewhere; without that, the service-charge or administration-charge part is treated as not
+  due until the information is given by notice
+  ([LTA 1987 s.47(1)-(2)](https://www.legislation.gov.uk/ukpga/1987/31/section/47), valid from
+  2026-06-29, with an exception in s.47(3) while a tribunal- or court-appointed receiver or
+  manager collects those charges). Part VI applies to premises consisting of or including a
+  dwelling, not held on a business tenancy under Part II of the Landlord and Tenant Act 1954, and
+  not to a dwelling in Wales subject to an occupation contract
+  ([s.46(1), (1A)](https://www.legislation.gov.uk/ukpga/1987/31/section/46)). Consequence table:
+  a late-payment charge running from a deadline on a sum not yet due has no basis.
+- **A service-charge demand.** It must be accompanied by the summary of tenants' rights and
+  obligations, or the tenant may withhold and the lease's late-payment provisions do not apply
+  for that period ([LTA 1985 s.21B(1), (3)-(4)](https://www.legislation.gov.uk/ukpga/1985/70/section/21B),
+  valid from 2026-06-29; the whole section is prospectively omitted by the Leasehold and Freehold
+  Reform Act 2024 s.55(2)(c)).
+- **Threatening forfeiture over service charges.** For premises let as a dwelling, a landlord
+  may not exercise a right of re-entry or forfeiture for failure to pay a service charge or
+  administration charge unless the amount is finally determined by a tribunal, court or
+  post-dispute arbitral tribunal, or admitted by the tenant
+  ([HA 1996 s.81(1)](https://www.legislation.gov.uk/ukpga/1996/52/section/81), valid from
+  2026-09-01), and after a determination not "until after the end of the period of 14 days
+  beginning with the day after that on which the final determination is made" (s.81(2)). Serving a notice
+  under section 146(1) of the Law of Property Act 1925 counts as exercising that right
+  (s.81(4A)). Business tenancies under Part II of the 1954 Act, agricultural holdings and farm
+  business tenancies are outside it (s.81(4)). Consequence table: a demand that threatens forfeiture, or a section 146
+  notice, over an undetermined and unadmitted service charge fails `Available now?` and is cut.
+
+## Do not
+
+- Do not write a deadline as a period without its calendar date.
+- Do not threaten a step the client has not confirmed, or one the law does not allow yet.
+- Do not let an admission of fact carry a legal conclusion; fill both columns.
+- Do not invent a fact, a defence, a clause or a statute to fill a gap in instructions.
+- Do not assert that a notice meets a statutory form, content or service requirement you did
+  not read this session.
+- Do not soften a firm demand into a negotiable one, or harden it beyond instructions.
+
+## Routes and scope
+
+- Reviewing the lease or contract the notice arises under → **contract-review**.
+- Mapping every duty a statute imposes, as a register → **statute-to-obligations-register**.
+- Checking the citations in a notice received → **legal-citation-integrity**.
+- The generated document's own integrity (placeholders, re-extraction) → **deliverable-integrity**.
+- Sending the notice by email and proving delivery → **email-delivery-verification**.
+
+Provenance: forked from rohasnagpal/legal-ai-skills (three upstream skills consolidated), see
+[UPSTREAM.md](UPSTREAM.md).

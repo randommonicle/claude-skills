@@ -17,7 +17,7 @@ no merge into main (Ben, 2026-10-03 12:47 BST: "re-clone and build").
 - [x] `contract-review` (SKILL.md, UPSTREAM.md, three verbatim references), count 47
 - [x] `legal-citation-integrity` + `verified-citations` Routes bullet, count 48
 - [x] `statute-to-obligations-register`, count 49
-- [ ] `legal-notice-handling` (three modes), count 50
+- [x] `legal-notice-handling` (three modes), count 50
 - [ ] Wiring: README fork sentence and forks row, NOTICE
 - [ ] Gates: check-index (50), check-archives (unchanged 5/17), unslop scan high 0 on each new
       SKILL.md, section 11 trigger-orthogonality grep, hooks/*.test.mjs loop
@@ -38,6 +38,7 @@ Pending amendments listed are those the page marks prospective, not yet in force
 |---|---|---|---|---|---|
 | obligations register | LTA 1985 s.20B (18-month limit) | https://www.legislation.gov.uk/ukpga/1985/70/section/20B | 2026-06-29 | E+W | s.20B(1) words, s.20B(3)-(10): LFRA 2024 ss.53-54 |
 | obligations register, notices | LTA 1985 s.21B (summary of rights with demand) | https://www.legislation.gov.uk/ukpga/1985/70/section/21B | 2026-06-29 | E+W | whole section omitted: LFRA 2024 s.55(2)(c) |
+| notices | LTA 1987 s.46(1), (1A) (scope of Part VI) | https://www.legislation.gov.uk/ukpga/1987/31/section/46 | 2026-06-29 | E+W | none listed |
 | notices | LTA 1987 s.47 (landlord's name and address in demand) | https://www.legislation.gov.uk/ukpga/1987/31/section/47 | 2026-06-29 | E+W | s.47(3A) inserted: LFRA 2024 s.55(4)(a) |
 | notices | HA 1996 s.81 (forfeiture for service charge) incl. s.81(4A) | https://www.legislation.gov.uk/ukpga/1996/52/section/81 | 2026-09-01 | E+W | none listed |
 | notices | CLRA 2002 s.166 (ground rent notice, 30 to 60 days) | https://www.legislation.gov.uk/ukpga/2002/15/section/166 | 2025-03-03 | E+W | none listed |
@@ -75,3 +76,13 @@ summary of that page named the amending Act wrongly, and the page itself shows a
 substitution history too involved for a worked example. Lesson for the rest of the unit: read
 statute text through the page's `/data.xml`, not a summarising fetch. The first draft scanned
 high: 4 (bold lead-in labels in a list); rewritten as a table, now high: 0.
+
+**legal-notice-handling.** Three upstream skills (demand drafter, reply drafter, notice
+analyser) consolidated into one with a mode table, because they share a trigger vocabulary. Red
+checks: deadline table (every deadline a calendar date with arithmetic and margin), consequence
+table (confirmed by the client and available in law now, else cut), allegation table (count
+match, and fact and legal characterisation in separate columns). Worked examples are the
+residential leasehold notices Ben handles: s.166 ground rent window, s.47 name and address,
+s.21B summary, and s.81 as the empty-threat case (forfeiture or a s.146 notice over an
+undetermined, unadmitted service charge). Every provision read via `/data.xml` today; s.81(2)
+quoted rather than paraphrased after a first draft shortened its 14-day wording.
