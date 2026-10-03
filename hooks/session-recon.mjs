@@ -9,7 +9,7 @@
 // its user-level agents match the library's (agentsLine), and, in a repo with a
 // team-loop resume board, how far HEAD has moved past it (nowLine).
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -138,10 +138,12 @@ function skillsUpdateLine() {
 // does the mechanical half: whether NOW.md is committed, whether the working copy differs
 // from that commit, how many commits HEAD has moved since, and which branches on its
 // `branches:` line exist neither locally nor on origin. It surfaces the `ask:` line too,
-// because the operator's answers are read at session start. Five git calls at most,
-// whatever NOW.md says, so a long branches line cannot push the hook past its timeout.
-// Silent when the repo has no team/NOW.md. Fail-open.
-const LOCAL_GIT_MS = 3000;
+// because the operator's answers are read at session start. Four git calls of at most
+// 1.5 s each, whatever NOW.md says, so a long branches line cannot push the hook past its
+// timeout. Silent when the repo has no team/NOW.md. Fail-open.
+const LOCAL_GIT_MS = 1500;
+// A file queue lives inside the repo: a relative .md path with no '..' segment.
+const ASK_FILE = /^(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9._\/-]+\.md$/;
 
 function nowLine(cwd) {
   try {
@@ -177,8 +179,9 @@ function nowLine(cwd) {
       else {
         const known = new Set(refs.split('\n').map((s) => s.trim()).filter(Boolean));
         const missing = [];
-        // A parenthesised note may hold commas, so notes go before the split.
-        for (const entry of branches[1].replace(/\([^)]*\)/g, '').split(',')) {
+        // A note after a name, "name (note)", may hold commas, so notes go before the split.
+        // Only a note after whitespace: "feat/(legacy)" is a valid branch name.
+        for (const entry of branches[1].replace(/\s\([^)]*\)/g, '').split(',')) {
           const name = entry.trim().split(/\s/)[0].replace(/`/g, '');
           if (!name || /^none$/i.test(name)) continue;
           if (!known.has(name) && !known.has('origin/' + name)) missing.push(name);
@@ -193,11 +196,19 @@ function nowLine(cwd) {
         out.push(
           'Ask queue: ' + where + '. Read its meta/status, answers and notes before starting work; if it cannot be read, say so and ask in the session, never report it empty.',
         );
-      } else if (!existsSync(join(cwd, ...where.split('/')))) {
-        out.push('Ask queue: NOW.md names ' + where + ', which does not exist here.');
+      } else if (!ASK_FILE.test(where)) {
+        out.push('Ask queue: NOW.md names ' + where + ', which is neither a link nor a .md file inside this repo.');
       } else {
-        const open = (readFileSync(join(cwd, ...where.split('/')), 'utf8').match(/^## ASK-\d+/gm) || []).length;
-        out.push('Ask queue: ' + where + ' holds ' + open + ' open item(s); read their answers before starting work.');
+        const file = join(cwd, ...where.split('/'));
+        let open = null;
+        try {
+          if (statSync(file).isFile()) open = (readFileSync(file, 'utf8').match(/^## ASK-\d+/gm) || []).length;
+        } catch {}
+        out.push(
+          open === null
+            ? 'Ask queue: NOW.md names ' + where + ', which does not exist here or cannot be read.'
+            : 'Ask queue: ' + where + ' holds ' + open + ' open item(s); read their answers before starting work.',
+        );
       }
     }
     return out.join(' ');

@@ -45,20 +45,23 @@ project, never both, and NOW.md's `ask:` line says which.
 **The lifecycle, the same in both forms:**
 
 1. **Ask once.** Write the item and never edit it afterwards; a changed question is a new
-   item. Then park the work it blocks. The lead never builds past an open decision.
+   item. Then park the work it blocks. The lead never builds past an open decision. If
+   nothing else is unblocked, overwrite NOW.md (`next:` waiting on the item's id) before
+   stopping: a park is a session end like any other.
 2. **Read at every start and resume.** Read the answers, and on the board the operator's
    free notes, before starting work.
-3. **Record, with the operator's note verbatim.** A decision goes into `DECISIONS.md` with the
-   item id in the entry. A build review is not a decision: its answer goes on the PR as a
+3. **Record, with the operator's words verbatim.** A decision goes into `DECISIONS.md` with
+   the item id in the entry. A build review is not a decision: its answer goes on the PR as a
    comment naming the item id, or on the package's ledger line in stage 2. A free note is
-   acted on or recorded where it belongs (DECISIONS.md, NOW.md, an Ask item), citing its date.
-   Before writing, look for the item id where the record would land (grep the repo, or read
-   the PR's comments), so a crash between record and delete costs a delete next time, never a
-   second entry.
+   always recorded, even when it is simply acted on: in DECISIONS.md if it decides something,
+   otherwise one line in NOW.md or the WORKLOG saying what was done, either way citing the
+   note's document id. Before writing, look for the item or note id where the record would
+   land (grep the repo, or read the PR's comments), so a crash between record and delete
+   costs a delete next time, never a second entry.
 4. **Delete only after the record exists** (`verify-the-effect`): after the commit for a
-   decision, after reading the posted comment back for a review. Delete the item and its
-   answer on the board, or the item's section in `team/ASK.md`; delete a note once it is
-   recorded.
+   decision or a note, after reading the posted comment back for a review. Then delete the
+   item and its answer, or the note, on the board; in `team/ASK.md`, delete the item's
+   section in a commit, since an uncommitted deletion is undone by the next checkout.
 
 ## Reading and writing the board
 

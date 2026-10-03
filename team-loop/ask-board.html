@@ -197,13 +197,15 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
       if (d.choice === 'other' && !d.note.trim()) { msg.className = 'msg bad'; msg.textContent = 'Say what you want in the note.'; return; }
       send.disabled = true; msg.className = 'msg'; msg.textContent = 'Saving…';
       const body = { item: id, choice: d.choice, note: d.note.trim(), answeredAt: new Date().toISOString(), by: uid, via: 'page' };
+      // Close the form only after the store confirmed the write, and without waiting for a
+      // snapshot: the answered card it shows is the confirmation.
+      const saved = () => { if (!answers.has(id)) answers.set(id, body); d.editing = false; refreshCard(id, true); };
       try {
         await db.doc('answers/' + id).set(body);
-        d.editing = false; d.justSaved = true;
-        msg.className = 'msg ok'; msg.textContent = 'Saved.';
+        saved();
       } catch (e) {
         if (e && e.code === 'unavailable') {
-          try { await new Promise((r) => setTimeout(r, 600 + Math.random() * 900)); await db.doc('answers/' + id).set(body); d.editing = false; d.justSaved = true; msg.className = 'msg ok'; msg.textContent = 'Saved.'; return; }
+          try { await new Promise((r) => setTimeout(r, 600 + Math.random() * 900)); await db.doc('answers/' + id).set(body); saved(); return; }
           catch (e2) { e = e2; }
         }
         msg.className = 'msg bad'; msg.textContent = writeFailure(e); send.disabled = false;
@@ -228,10 +230,9 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
     const d = drafts.get(id);
     if (!force && prev && prev.item === item && prev.answer === answer) return prev.node;
     // A snapshot must not wipe a form being filled in, even when another view answers the same
-    // item meanwhile. This view's own save is the one snapshot allowed to close the form.
-    const filling = prev && d && !d.justSaved && (d.editing || !prev.answer) && document.activeElement && prev.node.contains(document.activeElement);
+    // item meanwhile. This view's own save closes the form itself, by a forced refresh.
+    const filling = prev && d && (d.editing || !prev.answer) && document.activeElement && prev.node.contains(document.activeElement);
     if (!force && filling && prev.item === item) return prev.node;
-    if (d) d.justSaved = false;
     const node = buildCard(id, item, answer);
     if (prev) prev.node.replaceWith(node);
     cards.set(id, { node, item, answer });

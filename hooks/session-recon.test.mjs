@@ -531,6 +531,43 @@ nowCase(
   },
 );
 
+// Round 2 of the same review: a parenthesis inside a branch name, and ask: values that
+// point outside the repo or at a directory, which once threw and silenced the whole report.
+nowCase(
+  'a branch whose name holds parentheses is found',
+  (cwd, g) => {
+    g('branch', 'feat/(legacy)');
+    commitNow(cwd, g, NOW('branches: feat/(legacy), main (the trunk)\n'));
+  },
+  async (r) => {
+    if (/do not exist here/.test(r.context)) return 'feat/(legacy) reported missing: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'an ask: path that is a directory is named, and the rest of the report survives',
+  (cwd, g) => commitNow(cwd, g, NOW('ask: .\n')),
+  async (r) => {
+    if (!/team\/NOW\.md is the resume board/.test(r.context)) return 'the NOW report was silenced: ' + r.context;
+    if (!/names \., which is neither/.test(r.context)) return 'ask: . not named: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'an ask: path outside the repo is refused, never read',
+  (cwd, g) => {
+    writeFileSync(join(cwd, '..', 'OUTSIDE.md'), '## ASK-0001\n', 'utf8');
+    commitNow(cwd, g, NOW('ask: ../OUTSIDE.md\n'));
+  },
+  async (r) => {
+    if (/holds 1 open item/.test(r.context)) return 'read a file outside the repo: ' + r.context;
+    if (!/neither a link nor a \.md file inside this repo/.test(r.context)) return 'the outside path was not refused: ' + r.context;
+    return true;
+  },
+);
+
 const run = async () => {
   for (const c of cases) {
     const s = stage(c.fixture, c.cwdIsRepo, c.layout);

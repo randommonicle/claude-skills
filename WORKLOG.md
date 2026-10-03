@@ -81,3 +81,17 @@ operator's notes and had no delete point for a PR-comment record; the handover e
 items 3 and 9, and its "amber is unusual" line meant a disciplined wrap-up would never update
 NOW.md, so NOW.md is now written at every end and the dated file is the extra for unusual
 ends. Five new hook cases, all red against 1c10fbd.
+
+### Commit 5: cross-agent review round 2 fixes
+
+Eight claims, all re-derived and held. Hook: `ask: .` passed `existsSync`, then
+`readFileSync` threw `EISDIR` and the outer catch silenced the whole NOW report; a file queue
+is now a relative `.md` path with no `..` segment, read in its own try. `feat/(legacy)` is a
+valid branch name (`git check-ref-format` accepts it) that the note-stripping mangled; only a
+note after whitespace is stripped now. Per-call git timeout down to 1.5 s, four calls, so the
+NOW check adds at most 6 s; the hook's older fetch, status, log and `gh` calls are unchanged
+and can still exceed 20 s together under slow conditions, noted, not fixed here. Page: the
+`justSaved` flag could stick if no snapshot followed the save; replaced by a forced refresh
+once the store confirms the write. Skill: a free note is always recorded (by its document id)
+before deletion, an ASK.md deletion is committed, and a park with nothing unblocked writes
+NOW.md before stopping. Three new hook cases, red against 6df27b1.
