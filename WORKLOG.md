@@ -151,6 +151,13 @@ missing from the working copy and to restore it; a git failure stays silent (fai
 case in `hooks/session-recon.test.mjs`, red before the fix; every `hooks/*.test.mjs` suite
 green after.
 
+### Commit 11: the review record, closed and copied to docs/
+
+The stage 1 review closed at the round cap with a CLAUDE close section and a CLAUDE position
+(GPT's three rounds used; every finding fixed or recorded). The record is copied from the
+machine-local `exchange/` to `docs/REVIEW_team-loop-s1_2026-10-03.md` so it travels. Correction
+to commit 9's entry: GPT's round 3 answered at about 17:20 BST, not "17:2x".
+
 ## Team-loop stage 2, plugin pieces (branch `feat/team-loop-stage2`, opened 2026-10-03)
 
 Goal: the plugin side of `docs/DESIGN_team-loop_2026-10-02.md` section 5, inert until a project
@@ -292,3 +299,9 @@ there (6f15d35, merged in as 8cf0d85). The other five, here, each with a case re
 Gate suite: the four new gate cases red with the parent `gate.mjs`, all cases green after; the
 recon suite's new case red before, all green after. `agents/tl-builder.md`, the skill's gate
 paragraph and the gate's header now name the `team/` rule and the TESTS CHANGED limit.
+
+### Commit 13: the stage 2 review record, closed and copied to docs/
+
+GPT's round and the CLAUDE close (with a CLAUDE position) appended to the machine-local record,
+which is copied to `docs/REVIEW_team-loop-s2_2026-10-03.md`. Stage 1's closed record arrives by
+the merge (462d3c7).
