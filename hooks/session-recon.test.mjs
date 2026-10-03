@@ -568,6 +568,69 @@ nowCase(
   },
 );
 
+// Round 3 stand-in (code-reviewer subagent, 2026-10-03): a failed git call read as "not
+// committed", a branch shadowed by a same-named tag, a failed fetch reported as fact about
+// origin, a recreated NOW.md called committed, and ask: dressing refused.
+test(
+  'a git failure is reported as an unreadable check, never as "not committed"',
+  { state: 'current', at: hoursAgo(1) },
+  async (r) => {
+    if (/is not committed/.test(r.context)) return 'a git failure read as not committed: ' + r.context;
+    if (!/could not be read/.test(r.context)) return 'the failure was not named: ' + r.context;
+    return true;
+  },
+  true,
+  { repo: (cwd, g) => commitNow(cwd, g, NOW()), env: { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'log.date', GIT_CONFIG_VALUE_0: 'bogus' } },
+);
+
+nowCase(
+  'a branch that shares its name with a tag is found',
+  (cwd, g) => {
+    g('branch', 'v1');
+    g('tag', 'v1');
+    commitNow(cwd, g, NOW('branches: v1\n'));
+  },
+  async (r) => (/do not exist here/.test(r.context) ? 'v1 reported missing: ' + r.context : true),
+);
+
+nowCase(
+  'when the fetch fails, a missing branch is not claimed absent from origin',
+  (cwd, g) => {
+    g('remote', 'add', 'origin', join(cwd, '..', 'no-such-remote'));
+    commitNow(cwd, g, NOW('branches: feat/elsewhere\n'));
+  },
+  async (r) => {
+    if (/locally or on origin/.test(r.context)) return 'asserted origin state after a failed fetch: ' + r.context;
+    if (!/The fetch failed/.test(r.context)) return 'the failed fetch was not named: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'a NOW.md deleted in a commit and recreated untracked is not called committed',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    g('rm', '-q', 'team/NOW.md');
+    g('commit', '-qm', 'drop now');
+    writeNow(cwd, NOW());
+  },
+  async (r) => (/is not committed/.test(r.context) ? true : 'a recreated NOW.md read as committed: ' + r.context),
+);
+
+nowCase(
+  'an ask: path in backticks with a note is read, and ask: none is silent',
+  (cwd, g) => {
+    mkdirSync(join(cwd, 'team'), { recursive: true });
+    writeFileSync(join(cwd, 'team', 'ASK.md'), '# ASK\n\n## ASK-0001 · decision\n', 'utf8');
+    commitNow(cwd, g, NOW('ask: `team/ASK.md` (regulated)\n'));
+  },
+  async (r) => (/team\/ASK\.md holds 1 open item/.test(r.context) ? true : 'dressed ask: not read: ' + r.context),
+);
+
+nowCase('ask: none says nothing about a queue', (cwd, g) => commitNow(cwd, g, NOW('ask: none\n')), async (r) =>
+  /Ask queue/.test(r.context) ? 'reported a queue for ask: none: ' + r.context : true,
+);
+
 const run = async () => {
   for (const c of cases) {
     const s = stage(c.fixture, c.cwdIsRepo, c.layout);
