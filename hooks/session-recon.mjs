@@ -169,14 +169,16 @@ function skillsUpdateLine() {
 // does the mechanical half: whether NOW.md is committed, whether the working copy differs
 // from that commit, how many commits HEAD has moved since, and which branches on its
 // `branches:` line exist neither locally nor on origin. It surfaces the `ask:` line too,
-// because the operator's answers are read at session start. Four git calls of at most
-// 1.5 s each, whatever NOW.md says, so a long branches line cannot push the hook past its
-// timeout. Silent when the repo has no team/NOW.md. Fail-open.
+// because the operator's answers are read at session start. At most five git calls of
+// 1.5 s each, whatever NOW.md says, so a long branches line adds no time; the hook's older
+// fetch, status, log and gh calls are what can approach its 20 s limit on a slow machine.
+// A git call that fails returns null, and every null here is reported as a failed check,
+// never read as "absent". Silent when the repo has no team/NOW.md. Fail-open.
 const LOCAL_GIT_MS = 1500;
 // A file queue lives inside the repo: a relative .md path with no '..' segment.
 const ASK_FILE = /^(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9._\/-]+\.md$/;
 
-function nowLine(cwd) {
+function nowLine(cwd, fetched) {
   try {
     const rel = 'team/NOW.md';
     const path = join(cwd, 'team', 'NOW.md');
@@ -184,8 +186,13 @@ function nowLine(cwd) {
     const text = readFileSync(path, 'utf8');
     const git = (...args) => run('git', ['-C', cwd, ...args], LOCAL_GIT_MS);
     const out = [];
-    const last = git('log', '-1', '--format=%h %cs', '--', rel);
-    if (!last) {
+    // Committed means present in HEAD. `git log -- path` alone also finds the commit that
+    // deleted it, which would call a recreated, untracked NOW.md committed.
+    const inHead = git('ls-tree', '--name-only', 'HEAD', '--', rel);
+    const last = inHead ? git('log', '-1', '--format=%h %cs', '--', rel) : inHead;
+    if (inHead === null || last === null) {
+      out.push(rel + ' exists, but whether it is committed could not be read (git failed or timed out); check git status and git log before acting on it.');
+    } else if (!inHead || !last) {
       out.push(rel + ' exists but is not committed, so no other checkout or machine sees it. Read it, then commit it.');
     } else {
       const [sha, date] = last.split(' ');
@@ -205,7 +212,8 @@ function nowLine(cwd) {
     const branches = /^branches:[ \t]*(.*)$/im.exec(text);
     if (branches) {
       // One listing, so each entry is a set lookup and no entry ever reaches git.
-      const refs = git('for-each-ref', '--format=%(refname:short)', 'refs/heads', 'refs/remotes/origin');
+      // lstrip=2, not short: short turns branch v1 into "heads/v1" when a tag v1 exists.
+      const refs = git('for-each-ref', '--format=%(refname:lstrip=2)', 'refs/heads', 'refs/remotes/origin');
       if (refs === null) out.push('The branches NOW.md names could not be checked: git for-each-ref failed.');
       else {
         const known = new Set(refs.split('\n').map((s) => s.trim()).filter(Boolean));
@@ -217,12 +225,19 @@ function nowLine(cwd) {
           if (!name || /^none$/i.test(name)) continue;
           if (!known.has(name) && !known.has('origin/' + name)) missing.push(name);
         }
-        if (missing.length) out.push('Branches NOW.md names that do not exist here, locally or on origin: ' + missing.join(', ') + '.');
+        if (missing.length)
+          out.push(
+            fetched
+              ? 'Branches NOW.md names that do not exist here, locally or on origin: ' + missing.join(', ') + '.'
+              : 'Branches NOW.md names that do not exist here: ' + missing.join(', ') +
+                  '. The fetch failed, so origin\'s branches may be out of date; one of these may exist there.',
+          );
       }
     }
     const ask = /^ask:[ \t]*(\S.*)$/im.exec(text);
-    if (ask) {
-      const where = ask[1].trim();
+    // The same dressing the branches line allows: backticks, and a note after whitespace.
+    const where = ask ? ask[1].replace(/\s\([^)]*\)\s*$/, '').replace(/`/g, '').trim() : '';
+    if (ask && where && !/^none$/i.test(where)) {
       if (/^https?:\/\//i.test(where)) {
         out.push(
           'Ask queue: ' + where + '. Read its meta/status, answers and notes before starting work; if it cannot be read, say so and ask in the session, never report it empty.',
@@ -280,7 +295,7 @@ process.stdin.on('end', () => {
     if (update) parts.push(update);
 
     if (existsSync(join(cwd, '.git'))) {
-      run('git', ['-C', cwd, 'fetch', '--quiet'], 8000);
+      const fetched = run('git', ['-C', cwd, 'fetch', '--quiet'], 8000) !== null;
       const status = run('git', ['-C', cwd, 'status', '-sb']);
       const log = run('git', ['-C', cwd, 'log', '--oneline', '--decorate', '--all', '-8']);
       const prs = run('gh', ['pr', 'list', '--state', 'open', '--limit', '10'], 8000);
@@ -288,7 +303,7 @@ process.stdin.on('end', () => {
       if (status) parts.push(`status:\n${status}`);
       if (log) parts.push(`recent commits (all refs, post-fetch):\n${log}`);
       if (prs) parts.push(`open PRs:\n${prs}`);
-      const now = nowLine(cwd);
+      const now = nowLine(cwd, fetched);
       if (now) parts.push(now);
     }
     if (!parts.length) process.exit(0);

@@ -96,7 +96,7 @@ Rules the probe of 2026-10-03 set (`docs/PROBE_ask-board_2026-10-03.md`):
   nothing more.
 - **Nothing regulated on the board.** Questions and repo paths only; the evidence field is a
   path, never content.
-- **Pin writes.** Pass the version you read as `if_version` on every write to an existing
+- **Pin the lead's writes.** Pass the version you read as `if_version` on every ArtifactData write to an existing
   document.
 
 ## Effort pins

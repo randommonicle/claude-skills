@@ -110,6 +110,23 @@ A wiring step the first three commits missed: `hooks/HOOKS.md` is the hook catal
 `session-recon` row did not mention the NOW.md check. Found while adding stage 2's shadowing
 check, which needs the same row.
 
+### Commit 8: round 3 stand-in findings (code-reviewer subagent)
+
+GPT's seat was over its usage limit, so round 3's attack on the convergence ran as the
+library's `code-reviewer` agent: sonnet, the hub's own vendor, so less independent than GPT,
+and recorded as such. It blocked the convergence with five findings, all re-derived and held.
+Page: a phone tap does not focus the button, so the store's echo of the pending write rebuilt
+the card as "Answered" and a later rejection wrote its error to a detached node; in-flight
+saves now hold the card, the error lives on the draft, and the strip does not count a pending
+write. The empty state now checks the `meta/status` sentinel the skill already demanded, and
+nothing renders until both items and answers are definitive. Hook: a failed git call read as
+"not committed"; `%(refname:short)` turned branch `v1` into `heads/v1` beside a tag `v1`; a
+failed fetch was reported as fact about origin; a NOW.md deleted and recreated read as
+committed (now checked with `ls-tree HEAD`); and `ask:` dressing was refused. Six new hook
+cases, all red against c22724b; the stand-in's stub-DOM repros (scratchpad `s1`, `s2`, `s2b`,
+`s3`, `s4`) re-run green on the fixed page. Not fixed: the hook's older calls can still near
+the 20 s limit on a slow machine; the comment no longer claims otherwise.
+
 ## Team-loop stage 2, plugin pieces (branch `feat/team-loop-stage2`, opened 2026-10-03)
 
 Goal: the plugin side of `docs/DESIGN_team-loop_2026-10-02.md` section 5, inert until a project
