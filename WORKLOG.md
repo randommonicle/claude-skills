@@ -19,11 +19,11 @@ no merge into main (Ben, 2026-10-03 12:47 BST: "re-clone and build").
 - [x] `statute-to-obligations-register`, count 49
 - [x] `legal-notice-handling` (three modes), count 50
 - [x] Wiring: README fork sentence, NOTICE (forks row left as is, see entry)
-- [ ] Gates: check-index (50), check-archives (unchanged 5/17), unslop scan high 0 on each new
+- [x] Gates: check-index (50), check-archives (unchanged 5/17), unslop scan high 0 on each new
       SKILL.md, section 11 trigger-orthogonality grep, hooks/*.test.mjs loop
 - [x] property-reg-reviewer over the four SKILL.md files; Critical/High re-derived and fixed
-- [ ] Section 11.5 ride (manual application of contract-review)
-- [ ] Close: checklist walk, closing summary
+- [x] Section 11.5 ride (manual application of contract-review), partial: synthetic excerpt
+- [x] Close: checklist walk, closing summary
 
 **Known merge conflict, not resolved here:** `feat/team-loop-stage1` also changes the skill
 count (to 47). Whichever lands second must reconcile the count in README (two sites),
@@ -127,3 +127,34 @@ statements of legal effect). Lows fixed: L1 (both s.20B limbs quoted), L2 (s.47(
 deadline search terms), L7 (England and Wales summary regulations named, titles read). The
 reviewer's remaining note, that a retrieval is self-reported in legal-citation-integrity, is
 narrowed by requiring quoted words in every retrieval; it cannot be closed by prose.
+
+**Ride (section 11.5), partial.** No real lease is reachable without reading another repository,
+which this unit forbids, so the contract-review method was applied by hand to a seven-clause
+synthetic lease excerpt written for the purpose (kept in the session scratchpad as
+`ride-contract-review.md`, not committed). Result: four graded rows, each clause-cited with
+quoted words; the cap row read with its carve-out, the insurance covenant and the
+Unreviewable Schedule 3; the law check fired on a first-draft "barred by statute" in the
+re-entry row and moved it to the verification list. Self-check line:
+`4 rows; clause 4/4; law 1 moved; interaction 2/2`. Auto-load was not tested: a user-level
+skill is only listed in a fresh session, and this worktree is not the live library.
+
+**Closing walk.** Worktree and branch: done, upstream unset, nothing pushed. Source: re-cloned
+at a5c00ec, the four spot-checked bodies read in full. Four skills: SKILL.md and UPSTREAM.md
+each, contract-review with its three references (git blobs identical to upstream). Wiring:
+README table rows (4), counts at README lines "lists all" and "skills coexist", plugin.json,
+marketplace.json, verified-citations Routes bullet and README hub row, verified-citations.skill
+repacked, README licence paragraph, NOTICE. Gates: check-index ok at 50; check-archives ok at
+5 archives, 17 members; unslop high 0 on all four; orthogonality grep clean; hooks tests loop
+clean. Reviewer: all four High fixed after source checks, Mediums and Lows fixed. Deferred-item
+anchor: the handover's section 10 list is the anchor and is unchanged. Not done, by
+instruction: DECISIONS.md (Ben lands the handover section 12 draft), LESSONS_LEARNED.md, push.
+
+**Closing summary.** Built four guardrails from rohasnagpal/legal-ai-skills, 46 to 50 skills,
+seven commits on feat/legal-fork. Deviations from the plan: verified-citations.skill repacked
+(the plan missed the archive); NOTICE extended (not in the plan's edit sites); the shared unslop
+forks row left alone; descriptions trimmed to about 70 words, still above the ~60 soft cap;
+contract-review drops the upstream CUAD sweep; the ride used a synthetic excerpt. One error of my
+own, caught by the reviewer and fixed: Act-level revision dates were first recorded as
+provisions' "valid from" dates. Lesson candidate for Ben: read statute text from the page's
+`/data.xml`, never a summarising fetch, and never take the page's top-level date as the
+provision's.
