@@ -244,7 +244,11 @@ interns, zero watchers.
   by a factor of four. Write the number anyway, because it sets intent and it makes the overrun
   legible afterwards, but never treat it as a control. The only real ceilings are one the harness
   enforces and a scope too small to overrun. **If a task genuinely must not exceed a budget, cut
-  the scope until it cannot.**
+  the scope until it cannot.** `maxTurns` in an agent's frontmatter is the harness-enforced
+  kind: at the limit Claude Code stops the agent and returns its output marked partial, and the
+  lead can resume it (sub-agents documentation). It caps turns, not tokens, so it bounds an
+  agent that loops rather than one that reads too much; set it on every standing role and
+  state it in the roster row (DECISIONS.md, 2026-10-03, ASK-0005).
 
 ## Routes
 

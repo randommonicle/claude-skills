@@ -109,3 +109,38 @@ This is the lifecycle's first real run.
 A wiring step the first three commits missed: `hooks/HOOKS.md` is the hook catalogue and its
 `session-recon` row did not mention the NOW.md check. Found while adding stage 2's shadowing
 check, which needs the same row.
+
+## Team-loop stage 2, plugin pieces (branch `feat/team-loop-stage2`, opened 2026-10-03)
+
+Goal: the plugin side of `docs/DESIGN_team-loop_2026-10-02.md` section 5, inert until a project
+opts in, on the operator's answer ASK-0003 ("build-now"). Stacked on `feat/team-loop-stage1`.
+No project is touched: the pilot (ASK-0004, passive income) has live sessions and its setup is
+ASK-0006.
+
+Checklist:
+
+- [x] Four `tl-` agents: `tools` without `Agent`, `model`, `effort`, `maxTurns`, `isolation: worktree` for builders
+- [x] `maxTurns` paragraph in `commission-the-roster` (ASK-0005 item 3), placed in Traps, clear of open PR #3's hunk
+- [x] Templates: `WP.md`, `BOARD.md`, `SPEC.md`, `gate.json`
+- [x] `team-loop/scripts/gate.mjs` and `gate.test.mjs`; the suite added to CI
+- [x] `session-recon` shadowing check, plugin layout only, with tests
+- [x] The skill's stage 2 section, README rows, HOOKS.md
+- [ ] Cross-agent review of the stage 2 commits
+- [ ] Closing walk
+
+### Commits 1 to 3: agents, templates and skill; the gate; the shadowing check
+
+**Deviation from the design, pending ASK-0007:** `JUDGED BY` lines are commands judged by exit
+code, not per-test ids read from JUnit results. The pilot repo has no per-test suite (its
+proofs are Python evidence scripts and MT5 Tester runs, read-only survey 2026-10-03), and the
+command form fits both. The design's "none skipped" check is carried by red-at-T instead: a
+skipped check passes at T and fails check 2, and T's files cannot change afterwards (check 3).
+The gate reads the brief, `gate.json` and the verdict file from the milestone branch's
+committed tree, so a builder cannot edit what judges it, and keeps the tested merge at
+`refs/team-loop/tested/<wp>` so it survives the scratch worktree's removal. All 17 gate cases
+green on the first run, so each check was mutated off in turn: every mutation turned its case
+red (check 1's case then failed at check 3, still red). The shadowing check reads the agent's
+frontmatter `name`, not its file name, and runs only under `CLAUDE_PLUGIN_ROOT`, because on a
+direct clone the tl- agents belong in the user's agents directory. The gate suite lives outside
+the CI loop's `hooks/*.test.mjs` glob, so it is a named CI step (LESSONS 28); not yet run on
+the runner, since nothing is pushed today.

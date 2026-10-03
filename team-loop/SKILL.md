@@ -1,15 +1,15 @@
 ---
 name: team-loop
-description: Keep a project's resume state in team/NOW.md, overwritten at each routine session end and checked against git at each start, and keep the operator's open decisions in one queue, the Ask board (a private claude.ai artifact, unregulated projects) or team/ASK.md (regulated projects), never both. Triggers when a session starts or resumes in a repo that has team/NOW.md, when work needs an operator decision that cannot be had in the session, when recording an answered Ask item, and when a routine session ends. Does not fire on the dated note for an unusual end (handover owns that) or on spawning agents (commission-the-roster).
+description: Keep a project's resume state in team/NOW.md, overwritten at every session end and checked against git at each start, and keep the operator's open decisions in one queue, the Ask board (a private claude.ai artifact, unregulated projects) or team/ASK.md (regulated projects), never both. In a project that runs stage 2 it also drives the loop: research, decision round, spec revision, roster, tests first, build, review, the gate script and the merge, with the tl- role agents. Triggers when a session starts or resumes in a repo that has team/NOW.md, when work needs an operator decision that cannot be had in the session, when recording an answered Ask item, when a session ends, and when a project runs a team-loop milestone. Does not fire on the dated note for an unusual end (handover owns that), and never replaces the roster approval commission-the-roster requires.
 ---
 
-# Team loop, stage 1: the state layer
+# Team loop
 
 Two files and one page give a project a standing operating layer that survives the session:
 `team/NOW.md` says where the work is, the Ask queue holds what only the operator can decide,
 and effort pins keep each agent on the model and effort its job needs. It works with or
-without agents. Stage 2, the loop with role agents, is designed in
-`docs/DESIGN_team-loop_2026-10-02.md` section 5 and is not part of this skill yet.
+without agents. Stage 2, below, adds the loop: role agents, a board of work packages, a
+living spec, a ledger and a gate script, for a project that opts in.
 
 ## team/NOW.md: the resume board
 
@@ -109,6 +109,91 @@ at low effort. Reviewers pin `high` or above. An agent that builds regulated wor
 (`commission-the-roster` Rule 2), or is split from its unregulated twin. The library's own
 agents are pinned; agents that live only on one machine or in one project are pinned there,
 through that project's own change control, and NOW.md lists any still unpinned.
+
+## Stage 2: the loop, for a project that opts in
+
+The loop is for topics. A one-commit fix runs as it does today.
+
+**Roles.** The main session is the lead: strategy, briefs, gates, line review of unregulated
+diffs, milestone summaries. It reads briefs, findings, diffs and the gate's output, not the
+repository. The others are agents shipped in `agents/`, each pinned to model, effort and
+`maxTurns` in its frontmatter, none with the `Agent` tool, so none can sub-delegate:
+
+| Agent | Model, effort | Isolation | Used for |
+|---|---|---|---|
+| `tl-researcher` | sonnet, medium | none | one topic, one `team/research/<topic>/FINDINGS.md`; at most two at once |
+| `tl-builder` | sonnet, medium | worktree | an unregulated package: tests first in their own commit, stops, builds when resumed |
+| `tl-test-writer` | sonnet, medium | worktree | a regulated package's tests, from the spec, independently of the builder |
+| `tl-builder-regulated` | opus, high | worktree | a regulated package, merging the test writer's commit first |
+
+Regulated packages are also reviewed by `code-reviewer`, `property-reg-reviewer` and a
+`cross-agent-review` seat; they return findings and the lead writes the verdict file.
+Unregulated packages get no spawned reviewer: the lead line-reviews the diff and the gate is
+mechanical. The `maxTurns` values are provisional until the first ledger. A model departure is
+a spawn-time override stated in the roster; an effort departure is a separately named agent.
+
+**Where the agents load from.** Under a plugin install they load from the plugin, and a
+project or user agent named `tl-*` would silently replace one, which `session-recon` reports.
+On a direct clone of this library they are copied into the user's agents directory like the
+library's other agents, which `session-recon`'s agent check asks for. Both checks are right
+for their layout.
+
+**Project state under `team/`:** `NOW.md` (stage 1; once BOARD.md exists its `branches:` line
+names only the milestone branch), `BOARD.md` (every package's status and gate columns, from
+`templates/BOARD.md`), `SPEC.md` (the living design with a revision number, from
+`templates/SPEC.md`; a project with a spec family points at it), `LEDGER.jsonl` (one line per
+finished package), `packages/WP-nnn.md` (one brief each, from `templates/WP.md`),
+`research/<topic>/FINDINGS.md`, `archive/<milestone>.md`, and `gate.json` (the gate's
+project config, from `templates/gate.json`).
+
+**The loop:**
+
+| # | Step | Who | Gate to pass |
+|---|---|---|---|
+| 0 | Pick a topic | operator, on the Ask board or in chat | |
+| 1 | Research | `tl-researcher`, at most two | |
+| 2 | Decision round | lead asks on the Ask queue, operator answers | the answer, recorded in DECISIONS.md |
+| 3 | Spec revision and briefs, **committed to the milestone branch** before anyone spawns | lead | |
+| 4 | Milestone roster: package, role, model, budget, scope, artifact | lead publishes, operator approves | the operator's yes **in the session** (`commission-the-roster` Rule 1), never from the board |
+| 5 | Tests first: the builder (stops after its tests commit) or `tl-test-writer` | agent | the lead reads the tests and pins T from the tool result |
+| 6 | Build: `tl-builder` resumed, or `tl-builder-regulated` | agent | |
+| 7 | Review against the spec, regulated packages only | reviewers, cross-agent seats | the lead's verdict file: no open Critical or High |
+| 8 | Gate and merge | lead, by `scripts/gate.mjs` | the gate passes; then `git merge --ff-only refs/team-loop/tested/WP-nnn`, a ledger line, the worktree and branch removed |
+| 9 | Build to review | operator, on the Ask queue (a `review` item saying how to run it) | the answer, on the ledger line |
+| 10 | Release | operator, in the session | `push-gate` asks per action |
+
+**The gate** (`node team-loop/scripts/gate.mjs --wp WP-nnn --t <T> --head <branch> --milestone
+<branch>`) decides from git and from the package's checks, never from the builder's report. It
+reads the brief, `team/gate.json` and the verdict file from the milestone branch's committed
+tree, so a builder cannot edit what judges it. Each brief's `JUDGED BY` lines are
+`- <id>: <command>`: a command exits non-zero while its check fails and zero once it passes,
+which fits a test suite (one command per test file) and a project whose proofs are scripts. It
+checks that T is an ancestor of the head; that every check fails at T (a check that already
+passes is hollow or skipped); that T's files are unchanged after T and existing tests, test
+config and `package.json`'s test scripts are unchanged from the package base unless
+`TESTS CHANGED` names the path; that every check and the full suite pass on the committed merge
+into the milestone tip; and, for a regulated package, that the verdict file lists no
+`- [open] Critical` or `- [open] High` line. It writes T, B, the tested merge, the red and green
+ids and the result onto the package's BOARD row. Run it only after the builder has finished
+and committed: a gate run alongside the step it certifies sees an unfinished state.
+
+**A ledger line** is one JSON object: `{"wp", "milestone", "date", "agents": [{"agent",
+"model", "effort", "tokens", "turns"}], "wall_minutes", "gate": "pass" | "fail", "tested",
+"build_review"}`, with tokens from the Agent tool's own usage report, never estimated.
+
+**Concurrency.** At most two builders at once, and only when their `SCOPE` globs are disjoint
+and they share no stateful resource (a local database, a fixed port, shared fixtures).
+
+**Per-project setup, once, on its own branch:** `"worktree": {"baseRef": "head"}` in the
+project's `.claude/settings.json`, so builders branch from the milestone branch rather than the
+remote default (worktrees documentation); `.claude/worktrees/` in `.gitignore`, and the test runner excludes it; `.worktreeinclude` copies no
+secrets; the build and test commands are pre-approved (on Windows an approval given inside a
+worktree stays with that worktree); and `team/gate.json` names the setup, suite, test and
+test-config globs.
+
+**Rounds.** Every third milestone close, an optimisation round over `LEDGER.jsonl`
+(`price-the-spend`), proposals filed on the Ask queue. When a new model ships, re-run two
+archived packages on it: their checks are the oracle and their ledger lines the baseline.
 
 ## What this skill does not do
 

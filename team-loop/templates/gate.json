@@ -1,0 +1,7 @@
+{
+  "setup": "npm ci",
+  "suite": "npm test",
+  "tests": ["test/**", "tests/**", "**/*.test.*", "**/*.spec.*"],
+  "testConfig": ["package.json#scripts", "vitest.config.*", "jest.config.*", "playwright.config.*"],
+  "timeoutMs": 600000
+}
