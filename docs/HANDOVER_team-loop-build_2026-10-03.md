@@ -106,3 +106,64 @@ this session's scratchpad (`ride-repo`, `ride2-repo`, `ride3-repo`), disposable.
   session; with Remote Control on, his chat answer from the phone is that yes.
 - Mobile push is disabled in this app's settings; email reaches Ben's inbox (verified).
 - Times to Ben in BST (memory note `times-in-bst`).
+
+## Update, evening 2026-10-03
+
+A headless continuation of this session, started 17:20 BST at Ben's request, ran the section 8
+steps without Ben. Local commits only; nothing pushed, nothing merged to main. No context
+reading was available in headless mode.
+
+**Legal fork** (`feat/legal-fork`, `~/.claude/skills-wt-legal-fork`, now 9 commits on
+origin/main, latest 6c9845b). Gates rerun before any change: check-index "ok: 50 skills, all
+indexed, all named, all three counts agree"; check-archives "ok: 5 archives, 17 members, all
+match their skill directories"; unslop high 0 medium 0 low 0 on each of the four new SKILL.md
+files. The scoped property-reg-reviewer pass over `git diff 3fc169c..6452578 -- '*/SKILL.md'`
+read 15 sources as legislation.gov.uk `/data.xml`: **0 Critical, 0 High**, 1 Medium, 1 Low,
+every "prospectively" flag matching an unapplied effect. Both fixed in 6c9845b after reading
+the XML myself: the s.48 "treated as not due" line lacked the s.48(3) receiver or manager
+exception; s.167(3) reduces the unpaid amount by a default charge for the sum test only. Gates
+green again after. Not checked: whether LFRA 2024 commencement regulations made after the XML
+snapshot have brought s.53, s.55 or s.61 into force.
+
+**GPT rounds.** Codex was within its limit; both seats answered (about 17:20 and 17:21 BST).
+- Stage 1, GPT's own round 3: three board-page findings, all real, fixed in 9839abb with a new
+  `team-loop/ask-board.test.mjs` (4 of 5 cases red on the parent, the control green). The
+  record closed at the round cap with a CLAUDE position (462d3c7), copied to
+  `docs/REVIEW_team-loop-s1_2026-10-03.md`.
+- Stage 2, CLAUDE round 4 then GPT: six findings, all real after re-derivation; two severities
+  lowered (empty T Critical to Medium, TESTS CHANGED High to Low). Finding 5 (`nowLine` silent on
+  a deleted committed NOW.md) was stage 1 code: 6f15d35 there, merged in as 8cf0d85. The other
+  five in a7ecf0d, each with a case red before its fix. Record closed with a CLAUDE position and
+  copied to `docs/REVIEW_team-loop-s2_2026-10-03.md` (b4aa01c, a merge of stage 1 that also
+  carries the copy). GPT has not seen the fixes; a second GPT turn is optional.
+- Both records show a doubled `[[END GPT ...]]` line: the live clone's `run-seat.mjs` lacks
+  28d5dac (`fix/run-seat-double-end`, unmerged).
+
+**Checks at b4aa01c in this worktree:** `node hooks/session-recon.test.mjs` all cases passed;
+`node team-loop/scripts/gate.test.mjs` all cases passed; `node hooks/check-index.mjs` "ok: 47
+skills, all indexed, all named, all three counts agree". Stage 1 at 6f15d35: every
+`hooks/*.test.mjs` suite green.
+
+**New since section 5:** `FORWARD: team-loop/ask-board.test.mjs runs nowhere either` in
+`.github/workflows/check-index.yml`, on the same rule as run-seat's test.
+
+### Left for Ben
+
+1. Push and PR, each a separate yes, in the section 7.1 order: `fix/run-seat-double-end`
+   (28d5dac); `feat/team-loop-stage1` (now to 462d3c7); `feat/team-loop-stage2` (stacked, to
+   the commit carrying this note); `feat/legal-fork` (to 6c9845b). The count conflict stands:
+   stage 1/2 make 47, the legal fork 50; whichever merges second reconciles the three count sites.
+2. The legal fork's decision draft, to land in DECISIONS.md yourself: section 12 of
+   `docs/HANDOVER_legal-fork_2026-09-11.md` on `feat/legal-fork`. Its heading carries the
+   planning date 2026-09-11; the build was 2026-10-03, so re-date it when landing.
+3. LESSONS candidates (each needs its misses line), section 7.4's four plus:
+   - Read statute text from the section's `/data.xml`, never a summarising fetch, and never take
+     the page's top-level date as a provision's date (the legal fork recorded Act-level revision
+     dates as "valid from" dates; WebFetch misnamed the amending Act for s.21). class: provenance
+     dates on statutory citations.
+   - A summary that states a rule's effect ("treated as not due") without its statutory
+     exception passed one review; only a scoped re-review against the section caught s.48(3).
+     skill that should have prevented this: verified-citations, or none, new candidate.
+   - Git Bash `date` printed GMT on this machine (no TZ database), so log times read an hour
+     early; use PowerShell `Get-Date` for BST.
+4. Optional: a second GPT turn on a7ecf0d and 9839abb; the board page in a real browser.

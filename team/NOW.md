@@ -1,9 +1,9 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-03 13:25 BST, desktop session in ProjectsUnslop, amber band (67%); dated handover written
-topic: team-loop stages 1 and 2 built, reviewed and ridden (3 rides); legal fork and GPT rounds in flight
-next: read docs/HANDOVER_team-loop-build_2026-10-03.md section 8; GPT rounds at 15:51 BST; legal fork result in ~/.claude/skills-wt-legal-fork
+updated: 2026-10-03 17:45 BST, headless continuation of the desktop session; evening update in the handover
+topic: team-loop stages 1 and 2 built, ridden and reviewed by GEMPRO and GPT; legal fork re-reviewed and fixed
+next: read docs/HANDOVER_team-loop-build_2026-10-03.md, "Update, evening 2026-10-03"; Ben decides pushes and PRs per branch
 branches: feat/team-loop-stage1 (~/.claude/skills-wt-team-loop-s1), feat/team-loop-stage2 (~/.claude/skills-wt-team-loop-s2), fix/run-seat-double-end (~/.claude/skills-wt-run-seat-end), feat/legal-fork (~/.claude/skills-wt-legal-fork)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
@@ -14,14 +14,18 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 - fix/run-seat-double-end 28d5dac; two cases red on main
 - stage 1 041959a: round 3 stand-in fixes (page pending writes, sentinel, hook git failures); merged into stage 2 as 57af583
 - stage 2 370c2b7: the ride (docs/RIDE_team-loop-stage2_2026-10-03.md), real builder + gate, passed and refused a weakened copy
+- stage 1 9839abb, 6f15d35, 462d3c7: GPT round 3 page fixes (ask-board.test.mjs, 4 of 5 red on parent), nowLine on a deleted NOW.md, review record in docs/
+- stage 2 a7ecf0d: GPT's six findings (five here, one on stage 1), each with a case red first; b4aa01c review record in docs/
+- legal fork 6c9845b: scoped statutory re-review, 0 Critical 0 High, Medium and Low fixed
 
 ## In flight
 
-- Open board items: ASK-0006 (pilot setup timing), ASK-0007 (gate form); ASK-0008 withdrawn (legal fork needs a download, so Ben's yes in a session)
+- Nothing running. ASK-0006 and ASK-0007 were answered in the session (8036bad); the board's answers collection was empty at 17:25 BST. Pushes and PRs wait for Ben.
 
 ## Deferred, with grep anchors
 
 - `FORWARD: cross-agent-review/scripts/run-seat.test.mjs runs nowhere` in .github/workflows/check-index.yml
+- `FORWARD: team-loop/ask-board.test.mjs runs nowhere either` in the same workflow
 - `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md section 9
 - Unpinned agents: debugger, refactorer (this machine's ~/.claude/agents); PropOS backend, frontend, test
 
