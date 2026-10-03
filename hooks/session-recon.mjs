@@ -5,8 +5,9 @@
 // stale snapshot. Fail-open: any error or timeout yields no context, never a
 // broken session. The pre-commit re-run stays behavioural in the skill —
 // this hook only covers session start. It also checks that this machine's
-// CLAUDE.md still carries the Layer 1 norm block (normsLine, below), and that
-// its user-level agents match the library's (agentsLine).
+// CLAUDE.md still carries the Layer 1 norm block (normsLine, below), that
+// its user-level agents match the library's (agentsLine), and, in a repo with a
+// team-loop resume board, how far HEAD has moved past it (nowLine).
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -132,6 +133,62 @@ function skillsUpdateLine() {
   }
 }
 
+// team/NOW.md is the team-loop resume board (team-loop/SKILL.md): described state, so a
+// session that resumes from it must check it against git first (live-state-first). This
+// does the mechanical half: how many commits HEAD has moved since NOW.md was committed,
+// whether it is committed at all, and which branches on its `branches:` line no longer
+// exist. It also surfaces the `ask:` line, because answers waiting on the operator's queue
+// are read at session start. Silent when the repo has no team/NOW.md. Fail-open.
+const BRANCH = /^[A-Za-z0-9._][A-Za-z0-9._\/-]*$/;
+
+function nowLine(cwd) {
+  try {
+    const rel = 'team/NOW.md';
+    const path = join(cwd, 'team', 'NOW.md');
+    if (!existsSync(path)) return null;
+    const text = readFileSync(path, 'utf8');
+    const out = [];
+    const last = run('git', ['-C', cwd, 'log', '-1', '--format=%h %cs', '--', rel]);
+    if (!last) {
+      out.push(rel + ' exists but is not committed, so no other checkout or machine sees it. Read it, then commit it.');
+    } else {
+      const [sha, date] = last.split(' ');
+      const count = run('git', ['-C', cwd, 'rev-list', '--count', sha + '..HEAD']);
+      const behind = count === null ? NaN : Number(count);
+      out.push(
+        rel + ' is the resume board: read it first. Last committed at ' + sha + ' on ' + date +
+          (!Number.isFinite(behind)
+            ? '; how far HEAD has moved since could not be counted, so check it against git log before acting on it.'
+            : behind > 0
+              ? '; ' + behind + ' commit(s) have landed on this branch since, so check it against git log before acting on it.'
+              : ', level with HEAD.'),
+      );
+    }
+    const branches = /^branches:[ \t]*(.*)$/im.exec(text);
+    if (branches) {
+      const missing = [];
+      for (const entry of branches[1].split(',')) {
+        const name = entry.trim().split(/[\s(]/)[0].replace(/`/g, '');
+        if (!name || /^none$/i.test(name)) continue;
+        const exists =
+          BRANCH.test(name) &&
+          (run('git', ['-C', cwd, 'rev-parse', '--verify', '--quiet', 'refs/heads/' + name]) ||
+            run('git', ['-C', cwd, 'rev-parse', '--verify', '--quiet', 'refs/remotes/origin/' + name]));
+        if (!exists) missing.push(name);
+      }
+      if (missing.length) out.push('Branches NOW.md names that do not exist here, locally or on origin: ' + missing.join(', ') + '.');
+    }
+    const ask = /^ask:[ \t]*(\S.*)$/im.exec(text);
+    if (ask)
+      out.push(
+        'Ask queue: ' + ask[1].trim() + '. Read its answers before starting work; if it cannot be read, say so and ask in the session, never report it empty.',
+      );
+    return out.join(' ');
+  } catch {
+    return null;
+  }
+}
+
 // argv form, never a shell string. cwd is untrusted text: a directory name may
 // legally contain a double quote on POSIX, and interpolating it into a shell
 // command made this hook injectable. The .git test below is not a defence, since
@@ -170,6 +227,8 @@ process.stdin.on('end', () => {
       if (status) parts.push(`status:\n${status}`);
       if (log) parts.push(`recent commits (all refs, post-fetch):\n${log}`);
       if (prs) parts.push(`open PRs:\n${prs}`);
+      const now = nowLine(cwd);
+      if (now) parts.push(now);
     }
     if (!parts.length) process.exit(0);
 

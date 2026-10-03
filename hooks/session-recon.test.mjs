@@ -71,6 +71,7 @@ function stage(status, cwdIsRepo, layout = null) {
     spawnSync('git', ['-C', cwd, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'init'], {
       encoding: 'utf8',
     });
+    if (layout?.repo) layout.repo(cwd, (...args) => spawnSync('git', ['-C', cwd, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { encoding: 'utf8' }));
   }
   return { root, hook: join(lib, 'hooks', 'session-recon.mjs'), cwd, env: layout?.env ?? {} };
 }
@@ -381,6 +382,92 @@ test(
   },
   false,
   { normsMd: NORMS_MD, claudeMd: NO_BLOCK, agents: { lib: { 'alpha.md': agent('alpha') }, user: {} } },
+);
+
+// team/NOW.md cases (2026-10-03). They red against a version with no check, one that
+// treats an uncommitted NOW.md as current, one that never counts commits since it,
+// one that reports no branch at all or every branch, and one that drops the ask line.
+const NOW = (extra = '') => '# NOW\n\ntemplate: team-loop NOW v1\nnext: write the tests\n' + extra;
+const writeNow = (cwd, text) => {
+  mkdirSync(join(cwd, 'team'), { recursive: true });
+  writeFileSync(join(cwd, 'team', 'NOW.md'), text, 'utf8');
+};
+const commitNow = (cwd, g, text) => {
+  writeNow(cwd, text);
+  g('add', '-A');
+  g('commit', '-qm', 'now');
+};
+const nowCase = (name, repo, check) => test(name, { state: 'current', at: hoursAgo(1) }, check, true, { repo });
+
+nowCase('a repo with no team/NOW.md says nothing about it', () => {}, async (r) => {
+  if (/NOW\.md/.test(r.out)) return 'mentioned NOW.md where none exists: ' + r.out;
+  return true;
+});
+
+nowCase('a committed NOW.md level with HEAD is pointed at, and said to be level', (cwd, g) => commitNow(cwd, g, NOW()), async (r) => {
+  if (!/team\/NOW\.md is the resume board/.test(r.context)) return 'no pointer to NOW.md: ' + r.out;
+  if (!/level with HEAD/.test(r.context)) return 'not reported level with HEAD: ' + r.context;
+  return true;
+});
+
+nowCase(
+  'commits after NOW.md are counted',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    for (const n of [1, 2]) {
+      writeFileSync(join(cwd, 'later' + n + '.txt'), 'x\n');
+      g('add', '-A');
+      g('commit', '-qm', 'later ' + n);
+    }
+  },
+  async (r) => {
+    if (!/2 commit\(s\) have landed on this branch since/.test(r.context)) return 'did not count the two later commits: ' + r.context;
+    return true;
+  },
+);
+
+nowCase('an uncommitted NOW.md is called out, never read as current', (cwd) => writeNow(cwd, NOW()), async (r) => {
+  if (!/is not committed/.test(r.context)) return 'an untracked NOW.md was not called out: ' + r.context;
+  if (/level with HEAD/.test(r.context)) return 'an untracked NOW.md was reported level with HEAD';
+  return true;
+});
+
+nowCase(
+  'a branch NOW.md names that is gone is named, and one that exists is not',
+  (cwd, g) => commitNow(cwd, g, NOW('branches: `main`, feat/gone (worktree somewhere), none\n')),
+  async (r) => {
+    if (!/do not exist here[^.]*: feat\/gone\./.test(r.context)) return 'feat/gone not named as missing: ' + r.context;
+    if (/do not exist here[^.]*main/.test(r.context)) return 'main reported missing though it exists';
+    return true;
+  },
+);
+
+nowCase(
+  'a branches line whose branches all exist adds no warning',
+  (cwd, g) => commitNow(cwd, g, NOW('branches: main\n')),
+  async (r) => {
+    if (/do not exist here/.test(r.context)) return 'warned with every branch present: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'an entry that is not a branch name is reported missing, never run as an option',
+  (cwd, g) => commitNow(cwd, g, NOW('branches: --all, a;b\n')),
+  async (r) => {
+    if (!/do not exist here[^\n]*--all, a;b\./.test(r.context)) return 'junk entries not reported: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'the ask line reaches the session with the unreadable-is-not-empty rule',
+  (cwd, g) => commitNow(cwd, g, NOW('ask: https://claude.ai/artifact/EXAMPLE\n')),
+  async (r) => {
+    if (!/Ask queue: https:\/\/claude\.ai\/artifact\/EXAMPLE/.test(r.context)) return 'ask line not surfaced: ' + r.context;
+    if (!/never report it empty/.test(r.context)) return 'the unreadable rule was dropped';
+    return true;
+  },
 );
 
 const run = async () => {

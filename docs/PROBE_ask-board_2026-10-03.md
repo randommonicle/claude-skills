@@ -11,7 +11,7 @@ the desktop app; `claude` CLI 2.1.281 for the headless runs.
 | # | Item (design section 6) | Result | Evidence |
 |---|---|---|---|
 | 1 | Publish a board with `db`, write rows with ArtifactData | **Observed.** Five items and `meta/status` written in one atomic batch | batch result "committed atomically, 6 writes" |
-| 2 | Answer from a phone, read back from a fresh session | **Pending the operator.** He is away today; the link went by email at 09:47Z | ASK-0001 on the board |
+| 2 | Answer from a phone, read back from a fresh session | **Pending the operator,** who is away today; the link went by email at 09:47Z | ASK-0001 on the board |
 | 3a | Read and write from the desktop app's Code tab | **Observed** | this session's ArtifactData calls |
 | 3b | Read and write from a headless `claude -p` run | **Observed.** Read `meta/status` and wrote `probe/headless` | `claude -p ... --permission-mode bypassPermissions`, 4 turns, USD 0.29 |
 | 3c | Read from the CLI in an interactive terminal | **Not exercised.** Same binary as 3b, so expected to match; unverified | |
