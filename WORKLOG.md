@@ -231,3 +231,10 @@ and the fast-forward landed with the milestone suite green. Record:
 `docs/RIDE_team-loop-stage2_2026-10-03.md`. One change from it: the gate's merge in a
 detached scratch worktree was titled "Merge commit '<sha>' into HEAD"; it now names the
 package, branch, sha and milestone, asserted in the honest-package case.
+
+### Commit 10: ride 2 recorded; the gate prints why each check was red
+
+Ride 2 (Python checks, `copy`, no package.json) passed honest and failed each negative at the
+named check; the hub reran the honest gate and matched. Its one surprise: checks red at T for
+an environmental reason satisfy check 2. The gate cannot judge reasons, so the command line now
+prints each red check's reason for the lead; one new case, red against 370c2b7.

@@ -378,6 +378,10 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (process.argv.includes('--json')) console.log(JSON.stringify(r, null, 2));
   else {
     for (const c of r.checks ?? []) console.log('ok    | ' + c.name + ': ' + c.detail);
+    // Why each check was red at T. A check can be red for the wrong reason (a missing data
+    // file, an unset environment) and still satisfy check 2; ride 2 (2026-10-03) did exactly
+    // that, so the lead reads these lines, not just the count.
+    for (const x of r.red ?? []) console.log('red   | ' + x.id + ' (exit ' + x.code + ' at T): ' + x.tail);
     if (r.pass) console.log('PASS  | ' + r.wp + '. To merge: git merge --ff-only refs/team-loop/tested/' + r.wp);
     if (r.failure) console.log('FAIL  | ' + r.failure);
     if (r.error) console.log('ERROR | the gate could not run: ' + r.error);

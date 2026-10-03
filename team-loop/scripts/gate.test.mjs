@@ -14,6 +14,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { gate, globToRegExp, parseBrief } from './gate.mjs';
 
 let fails = 0;
@@ -310,6 +311,14 @@ cases[cases.length - 1].check = (r, f) => {
 test('a brief with no regulated line stops the gate as unrunnable', () => fixture({ brief: BRIEF({ regulated: null }) }), (r) =>
   r.error && /regulated: yes/.test(r.error) ? true : 'expected unrunnable: ' + JSON.stringify(r.error || r.failure || r.pass),
 );
+
+test('the command line prints why each check was red at T', () => fixture(), null);
+cases[cases.length - 1].run = (f) =>
+  spawnSync(process.execPath, [fileURLToPath(new URL('./gate.mjs', import.meta.url)), '--repo', f.dir, '--wp', 'WP-001', '--t', f.T, '--head', 'wp1', '--milestone', 'milestone', '--no-board'], { encoding: 'utf8' });
+cases[cases.length - 1].check = (r) => {
+  if (r.status !== 0) return 'exit ' + r.status + ': ' + r.stdout + r.stderr;
+  return /^red   \| adds \(exit 1 at T\): .+/m.test(r.stdout) || 'no red line with a reason: ' + r.stdout;
+};
 
 const unit = [];
 unit.push([

@@ -34,3 +34,35 @@ runs rather than `node --test`. The pilot is the next ride for those.
 
 **Cost.** Builder 168,935 tokens over two segments, about 4 minutes of agent time; the lead's
 share is in this session's own usage.
+
+## Ride 2: a repo shaped like the pilot, 12:33 BST
+
+A second throwaway repo, `ride2-repo`, shaped like the passive income project: no
+`package.json`; checks are stdlib-only Python scripts under `checks/`; a check reads gitignored
+data (`local/rates.json`) that `team/gate.json` lists under `copy`; the suite is a Python
+runner. Run by one background subagent (sonnet) that built the milestone, played the
+`tl-builder` contract (T fbec1ba, head 5b8c46b) and ran the gate; the hub then reran the
+honest gate itself and got the same result (PASS, tested merge 81e6120c), with each check's
+red-at-T reason matching its id.
+
+| Case | Expected | Observed |
+|---|---|---|
+| Honest package | pass | PASS, all four checks ok |
+| `copy` list emptied (second milestone branch) | fail at check 4 | FAIL at check 4: `FileNotFoundError` for `local/rates.json` in the scratch worktree |
+| A check that exits 0 against the stub | fail at check 2 | FAIL at check 2: "already passes at T" |
+| A `README.md` added outside SCOPE | fail at check 3 | FAIL at check 3: "changed outside SCOPE: README.md" |
+
+**Windows observations.** `python` resolved through `cmd.exe` to the real install, not the
+WindowsApps alias that `where python` lists first. Commands ran unquoted with forward slashes.
+`cpSync` created `local/` in the scratch worktree. With `core.autocrlf=true` the scratch
+worktrees check out CRLF; Python and `json.load` were unaffected, and the gate parses the brief
+from `git show` (LF) so parsing was unaffected too.
+
+**What it changed.** In the `copy`-less case both checks were red at T for an environmental
+reason (the missing data file), not the reasons their ids name, and check 2 accepted that; only
+check 4 caught it. The gate cannot tell a right red from a wrong one, so its command-line
+output now prints each check's red-at-T reason (`red | <id> (exit N at T): <tail>`) for the
+lead to read at step 8, asserted in the suite.
+
+**Still not covered:** a regulated package, two packages at once, MT5 compile or Tester
+commands.
