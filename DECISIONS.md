@@ -49,6 +49,27 @@ no notes unless quoted. These are the four decision-log candidates of
   RICS-regulated work. Its own sessions are active, so the pilot's setup in that repo
   follows `parallel-work-recon` and waits for its own branch.
 
+## 2026-10-03 Porting a foreign-jurisdiction skill library (the legal fork)
+
+Planned 2026-09-11 (`docs/HANDOVER_legal-fork_2026-09-11.md`, section 12), built 2026-10-03 on
+Ben's in-session yes to re-clone, reviewed 2026-10-04, and landed here on his "Yes to all" in
+the session of 2026-10-04.
+
+Forked four skills from `rohasnagpal/legal-ai-skills` (MIT, commit a5c00ec) into this library:
+`contract-review`, `legal-citation-integrity`, `statute-to-obligations-register` and
+`legal-notice-handling`. Admission rule for a foreign-jurisdiction source: keep a skill only where
+the foreign statute is merely an example and the method is jurisdiction-neutral; drop any skill
+whose subject is the foreign statute. Port as house-style guardrails (a check that can go red
+first), never as persona-drafting skills. The notice trio is consolidated into one skill to
+respect the no-shared-trigger-vocabulary rule. `contract-review` keeps all three upstream
+references verbatim (neutral, integral to its routing), bound to its own checks by a mapping
+paragraph so they cannot displace them. Provenance and the MIT notice live in each skill's
+`UPSTREAM.md` and in `NOTICE`.
+
+The England and Wales worked examples cite statute read as legislation.gov.uk `/data.xml` with
+the date read; a summarising fetch is not a source. Review: GEMPRO, GPT and a fresh GPT seat
+(`docs/REVIEW_legal-fork_2026-10-04.md`), and property-reg-reviewer twice, 0 Critical, 0 High.
+
 ## 2026-09-28 Agents ship from agents/, and the repo copy is canonical
 
 Two subagent definitions joined the library on Ben's instruction ("it should BE in the

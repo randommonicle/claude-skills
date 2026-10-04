@@ -127,3 +127,4 @@ findings-are-evidence; this skill defers to it.
 - Generated client documents (rewrites, owner-only facts, machine-parsed output) → load **deliverable-integrity**.
 - Customer-facing certification/statistic claims → load **substantiate-outward-claims**.
 - Producing a handover → load **handover**.
+- Auditing the citations in a finished or received legal document → load **legal-citation-integrity**.
