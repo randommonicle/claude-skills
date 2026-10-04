@@ -214,3 +214,18 @@ check-archives "ok: 5 archives, 17 members". The unslop scan does not reproduce 
 note's "high 0 medium 0 low 0": at 6c9845b, before any change today, it reports medium hits in
 three of the four files, every one a route arrow read as an emoji (the library's route style).
 The one new hit my edits added (a bold lead-in) is removed.
+
+Round 2 (33237c1 under attack). GEMPRO's first round 2 turn ended empty: my ask allowed `git
+show`, agy denied it, and the turn was lost (the recorded trap: forbid every command). Rerun with
+no commands; it conceded the three rebuttals and wrote `[[CONVERGED]]`. GPT conceded the
+arithmetic, mode and mapping fixes and held one point: the notice examples were barred only from
+basis cells, so a statutory period could still be copied into a deadline row. Real; the
+deadline table's source column and the examples' warning now both require the provision read
+this session. property-reg-reviewer on the round 1 diff read every changed statutory line as
+`/data.xml`: 0 Critical, 0 High, 4 Low, all taken: R1's counting cell names the convention
+applied rather than stating law; open verification rows go above a draft demand; s.47B quoted
+with its limb ("premises in Wales which consist of or include a dwelling in a regulated
+building", read from asc/2026/5 s.74 myself); the draft result line prints `asked | kept | cut`
+so a dropped consequence cannot leave it green. Its note outside the diff, for Ben:
+`verified-citations/SKILL.md:116` states inclusive counting without an authority. Gates green
+after; scan medium hits are route arrows only.

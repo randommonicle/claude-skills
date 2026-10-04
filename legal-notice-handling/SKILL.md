@@ -27,16 +27,18 @@ Notices fail on the details a reader checks later, usually in front of a tribuna
 ## The rule that does the work
 
 **Build the tables the mode requires (see Modes) before writing prose. Print the result line
-with a part for each of those tables and no other; any failure is red.**
+with a part for each of those tables and no other; any failure is red.** The counts below are
+illustrations.
 
-- Draft: `Deadlines 3 (3 with calendar date and arithmetic) | Consequences 2 (2 confirmed, 2 with basis, 2 available now; 1 cut, reported to the client)`
+- Draft: `Deadlines 3 (3 with calendar date and arithmetic) | Consequences asked 3 | kept 2 (2 confirmed, 2 with basis, 2 available now) | cut 1 (reported to the client)`
 - Reply or analysis: `Deadlines 2 (2 with calendar date and arithmetic) | Allegations 6 in notice, 6 answered (0 admissions without a characterisation entry)`
 
-Count `in notice` from the notice itself, not from your table, and count `cut` from the
-consequences the client asked for, so a dropped row shows as a gap rather than vanishing.
+Count `in notice` from the notice itself, not from your table, and `asked` from the client's
+instructions; `asked` must equal `kept` plus `cut`, so a dropped consequence shows as a gap
+rather than vanishing.
 
-1. **Deadline table.** `Deadline | Source of the period (notice, lease clause, or statute, with the
-   words quoted) | Start event and its date | Counting convention | Calendar date | Margin`.
+1. **Deadline table.** `Deadline | Source of the period (notice, lease clause, or statute read
+   this session with URL and date, with the words quoted) | Start event and its date | Counting convention | Calendar date | Margin`.
    Every deadline in a notice you draft, and every deadline found in a notice received, gets a
    row. Red output: `Deadline 2 ("within 21 days"): no calendar date`. Search your draft for
    `within`, `days`, `weeks`, `months`, `promptly`, `forthwith`, `immediately`, `reasonable`,
@@ -95,8 +97,8 @@ consequences the client asked for, so a dropped row shows as a gap rather than v
 Each provision below was read on legislation.gov.uk on 2026-10-03 (latest available revised
 text). Several carry prospective changes; re-read before relying on any of them. They show what
 the tables catch; they are not advice on a file, and they are not a retrieval for one: a basis
-cell needs the provision read in your session, with your own URL and date, and a line copied
-from here fails the consequence table.
+cell, or a deadline row whose period comes from a statute, needs the provision read in your
+session, with your own URL and date, and a line copied from here fails that table.
 
 - **Ground rent on a long lease of a dwelling.** The tenant is not liable to pay unless the
   landlord has given a notice, and the payment date in it must be neither less than 30 days nor
@@ -115,8 +117,9 @@ from here fails the consequence table.
   ([LTA 1987 s.47(1)-(2)](https://www.legislation.gov.uk/ukpga/1987/31/section/47), with an
   exception in s.47(3) while a tribunal- or court-appointed receiver or manager collects those
   charges; a new s.47(3A) is prospectively inserted by the Leasehold and Freehold Reform Act
-  2024 s.55(4)(a)). For premises in Wales, a new s.47B, "Building safety information to be
-  contained in demands for rent etc: Wales", is prospectively inserted by the
+  2024 s.55(4)(a)). For "premises in Wales which consist of or include a dwelling in a regulated
+  building", a new s.47B, "Building safety information to be contained in demands for rent etc:
+  Wales", is prospectively inserted by the
   [Building Safety (Wales) Act 2026 s.74](https://www.legislation.gov.uk/asc/2026/5/section/74)
   (read 2026-10-04). Separately, until the landlord has given notice of an address in England and
   Wales for service, rent, service charges and administration charges are treated as not due
@@ -137,8 +140,9 @@ from here fails the consequence table.
   demand is served are irrecoverable unless the tenant was notified in writing within the period
   in [LTA 1985 s.20B(2)](https://www.legislation.gov.uk/ukpga/1985/70/section/20B) (see
   statute-to-obligations-register for that row). In draft mode each of these is a row on the
-  verification list: read this session and checked against the demand, or marked open, so the
-  client sees which were not checked before the demand goes out.
+  verification list: read this session and checked against the demand, or marked open. Open rows
+  go above the draft, not after it, so the client sees what was not checked before the demand
+  goes out.
 - **Threatening forfeiture over service charges.** For premises let as a dwelling, a landlord
   may not exercise a right of re-entry or forfeiture for failure to pay a service charge or
   administration charge unless it is finally determined by a tribunal, court or post-dispute
