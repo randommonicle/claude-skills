@@ -32,6 +32,8 @@ table:
 Red output, any of:
 
 - `Extracted 23 | Table rows 21`: two citations are missing from the audit. Find them.
+- `Table rows 23 | Confirmed 9 | Contradicted 1 | Could not confirm 4 | Not attempted 8`: the
+  four results add to 22, so one row has no result. Every row carries exactly one.
 - `Search hits 31 | Discarded 8 | Extracted 21`: two hits are in neither list. A discard is
   listed with its reason, so a reviewer can see a real citation thrown away.
 - `Confirmed 9 (8 with retrieval)`: one row claims a check that did not happen. Downgrade it.

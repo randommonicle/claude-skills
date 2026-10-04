@@ -111,8 +111,9 @@ method". Read that as this file: its "structural map", "defined-terms sweep" and
 read" are supporting rule 3 (read the whole document, boilerplate included, follow every
 cross-reference, and give each missing, undefined or doubly defined term its own row); its
 "issues list" is the issues table below; its "grading scale" is rule 8; its "risk-allocation
-prose" is the full-audit risk-allocation statement; its "output sections" are the output
-contract. Where a reference says its steps apply "in place of" a base section, they replace that
+prose" is the full-audit risk-allocation statement in a full audit, and in a quick or focused
+review those findings go in the issues table, which does not widen the mode; its "output
+sections" are the output contract. Where a reference says its steps apply "in place of" a base section, they replace that
 section's topics only: the three checks, the interaction check included, and the output
 contract still apply in full. Every point a reference says to "flag as a verification point"
 goes to the verification list, and anything the review says about it elsewhere is subject to

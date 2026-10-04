@@ -229,3 +229,11 @@ building", read from asc/2026/5 s.74 myself); the draft result line prints `aske
 so a dropped consequence cannot leave it green. Its note outside the diff, for Ben:
 `verified-citations/SKILL.md:116` states inclusive counting without an authority. Gates green
 after; scan medium hits are route arrows only.
+
+Attack on the convergence (GPTX, a fresh GPT seat briefed with the converged position). It
+conceded the earlier fixes and broke two points, both real: the citation audit's four result
+counts were never required to add up to the table rows, so a table with unresolved rows could
+print clean; and the lease reference's "risk-allocation prose" exists only in a full audit, so
+a default quick lease review had to drop it or widen its mode. A red line for the sum, and the
+mapping now sends those findings to the issues table outside a full audit. No statutory text
+changed. Gates green after.
