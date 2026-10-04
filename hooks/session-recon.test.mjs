@@ -627,6 +627,16 @@ nowCase(
 );
 
 nowCase(
+  'a committed NOW.md replaced by a directory is reported, not silent',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    rmSync(join(cwd, 'team', 'NOW.md'));
+    mkdirSync(join(cwd, 'team', 'NOW.md'));
+  },
+  async (r) => (/team\/NOW\.md is committed but/.test(r.context) ? true : 'a resume board obstructed by a directory went unreported: ' + r.context),
+);
+
+nowCase(
   'an ask: path in backticks with a note is read, and ask: none is silent',
   (cwd, g) => {
     mkdirSync(join(cwd, 'team'), { recursive: true });
