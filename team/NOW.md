@@ -1,18 +1,18 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-04 17:38 BST, a solo session while Ben was away; local commits only
-topic: the two suites that ran nowhere (run-seat, ask-board) wired into CI on branch ci/wire-unrun-suites
-next: Ben's yes to push ci/wire-unrun-suites and open its PR; that run is the first runner run of both suites, so a red there is fixed on the branch. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
-branches: main, ci/wire-unrun-suites (local, unpushed), integrate/sunday (a local rehearsal)
+updated: 2026-10-04 17:48 BST, a solo session while Ben was away, on his "carry on"
+topic: run-seat.test.mjs printed PASS for a case it had skipped (seen in PR #12's Linux log); fixed on branch fix/run-seat-skip-not-pass
+next: Ben's yes to push fix/run-seat-skip-not-pass and open its PR. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+branches: main, fix/run-seat-skip-not-pass (local, unpushed), integrate/sunday (a local rehearsal)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
-- main 2043d43 (PR #11): LESSONS 29 to 38, cross-agent-review's seat wording, verified-citations' counting line; main's CI green on it
-- The gate suite ran on the runner: main run 37192547536, step "the team-loop gate suite", "all cases passed"
-- The live library (~/.claude/skills) fast-forwarded f7de1a1 to 2043d43 by hooks/update-skills.mjs at 17:33 BST; the 06:30 task ran before the merges; check-index ok, 51
-- ci/wire-unrun-suites, this commit: run-seat.test.mjs and ask-board.test.mjs as named steps in the hooks job, each if: always(); run-seat again in hooks-windows for its one win32-only case (the PATHEXT shim); each suite exits 1 against a broken copy of its target, 0 against the real one
+- main b5371b4 (PR #12, on Ben's "merge when green"): run-seat.test.mjs and ask-board.test.mjs run in CI; all four checks green, the new steps' output read in run 37217896929 (Linux: board 6 of 6, transport all cases; Windows: the shim case PASS)
+- The gate suite ran on the runner: main run 37192547536, "all cases passed"
+- The live library (~/.claude/skills) at b5371b4 via hooks/update-skills.mjs, 17:46 BST
+- fix/run-seat-skip-not-pass, this commit: a case returns { skip: reason }, the runner prints SKIP and counts it apart, and the summary off win32 reads "all run cases passed; 1 skipped, not run here"; checked as Linux (41 PASS, 1 SKIP) and on win32 (42 PASS); the ubuntu hooks loop now labels the four @win32-only suites SKIP, not PASS
 
 ## In flight
 
