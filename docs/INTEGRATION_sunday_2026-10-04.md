@@ -12,6 +12,7 @@ is untouched; the branch has no upstream.
 |---|---|---|---|
 | 1 | `fix/run-seat-double-end` | 28d5dac | clean (2e67386) |
 | 2 | `feat/team-loop-stage2`, which carries `feat/team-loop-stage1` | 05f4c03 (stage 1 at 517a654) | clean (e02c279) |
+| 5 | `feat/team-loop-stage2` again, for the overnight close | 7e72460 | the same WORKLOG conflict, resolved the same way (a94fb92); all 26 suites rerun at a94fb92 by exit code: none failed. No code file changed between 7044485 and a94fb92, only prose |
 | 4 | `feat/team-loop-stage2` again, for the ride 4 record | fad74d1 | one WORKLOG conflict (stage 2's new entry against the legal fork section that follows it here): stage 2's entry kept at the end of its own section; my first resolution's duplicate `# Work log` title removed |
 | 3 | `feat/legal-fork` | fa3dd5e | four conflicts, resolved below (7044485) |
 
@@ -69,7 +70,8 @@ The repository's earlier PRs used merge commits.
    Resolve the four files as in the table, then run `node hooks/check-index.mjs` in that
    worktree and expect 51 before committing.
 
-**B. One PR from `integrate/sunday`.** The branch is the resolved tree, with the checks above.
+**B. One PR from `integrate/sunday`.** The branch is the resolved tree, with the checks above;
+its tip at the end of the night is the commit carrying this line, on top of a94fb92.
 Its history keeps each branch's own commits under three merge commits.
 
 Not covered here: the CI run on the runner (nothing pushed); `team-loop/ask-board.test.mjs` and
