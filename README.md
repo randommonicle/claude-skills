@@ -16,7 +16,7 @@ test that cannot go red is not a test.
 
 **Four kinds of thing live here.**
 
-- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 46.
+- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 47.
 - **Hooks**: small scripts that run automatically around what Claude does. One stops and asks you
   before Claude uploads any code to GitHub. One checks a file Claude has just edited for mistakes,
   using whatever checker that project already uses. One looks up what has changed in your project
@@ -62,7 +62,7 @@ it in [CONTRIBUTING.md](CONTRIBUTING.md).
 Skills are installed at the **user level**, so they apply to every project on the machine with no
 per-project setup.
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 46 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 47 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
@@ -115,6 +115,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **flag-deferred-items** | leaf | Grep-able anchors at the deferred work's landing site; .fixme() carries the anchor; dormant controls say so. |
 | **checkpoint-log** | leaf | Per-commit checkpoint notes in a committed WORKLOG.md for multi-commit units; close with an explicit checklist walk, wiring steps included. |
 | **handover** | leaf | Structured handover from a real context reading (/context, or the desktop app's get_usage tool), or an honestly recorded gap where neither exists; supersession stamps; carry-forwards cite live state. |
+| **team-loop** | leaf (candidate) | Stage 1 of the team-lead loop: team/NOW.md as an overwritten resume board that session-recon checks against git, one Ask queue per project (a private claude.ai board for unregulated projects, team/ASK.md for regulated ones) read at every start, and effort pins on agents. |
 | **committee-review** | process | Three-lens review with shared evidence, attribution-stripped consolidation, and voting. |
 | **cross-agent-review** | process | Adversarially review a scoped change/design/finding by debating one or more independent AI agents (Gemini via the agy CLI or GPT via the codex CLI, driven by Claude itself with no pasting; or a chat you drive; several seats at once) over a shared file relay, grounded in live read-only evidence; converge or two positions. |
 | **skill-library-builder** | process | Turn a repo into a project-specific skill library; skills encode mechanical steps, not awareness. |
