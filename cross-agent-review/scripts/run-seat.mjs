@@ -417,7 +417,16 @@ const subst = (s) => s.replace(/\{(thread|replyFile|cwd|sandbox|prompt)\}/g, (_,
 
 const res = run(cfg, template.map(subst), stdinPayload, cfg.timeoutMs ?? 600000, cwd);
 const outs = readOutputs(res, cfg, replyFile);
-const reply = outs.reply;
+// A seat told that its header and terminator are added for it sometimes writes them anyway:
+// GPT did in both rounds of 2026-10-03, leaving two terminators in the file, which a watcher
+// reading for the first one sees as a finished section with a stray marker after it. A leading
+// copy of this section's own header and trailing copies of its own terminator are removed
+// before anything else, so a reply that was nothing but those markers is an empty reply.
+const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const reply = outs.reply
+  .trim()
+  .replace(new RegExp('^## \\[' + esc(handle) + ' round ' + round + '\\][ \\t]*(?:\\r?\\n|$)'), '')
+  .replace(new RegExp('(?:\\s*\\[\\[END ' + esc(handle) + ' round ' + round + '\\]\\])+$'), '');
 const verdict = classify({ res, reply, denied: outs.denied, cliError: outs.cliError });
 
 const thread = outs.thread || st.thread;
