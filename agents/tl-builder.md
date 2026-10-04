@@ -29,7 +29,8 @@ exits non-zero when its check fails and zero when it passes), and sometimes `TES
 **Phase 2, only when the lead resumes you: build.**
 
 1. Change only files inside `SCOPE`; the gate refuses anything else, and refuses any change
-   under `team/` even inside `SCOPE` (the brief, `gate.json` and verdicts are the lead's). Never edit, rename or
+   under `team/` even inside `SCOPE` (the brief, `gate.json` and verdicts are the lead's; a
+   check you added in T under a tests glob is the one exception). Never edit, rename or
    delete a file T added or changed, add no new test or fixture file (those belong in T), and
    never edit an existing test, test config, fixture or test script, or add a `pre` or `post`
    script hook, unless `TESTS CHANGED` names its exact path. A new script in `package.json`

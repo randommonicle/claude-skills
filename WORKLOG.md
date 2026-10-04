@@ -318,3 +318,25 @@ paragraph and the gate's header now name the `team/` rule and the TESTS CHANGED 
 GPT's round and the CLAUDE close (with a CLAUDE position) appended to the machine-local record,
 which is copied to `docs/REVIEW_team-loop-s2_2026-10-03.md`. Stage 1's closed record arrives by
 the merge (462d3c7).
+
+### Commit 14: a second GPT turn on the fixes (2026-10-04, overnight continuation)
+
+A fresh GPT seat attacked a7ecf0d, 9839abb and 6f15d35 (`exchange/REVIEW_team-loop-fixes_2026-10-04.md`).
+Five points, all real after re-derivation; the two on stage 1 code were fixed there (517a654)
+and merged in (59f797e). The three on the gate, each with a case red before its fix:
+- A T that changed only a README passed when an older test was already red at T. T must now
+  change a test or fixture file, or a file a JUDGED BY command names.
+- `git diff --name-status` C-quotes unusual names (`core.quotePath`), so a quoted
+  `"team/\303\251t\303\251.md"` slipped past the `team/` prefix test. Every path git hands the
+  gate is now read with `-z`.
+- A catch-all glob in `gate.json` (`fixtures: ["**"]`) let TESTS CHANGED name production code.
+  A glob matching a probe path no project has now stops the gate as unrunnable.
+Rebutted: a `Team/` case variant. On a case-insensitive checkout git keeps the existing
+directory's case; on a case-sensitive one `Team/` is not the lead's directory.
+
+**Found while updating the doc sites, not by the seat:** a7ecf0d's `team/` rule refused the
+pilot's own checks, since the passive income `team/gate.json` (4713ff9) puts tests in
+`team/checks/**`; every pilot package would have failed check 3. Ride 2 used the pilot's shape
+but ran before a7ecf0d. A pilot-shaped case was red; a check T adds under `team/` that a tests or
+fixture glob matches is now allowed, never `team/gate.json` or `team/packages/`. That guard was
+mutated off once and its case went red. Gate, recon and board suites green; check-index 47.

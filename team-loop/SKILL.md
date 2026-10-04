@@ -174,10 +174,11 @@ tree, so a builder cannot edit what judges it. Each brief's `JUDGED BY` lines ar
 which fits a test suite (one command per test file) and a project whose proofs are scripts.
 The brief must also say `regulated: yes` or `no` and list `SCOPE` globs; the gate refuses to
 run without them rather than default, and refuses a `TESTS CHANGED` path that is no test, test
-config or fixture file. It checks that T is an ancestor of the head; that every
-check fails at T (a check that already passes is hollow or skipped); that T changes at least
-one file; that since the package base nothing under `team/` changed (the brief, `gate.json` and
-verdicts are the lead's, whatever `SCOPE` says), no test or fixture file changed except those T
+config or fixture file, and a `gate.json` glob that matches any path. It checks that T is an
+ancestor of the head; that every check fails at T (a check that already passes is hollow or
+skipped); that T changes a test or fixture file, or a file a `JUDGED BY` command names; that since the package base nothing under `team/` changed (the brief, `gate.json` and
+verdicts are the lead's, whatever `SCOPE` says) except a check T added there that a tests or
+fixture glob matches, no test or fixture file changed except those T
 added, no test config changed, no existing
 `package.json` test script changed and no pre or post hook was added, unless `TESTS CHANGED`
 names the path; that every other change, except a file T added, sits inside `SCOPE`; that every check and the full

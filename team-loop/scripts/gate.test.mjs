@@ -155,6 +155,50 @@ test(
   failsAt(3, /T changes no files/),
 );
 
+// GPT's second turn (2026-10-04): a T with no test in it, a team/ path git quotes, and a
+// catch-all glob that would let TESTS CHANGED name a production file.
+test(
+  'check 3: a T that changes only a non-test file is refused, even when an older test is red at T',
+  () => fixture({ base: (f) => f.w('tests/add.test.mjs', ADD_TEST), beforeT: (f) => f.w('README.md', 'notes\n') }),
+  failsAt(3, /no test or fixture file/),
+);
+
+test(
+  'check 3: a change under team/ to a path git would quote is still refused',
+  () => fixture({ brief: BRIEF({ scope: '**' }), build: (f) => (f.w('src/add.mjs', FIXED), f.w('team/été.md', 'x\n')) }),
+  failsAt(3, /team\/été\.md/),
+);
+
+test(
+  'a catch-all test, config or fixture glob in gate.json stops the gate as unrunnable',
+  () =>
+    fixture({
+      gateCfg: GATE_CFG.replace('"tests/fixtures/**"', '"**"'),
+      brief: BRIEF({ tc: 'src/add.mjs' }),
+    }),
+  (r) => (r.error && /matches any path/.test(r.error) && !r.pass ? true : 'expected unrunnable: ' + JSON.stringify(r.error || r.failure || r.pass)),
+);
+
+// The pilot keeps its checks under team/checks/ (passive income team/gate.json, 4713ff9): a
+// check T adds there is the tests commit's own, not a lead file.
+const PILOT_CFG = (tests) => JSON.stringify({ setup: '', suite: '', tests, fixtures: [], testConfig: [], timeoutMs: 60000 }, null, 2);
+test(
+  'a check T adds under team/checks/, where the pilot keeps its tests, passes',
+  () =>
+    fixture({
+      gateCfg: PILOT_CFG(['team/checks/**']),
+      brief: BRIEF({ judged: '- adds: node --test team/checks/add.test.mjs', scope: 'src/**' }),
+      beforeT: (f) => f.w('team/checks/add.test.mjs', ADD_TEST.replace('../src/', '../../src/')),
+    }),
+  (r) => (r.pass ? true : 'refused a pilot-shaped package: ' + (r.failure || r.error)),
+);
+
+test(
+  'check 3: a tests glob reaching team/packages/ does not let T add a brief',
+  () => fixture({ gateCfg: PILOT_CFG(['team/**', 'tests/**']), brief: BRIEF({ scope: 'src/**' }), beforeT: (f) => f.w('team/packages/WP-009.md', 'x\n') }),
+  failsAt(3, /team\/packages\/WP-009\.md/),
+);
+
 test(
   'check 3: a change under team/ is refused even when SCOPE covers it',
   () =>

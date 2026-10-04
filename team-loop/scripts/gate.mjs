@@ -19,9 +19,11 @@
 // Checks, in order; the first failure ends the run:
 //   1. T is an ancestor of the package head.
 //   2. Red at T: every JUDGED BY command exits non-zero in a scratch worktree at T.
-//   3. Not weakened, not out of scope: T changes at least one file and its own files are
-//      unchanged from T to the head; since B (the package base) nothing under team/ changed,
-//      no test or fixture file changed except those T added, no test config changed, no
+//   3. Not weakened, not out of scope: T changes a test or fixture file, or a file a JUDGED BY
+//      command names, and its own files are unchanged from T to the head; since B (the
+//      package base) nothing under team/ changed but a check T added there that a tests or
+//      fixture glob matches (never gate.json or a brief), no test or fixture file changed
+//      except those T added, no test config changed, no
 //      existing package.json test script changed and no pre/post hook was added, and every
 //      other change sits inside the brief's SCOPE globs. TESTS CHANGED exempts an exact path,
 //      and only a test, test config or fixture path (the gate will not run otherwise).
@@ -231,6 +233,10 @@ export function gate(argv) {
     const configGlobs = (Array.isArray(cfg.testConfig) ? cfg.testConfig : []).filter((g) => !g.includes('#'));
     const fixtureGlobs = Array.isArray(cfg.fixtures) ? cfg.fixtures : [];
     const watchScripts = (cfg.testConfig ?? []).includes('package.json#scripts');
+    // A glob matching any path makes every file a test, config or fixture, so TESTS CHANGED
+    // could name production code; the probe is a path no project has.
+    const catchAll = [...testGlobs, ...configGlobs, ...fixtureGlobs].filter((g) => matchesAny('team-loop-gate-probe/x.probe', [g]));
+    if (catchAll.length) throw new Unrunnable('team/gate.json has a test, config or fixture glob that matches any path: ' + catchAll.join(', '));
     // TESTS CHANGED exempts existing test, config and fixture files only; any other path there
     // is a brief error, so it stops the gate rather than widening SCOPE.
     const notTests = testsChanged.filter(
@@ -259,28 +265,37 @@ export function gate(argv) {
     step('red at T', judged.length + ' check(s) fail at T');
 
     // 3. Not weakened.
-    const tFiles = git(repo, ['diff-tree', '--no-commit-id', '--name-only', '-r', '--root', T]).out.split('\n').filter(Boolean);
-    // An older red test can satisfy check 2 alone; T must still be the package's tests commit.
+    // -z everywhere a path is read: git C-quotes unusual names otherwise, and a quoted
+    // "team/..." would slip past the prefix test below.
+    const tFiles = git(repo, ['diff-tree', '--no-commit-id', '--name-only', '-z', '-r', '--root', T]).out.split('\0').filter(Boolean);
+    // An older red test can satisfy check 2 alone; T must still be the package's tests commit:
+    // a test or fixture file, or a file a JUDGED BY command names (a proof script).
     if (!tFiles.length) throw new GateError('check 3: T changes no files, so it is not a tests commit');
-    const touchedAfterT = git(repo, ['diff', '--name-only', T, head, '--', ...tFiles]).out.split('\n').filter(Boolean);
+    const named = judged.flatMap((j) => j.command.split(/\s+/).map((w) => w.replace(/^["']|["']$/g, '').replace(/\\/g, '/')));
+    if (!tFiles.some((p) => matchesAny(p, [...testGlobs, ...fixtureGlobs]) || named.includes(p)))
+      throw new GateError('check 3: T changes no test or fixture file and no file a JUDGED BY command names, so it is not a tests commit');
+    const touchedAfterT = git(repo, ['diff', '--name-only', '-z', T, head, '--', ...tFiles]).out.split('\0').filter(Boolean);
     if (touchedAfterT.length) throw new GateError('check 3: T\'s own files changed after T: ' + touchedAfterT.join(', '));
     // Since the package base: a test or fixture file may only be one T added; test config may
     // not change at all; anything else must sit inside SCOPE. TESTS CHANGED exempts an
     // exact path from all three.
     const tSet = new Set(tFiles);
-    const changes = git(repo, ['diff', '--name-status', '--no-renames', B, head]).out.split('\n').filter(Boolean);
+    // With -z and --no-renames each change is two fields: the status, then the one path.
+    const fields = git(repo, ['diff', '--name-status', '-z', '--no-renames', B, head]).out.split('\0').filter(Boolean);
     const weakened = [];
     const outside = [];
     const control = [];
-    for (const line of changes) {
-      const [status, path] = line.split('\t');
-      // team/ is the lead's: the brief, gate.json and verdicts judge the next run once merged.
-      if (path.startsWith('team/')) { control.push(path + ' (' + status + ')'); continue; }
-      if (testsChanged.includes(path)) continue;
+    for (let i = 0; i + 1 < fields.length; i += 2) {
+      const [status, path] = [fields[i], fields[i + 1]];
       // A file T added is the tests commit's own (a test, fixture, helper or proof script): the
       // lead read it at step 5 and check 3's first half froze it, so SCOPE does not apply.
       const addedByT = status === 'A' && tSet.has(path);
       const fixture = matchesAny(path, fixtureGlobs);
+      // team/ is the lead's: the brief, gate.json and verdicts judge the next run once merged.
+      // A check T adds there (the pilot keeps its tests in team/checks/) is the one exception.
+      const ownCheck = addedByT && (fixture || matchesAny(path, testGlobs)) && !/^team\/(gate\.json$|packages\/)/.test(path);
+      if (path.startsWith('team/') && !ownCheck) { control.push(path + ' (' + status + ')'); continue; }
+      if (testsChanged.includes(path)) continue;
       if (matchesAny(path, configGlobs)) weakened.push(path + ' (test config, ' + status + ')');
       else if (fixture || matchesAny(path, testGlobs)) {
         if (!addedByT)
