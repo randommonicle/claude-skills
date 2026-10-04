@@ -194,7 +194,12 @@ sees an unfinished state.
 "build_review"}`, with tokens from the Agent tool's own usage report, never estimated.
 
 **Concurrency.** At most two builders at once, and only when their `SCOPE` globs are disjoint
-and they share no stateful resource (a local database, a fixed port, shared fixtures).
+and they share no stateful resource (a local database, a fixed port, shared fixtures). The
+second package's tested merge is built on the tip it was gated against, so once the first
+package's merge and BOARD commit move the milestone, its fast-forward is refused: re-run the gate
+on the moved milestone, then fast-forward. With an empty `suite` that re-gate runs only the
+second package's own checks, so run the first package's checks on the combined tree too
+(ride 4, 2026-10-04).
 
 **Per-project setup, once, on its own branch:** `"worktree": {"baseRef": "head"}` in the
 project's `.claude/settings.json`, so builders branch from the milestone branch rather than the
