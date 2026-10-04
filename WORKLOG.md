@@ -170,3 +170,204 @@ five points are stage 1 code, both real, both fixed here with a case red first:
   catch. A non-file now reads as missing. My first assertion matched the recon header's git
   status listing and passed on the unfixed code; tightened to the nowLine message, then red.
 Every `hooks/*.test.mjs` suite and `ask-board.test.mjs` green after.
+
+## Team-loop stage 2, plugin pieces (branch `feat/team-loop-stage2`, opened 2026-10-03)
+
+Goal: the plugin side of `docs/DESIGN_team-loop_2026-10-02.md` section 5, inert until a project
+opts in, on the operator's answer ASK-0003 ("build-now"). Stacked on `feat/team-loop-stage1`.
+No project is touched: the pilot (ASK-0004, passive income) has live sessions and its setup is
+ASK-0006.
+
+Checklist:
+
+- [x] Four `tl-` agents: `tools` without `Agent`, `model`, `effort`, `maxTurns`, `isolation: worktree` for builders
+- [x] `maxTurns` paragraph in `commission-the-roster` (ASK-0005 item 3), placed in Traps, clear of open PR #3's hunk
+- [x] Templates: `WP.md`, `BOARD.md`, `SPEC.md`, `gate.json`
+- [x] `team-loop/scripts/gate.mjs` and `gate.test.mjs`; the suite added to CI
+- [x] `session-recon` shadowing check, plugin layout only, with tests
+- [x] The skill's stage 2 section, README rows, HOOKS.md
+- [ ] Cross-agent review of the stage 2 commits
+- [ ] Closing walk
+
+### Commits 1 to 3: agents, templates and skill; the gate; the shadowing check
+
+**Deviation from the design, pending ASK-0007:** `JUDGED BY` lines are commands judged by exit
+code, not per-test ids read from JUnit results. The pilot repo has no per-test suite (its
+proofs are Python evidence scripts and MT5 Tester runs, read-only survey 2026-10-03), and the
+command form fits both. The design's "none skipped" check is carried by red-at-T instead: a
+skipped check passes at T and fails check 2, and T's files cannot change afterwards (check 3).
+The gate reads the brief, `gate.json` and the verdict file from the milestone branch's
+committed tree, so a builder cannot edit what judges it, and keeps the tested merge at
+`refs/team-loop/tested/<wp>` so it survives the scratch worktree's removal. All 17 gate cases
+green on the first run, so each check was mutated off in turn: every mutation turned its case
+red (check 1's case then failed at check 3, still red). The shadowing check reads the agent's
+frontmatter `name`, not its file name, and runs only under `CLAUDE_PLUGIN_ROOT`, because on a
+direct clone the tl- agents belong in the user's agents directory. The gate suite lives outside
+the CI loop's `hooks/*.test.mjs` glob, so it is a named CI step (LESSONS 28); not yet run on
+the runner, since nothing is pushed today.
+
+### Commit 4: stage 2 review round 1 fixes (GEMPRO)
+
+Eleven claims, all re-derived against the code and held. The three that mattered most: a
+passing run's `refs/team-loop/tested/<wp>` survived a later failing run, so a lead could
+fast-forward onto stale code (the ref is now deleted at the start of every run and written
+only after check 5, which also closes a gap of my own: it was written before check 5); a
+bold `**Regulated:** yes` read as unregulated and silently skipped the verdict check (a
+missing or unreadable `regulated:` line now stops the gate); and SCOPE was never enforced
+(every change outside the test, fixture and config globs must now match SCOPE). Also: tests
+or fixtures added after T are refused, fixtures are a config key, only changed or removed
+test scripts and added pre/post hooks are flagged, the verdict match tolerates bold and
+tables, the scratch merge does not sign, and the brief parser accepts headings, bold and
+bulleted lists and reports a malformed JUDGED BY line instead of dropping it. Skill text now
+carries one-real-ride at step 8, the verdict file format and reviewer worktree isolation.
+Ten new gate cases; nine red against f2140f9 (the pretest case cannot red against a gate that
+flagged every key).
+
+### Commit 5: stage 2 review round 2 fixes (GEMPRO)
+
+Three claims, all held. A file T adds (a helper, a proof script outside the test globs) is now
+exempt from SCOPE, since the lead reads T at step 5 and T's files are frozen afterwards;
+without this the passive income pilot's proof scripts would fail an honest package. Field
+detection requires the name, an optional parenthesised note, then a colon or line end, so a
+heading such as "Scope of work" is no longer taken for SCOPE. A new script in `package.json`
+still needs `package.json` in SCOPE: kept strict on purpose, and the builder is now told to
+stop and ask. Two new cases, both red against aa43910.
+
+### Commit 6: stage 2 review round 3 (GEMPRO, attack on the convergence)
+
+Two claims. Held: the gate's scratch worktrees carry only committed files, so a check needing
+gitignored local state (a venv, a data file) fails there; `gate.json` gains `copy`, a list of
+repo-relative paths copied from the lead's checkout before setup, refusing any path that leaves
+the repo. Partly held: a GUI program or a log-only compiler run through `cmd.exe` may return 0
+at once; the gate already refuses that as hollow at T (safe), so the fix is documentation, a
+command contract in the skill, not code. Not verified on this machine which way `cmd /c`
+treats a GUI executable; the contract covers both. Three new cases, two red against f4fc1b6.
+GPT's seat (codex) is over its usage limit until 14:42Z, so stage 2 has had one external
+model; its round is owed.
+
+### 2026-10-03 11:15Z: the stage 2 ride, opened
+
+One real ride of the loop (`one-real-ride`) before any pilot: a throwaway local repo in the
+session scratchpad, `ride-repo`, milestone branch `milestone/ride`, spec rev 1 and brief WP-001
+(an unregulated `apportion()` in pence) committed before any spawn. The legal-skills fork was
+the operator-recommended next unit but needs its upstream repo downloaded again (the 09-11
+scratchpad clone is corrupt), and a download needs the operator's yes in a session, so it is
+not started; ASK-0008 withdrawn, operator emailed.
+
+Roster:
+
+| # | Role | Model | Effort | maxTurns | Budget | Scope | Artifact | Fresh/resume |
+|---|---|---|---|---|---|---|---|---|
+| 1 | tl-builder contract, run as a general-purpose subagent | sonnet | the session's (no spawn-time effort) | none (not settable on a spawn) | ~60k | src/apportion.mjs | T, then the build | fresh, then resume |
+
+Deviation, stated: the agent definition is not installed for this session (the library's
+`agents/` on a local branch is not loaded), so the contract is handed over as a file to read
+and the worktree is created by the agent with `git worktree add`, since this session's
+directory is not a git repo and `isolation: worktree` needs one. The ride therefore proves the
+contract and the gate, not the frontmatter loading or harness isolation (that was probed
+2026-10-02, design 5.4).
+
+### Commit 9: the ride, recorded; the tested merge gets a readable title
+
+The ride passed end to end: a real sonnet builder kept to the contract (tests first, stop,
+build on top of T, SCOPE only), the gate passed it and refused a copy with a weakened test,
+and the fast-forward landed with the milestone suite green. Record:
+`docs/RIDE_team-loop-stage2_2026-10-03.md`. One change from it: the gate's merge in a
+detached scratch worktree was titled "Merge commit '<sha>' into HEAD"; it now names the
+package, branch, sha and milestone, asserted in the honest-package case.
+
+### Commit 10: ride 2 recorded; the gate prints why each check was red
+
+Ride 2 (Python checks, `copy`, no package.json) passed honest and failed each negative at the
+named check; the hub reran the honest gate and matched. Its one surprise: checks red at T for
+an environmental reason satisfy check 2. The gate cannot judge reasons, so the command line now
+prints each red check's reason for the lead; one new case, red against 370c2b7.
+
+### Commit 11: ride 3's friction folded in
+
+Ride 3 (regulated package, opus builder, property-reg-reviewer) passed first time; its friction
+list is in the ride record. Changed: the red-reason line, the check 5 severity match, step 7
+(the lead fixes their own spec), step 8 (fast-forward before committing the board), the two
+builder contracts (no unstated behaviour) and the test writer's (throwaway mutants allowed
+outside the repo). Two test expectations tightened, both red against 5b8454d. The answers to
+ASK-0006 and ASK-0007 came in the session at 12:47 BST and are in DECISIONS.md (8036bad).
+
+### Commit 12: GPT's first round on stage 2 (evening 2026-10-03)
+
+GPT joined at CLAUDE round 4 (its section is headed "GPT round 1", its first turn) with six
+findings, each re-derived against the code before fixing. Finding 5 was stage 1 code and landed
+there (6f15d35, merged in as 8cf0d85). The other five, here, each with a case red before the fix:
+1. An empty T passed when an older test was already red at T: check 2 alone held, and an empty
+   T froze nothing. GPT called it Critical; re-derived as Medium, because the lead reads T at
+   step 5. Check 3 now refuses a T that changes no files.
+2. With a wide SCOPE a package could change `team/` (the brief, `gate.json`, a verdict). The run
+   that judges it reads the milestone's copies, so the harm is to the next run once merged.
+   Check 3 now refuses any `team/` change, and TESTS CHANGED cannot exempt one.
+3. TESTS CHANGED exempted any path, production code included. The brief is the lead's, so this is
+   a brief error rather than a builder bypass (GPT said High; re-derived as Low). The gate now
+   stops as unrunnable on a TESTS CHANGED path that is no test, test config or fixture file.
+4. `regulated (domain): yes` was found by the field rule but read as null, so the gate refused a
+   valid brief (fails safe). The value now drops the optional note.
+6. A quoted frontmatter name (`name: "tl-builder"`) evaded `shadowLine`. Quotes are now stripped.
+Gate suite: the four new gate cases red with the parent `gate.mjs`, all cases green after; the
+recon suite's new case red before, all green after. `agents/tl-builder.md`, the skill's gate
+paragraph and the gate's header now name the `team/` rule and the TESTS CHANGED limit.
+
+### Commit 13: the stage 2 review record, closed and copied to docs/
+
+GPT's round and the CLAUDE close (with a CLAUDE position) appended to the machine-local record,
+which is copied to `docs/REVIEW_team-loop-s2_2026-10-03.md`. Stage 1's closed record arrives by
+the merge (462d3c7).
+
+### Commit 14: a second GPT turn on the fixes (2026-10-04, overnight continuation)
+
+A fresh GPT seat attacked a7ecf0d, 9839abb and 6f15d35 (`exchange/REVIEW_team-loop-fixes_2026-10-04.md`).
+Five points, all real after re-derivation; the two on stage 1 code were fixed there (517a654)
+and merged in (59f797e). The three on the gate, each with a case red before its fix:
+- A T that changed only a README passed when an older test was already red at T. T must now
+  change a test or fixture file, or a file a JUDGED BY command names.
+- `git diff --name-status` C-quotes unusual names (`core.quotePath`), so a quoted
+  `"team/\303\251t\303\251.md"` slipped past the `team/` prefix test. Every path git hands the
+  gate is now read with `-z`.
+- A catch-all glob in `gate.json` (`fixtures: ["**"]`) let TESTS CHANGED name production code.
+  A glob matching a probe path no project has now stops the gate as unrunnable.
+Rebutted: a `Team/` case variant. On a case-insensitive checkout git keeps the existing
+directory's case; on a case-sensitive one `Team/` is not the lead's directory.
+
+**Found while updating the doc sites, not by the seat:** a7ecf0d's `team/` rule refused the
+pilot's own checks, since the passive income `team/gate.json` (4713ff9) puts tests in
+`team/checks/**`; every pilot package would have failed check 3. Ride 2 used the pilot's shape
+but ran before a7ecf0d. A pilot-shaped case was red; a check T adds under `team/` that a tests or
+fixture glob matches is now allowed, never `team/gate.json` or `team/packages/`. That guard was
+mutated off once and its case went red. Gate, recon and board suites green; check-index 47.
+
+### Commit 15: GPT's round 2 on 1a98f9d
+
+Two of its three open points were real and are fixed, each case red first: the JUDGED BY word
+match counted any word, so a T adding a file literally named `node` passed as a tests commit;
+and `./proofs/check.mjs` in a command did not match the git path `proofs/check.mjs`, falsely
+refusing a real proof script. Only path-like words (a slash or an extension) count now, with a
+leading `./` dropped. Its third point, a broad but not catch-all glob such as
+`testConfig: ["src/**"]` letting TESTS CHANGED name production code, stands as an accepted
+Low: it needs the lead to write both the glob and the brief line, and the gate cannot tell a
+wrong glob from a right one. GPT conceded the `team/` exception, the `-z` parsing and both
+stage 1 fixes. Gate suite green.
+
+### Commit 17: ride 4, two packages at once on the pilot's own gate.json (2026-10-04)
+
+Recorded in `docs/RIDE_team-loop-stage2_2026-10-03.md`, "Ride 4". Two builders on sonnet ran at
+once with disjoint SCOPE in a throwaway repo carrying the pilot's `team/gate.json` byte for byte;
+Ask steps 2 and 9 ran in the file form with stand-in answers. a7ecf0d's gate refused the first
+package on the pilot shape ("team/checks/wp001_spread.py (A)"), confirming the regression fixed
+in 1a98f9d; the current gate passed both. The second package's stale fast-forward was refused
+after the first merged, and a re-gate on the moved milestone fixed it. The skill's Concurrency
+paragraph now says so, and that an empty `suite` leaves the first package's checks un-run on
+the combined tree.
+
+### Commit 18: overnight close (2026-10-04)
+
+ASK-0009 written to the board (`items/ASK-0009`, version 1) and read back: three candidate
+first-milestone topics for the passive income pilot, drawn read-only from that repo's
+`team/NOW.md` on `team-loop/pilot-setup` and its HANDOVER.md section of 2026-10-04. ASK-0008
+was used and withdrawn on 2026-10-03, so 0009. The handover's "Update, overnight 2026-10-04"
+and `team/NOW.md` record the night; `node hooks/session-recon.test.mjs` and check-index green.

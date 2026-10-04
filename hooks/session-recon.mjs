@@ -10,6 +10,7 @@
 // team-loop resume board, how far HEAD has moved past it (nowLine).
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -79,6 +80,37 @@ function agentsLine() {
       (missing.length ? 'Not in ' + user + ', so not loaded this session: ' + missing.sort().join(', ') + '. ' : '') +
       (different.length ? 'Different from the library, so an old version runs: ' + different.sort().join(', ') + '. ' : '') +
       'Copy from ' + library + '.'
+    );
+  } catch {
+    return null;
+  }
+}
+
+// Under a plugin install the team loop's role agents (agents/tl-*.md) load from the plugin,
+// but a project or user agent of the same name wins (sub-agents documentation: project over
+// user over plugin) and silently replaces the plugin's role contract. agentsLine is skipped
+// under a plugin, so this is that layout's own check. A direct clone copies the tl- agents
+// into the user's agents directory like the others, and there this stays silent. The name
+// that counts is the frontmatter's, so a file named anything with `name: tl-...` is caught.
+// Fail-open.
+function shadowLine(cwd) {
+  try {
+    if (!process.env.CLAUDE_PLUGIN_ROOT) return null;
+    const userDir = join(process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude'), 'agents');
+    const found = [];
+    for (const [where, dir] of [['project', join(cwd, '.claude', 'agents')], ['user', userDir]]) {
+      if (!existsSync(dir)) continue;
+      for (const file of readdirSync(dir)) {
+        if (!file.endsWith('.md')) continue;
+        // YAML may quote the name: "tl-builder" and 'tl-builder' are the same agent.
+        const name = /^name:\s*(["']?)(\S+?)\1\s*$/m.exec(readFileSync(join(dir, file), 'utf8'))?.[2] ?? file.slice(0, -3);
+        if (/^tl-/i.test(name)) found.push(name + ' (' + where + ', ' + join(dir, file) + ')');
+      }
+    }
+    if (!found.length) return null;
+    return (
+      'Team-loop agents shadowed: ' + found.join('; ') +
+      '. A project or user agent wins over the plugin\'s, so the plugin\'s role contract does not run. Remove or rename them.'
     );
   } catch {
     return null;
@@ -263,7 +295,9 @@ process.stdin.on('end', () => {
     if (norms) parts.push(norms);
     const agents = agentsLine();
     if (agents) parts.push(agents);
-    const toPerson = [norms, agents].filter(Boolean).join('\n');
+    const shadow = shadowLine(cwd);
+    if (shadow) parts.push(shadow);
+    const toPerson = [norms, agents, shadow].filter(Boolean).join('\n');
     const update = skillsUpdateLine();
     if (update) parts.push(update);
 

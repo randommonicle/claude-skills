@@ -115,7 +115,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **flag-deferred-items** | leaf | Grep-able anchors at the deferred work's landing site; .fixme() carries the anchor; dormant controls say so. |
 | **checkpoint-log** | leaf | Per-commit checkpoint notes in a committed WORKLOG.md for multi-commit units; close with an explicit checklist walk, wiring steps included. |
 | **handover** | leaf | Structured handover from a real context reading (/context, or the desktop app's get_usage tool), or an honestly recorded gap where neither exists; supersession stamps; carry-forwards cite live state. |
-| **team-loop** | leaf (candidate) | Stage 1 of the team-lead loop: team/NOW.md as an overwritten resume board that session-recon checks against git, one Ask queue per project (a private claude.ai board for unregulated projects, team/ASK.md for regulated ones) read at every start, and effort pins on agents. |
+| **team-loop** | leaf (candidate) | The team-lead loop. Stage 1: team/NOW.md as an overwritten resume board that session-recon checks against git, one Ask queue per project (a private claude.ai board for unregulated projects, team/ASK.md for regulated ones) read at every start, and effort pins on agents. Stage 2, per project: the tl- role agents, a board of work packages, a living spec, a ledger, and a gate script that decides a merge from git and the package's own checks. |
 | **committee-review** | process | Three-lens review with shared evidence, attribution-stripped consolidation, and voting. |
 | **cross-agent-review** | process | Adversarially review a scoped change/design/finding by debating one or more independent AI agents (Gemini via the agy CLI or GPT via the codex CLI, driven by Claude itself with no pasting; or a chat you drive; several seats at once) over a shared file relay, grounded in live read-only evidence; converge or two positions. |
 | **skill-library-builder** | process | Turn a repo into a project-specific skill library; skills encode mechanical steps, not awareness. |
@@ -132,6 +132,16 @@ can call one directly, for example `@agent-ash:property-reg-reviewer`.
 |-------|-----------------|
 | [code-reviewer](agents/code-reviewer.md) | A specific diff or file, as an independent second opinion on correctness, security, failure modes and test adequacy. |
 | [property-reg-reviewer](agents/property-reg-reviewer.md) | A change touching service-charge maths, demands, client money, leaseholder-facing output, retention or erasure, or AI surfaces, against LTA 1985, the RICS Service Charge Code, TPI, BSA 2022 and UK GDPR. Run it as well as code-reviewer on regulated changes. |
+
+The **team-loop** skill's stage 2 adds four role agents. They build and research rather than
+review, each pinned to model, effort and `maxTurns`, and none can spawn agents of its own.
+
+| Agent | What it does |
+|-------|--------------|
+| [tl-researcher](agents/tl-researcher.md) | One topic, one `team/research/<topic>/FINDINGS.md`, with sources and options. |
+| [tl-builder](agents/tl-builder.md) | An unregulated work package in its own worktree: tests first in their own commit, then the build when resumed. |
+| [tl-test-writer](agents/tl-test-writer.md) | A regulated package's tests, from the spec, independently of the builder. |
+| [tl-builder-regulated](agents/tl-builder-regulated.md) | A regulated package, built on top of the test writer's commit. |
 
 ## Install on a new machine
 

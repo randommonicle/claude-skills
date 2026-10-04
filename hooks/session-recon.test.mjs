@@ -63,6 +63,7 @@ function stage(status, cwdIsRepo, layout = null) {
   }
   const cwd = join(root, 'session-dir');
   mkdirSync(cwd, { recursive: true });
+  if (layout?.prep) layout.prep(root, cwd);
   if (cwdIsRepo) {
     // No remote: `git fetch` fails and the hook ignores it, so this stays offline.
     spawnSync('git', ['init', '-q', '-b', 'main', cwd], { encoding: 'utf8' });
@@ -568,6 +569,47 @@ nowCase(
   },
 );
 
+// Shadowing cases (2026-10-03, team-loop stage 2). They red against a version with no check,
+// one that runs outside a plugin install (a direct clone copies tl- agents to the user dir by
+// design), one that reads file names instead of the frontmatter name, one that reports every
+// agent, and one that tells only the model.
+const tlAgent = (name) => '---\nname: ' + name + '\ndescription: x\n---\nbody\n';
+const shadowCase = (name, plugin, files, check) =>
+  test(name, { state: 'current', at: hoursAgo(1) }, check, false, {
+    prep(root, cwd) {
+      this.env = { CLAUDE_CONFIG_DIR: join(root, 'cfg'), ...(plugin ? { CLAUDE_PLUGIN_ROOT: join(root, 'plugin') } : {}) };
+      for (const [where, file, text] of files) {
+        const dir = where === 'user' ? join(root, 'cfg', 'agents') : join(cwd, '.claude', 'agents');
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(join(dir, file), text, 'utf8');
+      }
+    },
+  });
+
+shadowCase('a user agent named tl-builder under a plugin install is reported to the person', true, [['user', 'tl-builder.md', tlAgent('tl-builder')]], async (r) => {
+  if (!/Team-loop agents shadowed: tl-builder \(user/.test(r.system)) return 'the person was not told: ' + r.out;
+  return true;
+});
+
+shadowCase('a project agent whose frontmatter name is tl-* is caught whatever its file name', true, [['project', 'mine.md', tlAgent('tl-researcher')]], async (r) => {
+  if (!/tl-researcher \(project/.test(r.context)) return 'frontmatter name not read: ' + r.out;
+  return true;
+});
+
+shadowCase('a quoted frontmatter name is caught', true, [['project', 'q.md', tlAgent('"tl-builder"')]], async (r) => {
+  if (!/Team-loop agents shadowed: tl-builder \(project/.test(r.system)) return 'a quoted name slipped past: ' + r.out;
+  return true;
+});
+
+shadowCase('outside a plugin install a user tl- agent is expected and stays silent', false, [['user', 'tl-builder.md', tlAgent('tl-builder')]], async (r) => {
+  if (/shadowed/.test(r.out)) return 'reported a direct-clone copy as shadowing: ' + r.out;
+  return true;
+});
+
+shadowCase('other user agents under a plugin install are not reported', true, [['user', 'code-reviewer.md', tlAgent('code-reviewer')]], async (r) => {
+  if (/shadowed/.test(r.out)) return 'reported a non-tl agent: ' + r.out;
+  return true;
+});
 // Round 3 stand-in (code-reviewer subagent, 2026-10-03): a failed git call read as "not
 // committed", a branch shadowed by a same-named tag, a failed fetch reported as fact about
 // origin, a recreated NOW.md called committed, and ask: dressing refused.
