@@ -179,3 +179,38 @@ appointment of a receiver or manager"); added. Low: s.167(3) reduces the unpaid 
 default charge "for the purposes of subsection (1)(a)" only, so "left out of the count" now reads
 "left out when testing the sum (not the period)". Not checked: whether LFRA 2024 commencement
 regulations made after the XML snapshot have brought s.53, s.55 or s.61 into force.
+
+**Cross-family review, 2026-10-04 (overnight continuation, from 03:26 BST).** Exchange record
+`exchange/REVIEW_legal-fork_2026-10-04.md` (gitignored; copied to `docs/` on close). Seats run
+with `run-seat.mjs` from `fix/run-seat-double-end` (28d5dac), `--cwd` this worktree: GEMPRO
+(agy) on the four SKILL.md files, GPT (codex) on the tables, the three references, the count
+sites, NOTICE and the UPSTREAM files. There are no scripts in the fork, so GPT's "scripts" share
+of the brief was empty. Grounding read first as `/data.xml`: LFRA 2024 ss.53, 55, 61 still
+`Status="Prospective"`, and the only commencement instruments listed are Nos. 1 to 3 (to
+Feb 2025), which closes the evening note's open question for now; the Building Safety (Wales)
+Act 2026 s.74 prospectively inserts LTA 1987 s.47B (demand content, Wales), not named before.
+
+Round 1: GEMPRO 12 points, GPT 4 (provenance and counts clean). Each re-derived against the
+files; statutory ones against the XML. Accepted and fixed here: the register's result line
+could not add up when a right's derived duty also went to the register (the duty is now its
+own extracted item, and the output carries the extraction list); the notice result line
+printed parts its mode has no table for, and a cut consequence vanished from it; the citation
+audit's discards were unlisted, so "Extracted = Table rows" held trivially; the worked
+examples did not say they are no retrieval; s.167's £500 ceiling read as the test, so the
+operative £350 and three years are named from SI 2004/3086 reg 2 and SI 2005/1352 reg 2 (GEMPRO
+cited "SI 2004/3096"; the figure was right, the number wrong); "blocking input" with an escape
+clause; a missing route to verified-citations; R2's deadline cell did not quote s.21B(1), R1's
+lacked its counting convention; three upstream terms were unmapped and the lease reference's
+"in place of" could be read to displace the interaction check; "from memory" in contract-review
+clashed with its own verification list; side-first now asks only when the request names no
+party; s.47B named. Rebutted: the interaction check's denominator comes from the table by
+design (quick review covers the 10 to 15 most material rows, so coverage is the mode's choice);
+"law 0 moved" is a count of moves, not a state that hides one; the two status vocabularies
+belong to different tables; verified-citations already owns statutory day counting in its body
+(`verified-citations/SKILL.md:109-117`) and the legal skills route to it by name.
+
+Gates after: check-index "ok: 50 skills, all indexed, all named, all three counts agree";
+check-archives "ok: 5 archives, 17 members". The unslop scan does not reproduce the evening
+note's "high 0 medium 0 low 0": at 6c9845b, before any change today, it reports medium hits in
+three of the four files, every one a route arrow read as an emoji (the library's route style).
+The one new hit my edits added (a bold lead-in) is removed.

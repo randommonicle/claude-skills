@@ -27,11 +27,13 @@ the attribution. A retrieval with no quoted words counts as no retrieval, becaus
 words are what lets a reviewer re-open the source and compare. Print the result line before the
 table:
 
-`Extracted 23 | Table rows 23 | Confirmed 9 (9 with retrieval) | Contradicted 1 | Could not confirm 4 | Not attempted 9`
+`Search hits 31 | Discarded 8 (listed) | Extracted 23 | Table rows 23 | Confirmed 9 (9 with retrieval) | Contradicted 1 | Could not confirm 4 | Not attempted 9`
 
 Red output, any of:
 
 - `Extracted 23 | Table rows 21`: two citations are missing from the audit. Find them.
+- `Search hits 31 | Discarded 8 | Extracted 21`: two hits are in neither list. A discard is
+  listed with its reason, so a reviewer can see a real citation thrown away.
 - `Confirmed 9 (8 with retrieval)`: one row claims a check that did not happen. Downgrade it.
 
 Extraction is mechanical, not by eye. Search the text for: `Act`, `section`, `s.`, `ss.`,
@@ -84,8 +86,9 @@ with a word on why.
 3. **Audit table.**
    `# | Location | Citation as written | Type | Weight | Checks required | Retrieval (source, date read, words read) | Result | Note`.
    `Retrieval` is empty only when `Result` is Not attempted.
-4. **Suspicious citations.** Row numbers and the tell for each.
-5. **Priority list.** Load-bearing rows not yet Confirmed, in the order to verify them.
+4. **Discarded hits.** Each search hit not treated as a citation, with its location and why.
+5. **Suspicious citations.** Row numbers and the tell for each.
+6. **Priority list.** Load-bearing rows not yet Confirmed, in the order to verify them.
 
 ## Do not
 

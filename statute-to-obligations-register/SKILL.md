@@ -65,7 +65,7 @@ it goes in the verification list.
    | Prohibition | Something it must not do | Register |
    | Condition on recovery or enforcement | No breach, but a missed step loses a right (a charge becomes irrecoverable, a remedy unavailable) | Register; it behaves like a deadline |
    | Power | Something the entity may do | Powers and rights list |
-   | Right of another party | Something a tenant, regulator or other party may require | Powers and rights list, with any duty it creates for you (to respond, to supply) as its own register row |
+   | Right of another party | Something a tenant, regulator or other party may require | Powers and rights list. Any duty it creates for you (to respond, to supply) is extracted as its own item, a Duty, so each item lands in one place and the result line still adds up |
 4. **Conditional duties stay in.** State the condition in the Trigger cell and let the user
    decide whether it is met. Never omit a row because it looks inapplicable.
 5. **Owner is a proposal.** Write `Proposed: <role>` unless the user has named the owner. Do not
@@ -87,12 +87,13 @@ it goes in the verification list.
 
 Two rows from the Landlord and Tenant Act 1985, as a pattern for the cells, not as advice. Both
 provisions extend to England and Wales; re-read both before relying on them, because both carry
-prospective changes.
+prospective changes. These rows are not a reading for your register: rule 1 needs the provision
+read in your session, with your own date, and a row copied from here fails it.
 
 | Ref | Section | Type | Obligation | Trigger | Deadline (statute's words) | Owner | Evidence | Control | Status |
 |---|---|---|---|---|---|---|---|---|---|
-| R1 | LTA 1985 s.20B(1)-(2) | Condition on recovery | Serve the demand for each relevant cost, or notify the tenant in writing that the cost was incurred and that they will be required under the lease to contribute to it by a service charge, within the period in the next cell | Each relevant cost incurred | Demand limb: costs "incurred more than 18 months before a demand for payment of the service charge is served" are not payable (s.20B(1)). Notice limb: "within the period of 18 months beginning with the date when the relevant costs in question were incurred" (s.20B(2)) | Proposed: service-charge accountant | Dated demand or s.20B(2) notice, with proof of service | Monthly list of costs incurred over 15 months ago and not yet demanded or notified; review trigger on commencement of Leasehold and Freehold Reform Act 2024 ss.53-54 | In force; prospective changes pending (Leasehold and Freehold Reform Act 2024 ss.53-54) |
-| R2 | LTA 1985 s.21B(1), (3)-(4) | Duty | Accompany every service-charge demand with the summary of tenants' rights and obligations | Each service-charge demand | With the demand | Proposed: credit control | Copy of each demand as sent, with the summary attached | Demand template cannot be issued without the summary; review trigger on commencement of Leasehold and Freehold Reform Act 2024 s.55 | In force; whole section prospectively omitted (Leasehold and Freehold Reform Act 2024 s.55(2)(c)); s.55(3) prospectively inserts a new s.21C |
+| R1 | LTA 1985 s.20B(1)-(2) | Condition on recovery | Serve the demand for each relevant cost, or notify the tenant in writing that the cost was incurred and that they will be required under the lease to contribute to it by a service charge, within the period in the next cell | Each relevant cost incurred | Demand limb: costs "incurred more than 18 months before a demand for payment of the service charge is served" are not payable (s.20B(1)). Notice limb: "within the period of 18 months beginning with the date when the relevant costs in question were incurred" (s.20B(2)). Counting: "beginning with" includes the day the cost was incurred; the control works to 15 months for margin | Proposed: service-charge accountant | Dated demand or s.20B(2) notice, with proof of service | Monthly list of costs incurred over 15 months ago and not yet demanded or notified; review trigger on commencement of Leasehold and Freehold Reform Act 2024 ss.53-54 | In force; prospective changes pending (Leasehold and Freehold Reform Act 2024 ss.53-54) |
+| R2 | LTA 1985 s.21B(1), (3)-(4) | Duty | Accompany every service-charge demand with the summary of tenants' rights and obligations | Each service-charge demand | "must be accompanied by a summary" (s.21B(1)); no period, so no counting convention | Proposed: credit control | Copy of each demand as sent, with the summary attached | Demand template cannot be issued without the summary; review trigger on commencement of Leasehold and Freehold Reform Act 2024 s.55 | In force; whole section prospectively omitted (Leasehold and Freehold Reform Act 2024 s.55(2)(c)); s.55(3) prospectively inserts a new s.21C |
 
 Sources, latest revised text, read 2026-10-03:
 [s.20B](https://www.legislation.gov.uk/ukpga/1985/70/section/20B) and
@@ -111,7 +112,9 @@ an authority, not for the register's author; settle it before setting R1's clock
 
 1. **Header.** Instrument mapped (full title and year), provisions read, URL, date read,
    extent, entity described, date of mapping.
-2. **Result line** from the rule above.
+2. **Result line** from the rule above, then the extraction list, which numbers every
+   extracted item with its provision and the register ref, powers-list entry or dropped entry
+   it became. Without it `Extracted` cannot be checked by anyone but the author.
 3. **Register.** `Ref | Section | Type | Obligation | Trigger | Deadline (statute's words) |
    Owner | Evidence | Control | Status`, plus a source column or footnote with URL and date read.
 4. **Powers and rights list**, and the **dropped list** with a reason per item.

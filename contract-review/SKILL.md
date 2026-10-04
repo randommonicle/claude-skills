@@ -1,6 +1,6 @@
 ---
 name: contract-review
-description: Review a contract or lease for one named party, grading each risk against the exact clause it rests on. Every finding quotes its clause; caps, indemnities and exits are graded only with their interacting clauses; statutory points go to a verification list unless retrieved this session. Triggers on "review this lease from the tenant's side" or a contract audit. Does not fire on a neutral summary, drafting from scratch, version comparison, or a notice (legal-notice-handling).
+description: Review a contract or lease for one named party, grading each risk against the exact clause it rests on. Every finding quotes its clause; caps, indemnities and exits are graded only with their interacting clauses; statutory points go to a verification list unless retrieved this session. Triggers on "review this lease from the tenant's side" or a contract audit. Does not fire on a neutral summary, an obligations extraction on its own, drafting from scratch, version comparison, or a notice (legal-notice-handling).
 ---
 
 # Contract review
@@ -51,8 +51,8 @@ has not been checked.
 
 ## Supporting rules
 
-1. **Side first, and it blocks.** Ask which party you act for and produce nothing until you have
-   the answer. Do not infer it from the file name or the order of the parties. The same cap is a
+1. **Side first, and it blocks.** If the request does not name the party you act for, ask, and
+   produce nothing until you have the answer. Do not infer it from the file name or the order of the parties. The same cap is a
    win for one side and a problem for the other.
 2. **Say what you were given.** One line before anything else: complete executed document,
    complete draft, excerpt, single clause, heads of terms, or not a contract. For an excerpt,
@@ -107,10 +107,16 @@ Load the matching reference and apply it on top of this file, never in place of 
 | IP, software, data or franchise licence | [references/licensing-agreements.md](references/licensing-agreements.md) |
 
 The references are copied verbatim from upstream and speak of "the base contract-reviewer
-method". Read that as this file: its "issues list" is the issues table below, its "grading
-scale" is rule 8, and its "risk-allocation prose" is the full-audit risk-allocation statement.
-Every point a reference says to "flag as a verification point" goes to the verification list and
-is subject to the law check.
+method". Read that as this file: its "structural map", "defined-terms sweep" and "boilerplate
+read" are supporting rule 3 (read the whole document, boilerplate included, follow every
+cross-reference, and give each missing, undefined or doubly defined term its own row); its
+"issues list" is the issues table below; its "grading scale" is rule 8; its "risk-allocation
+prose" is the full-audit risk-allocation statement; its "output sections" are the output
+contract. Where a reference says its steps apply "in place of" a base section, they replace that
+section's topics only: the three checks, the interaction check included, and the output
+contract still apply in full. Every point a reference says to "flag as a verification point"
+goes to the verification list, and anything the review says about it elsewhere is subject to
+the law check.
 
 ## Output contract
 
@@ -131,7 +137,9 @@ is subject to the law check.
 
 ## Do not
 
-- Do not name a statute, section, regulation or case from memory, in any section, in any mode.
+- Do not state a statute, section, regulation or case as law from memory, in any section, in
+  any mode. One you have not retrieved appears only as an open question in the verification
+  list.
 - Do not grade a cap, indemnity or exit clause without reading the clauses that qualify it.
 - Do not describe or guess at the contents of a document you were not given.
 - Do not put a legal conclusion and a document finding in the same sentence; the reader must be
