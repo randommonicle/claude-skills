@@ -668,3 +668,26 @@ checked to skip at their top on `process.platform !== 'win32'`. The loop body ru
 platform set to linux: SKIP for watchdog-network, PASS for check-index, exit 0; a marked suite
 that exits 1: FAIL, exit 1. hooks-windows keeps PASS, since the suites run there. push-gate's
 skip (git absent) never fires on a runner and is left alone.
+
+### Merged: PR #13 (07af1ca) and PR #3 (01194b4), 2026-10-04, on Ben's yes
+
+#13's run log showed the four `@win32-only` suites labelled SKIP on Linux and PASS on Windows,
+and the transport suite ending "all run cases passed; 1 skipped". #3 (commission-the-roster, a
+gate never alongside the step it certifies, open since 2026-09-26) had checks from its old base,
+so it was merged locally onto main first: clean, index 51 and archives ok; then merged on
+GitHub. main's run on 01194b4 (37219111004): all four jobs green. Nine merged worktrees removed
+on Ben's yes, each checked clean and an ancestor of origin/main first.
+
+## main by PR only (branch `docs/main-ruleset`, opened 2026-10-04)
+
+### Commit 1: the two repository settings recorded
+
+On Ben's yes, `allow_auto_merge` on and ruleset 24461308 requiring `index`, `archives`, `hooks`
+and `hooks-windows` on the default branch, no bypass actors, not strict. Read back through
+`rules/branches/main`; the check names and app id (15368) match the check runs on 07af1ca. Not
+yet exercised by a PR. DECISIONS.md entry, a header note in the workflow (the job names are the
+required checks, so a rename updates the ruleset), and a CONTRIBUTING.md paragraph. Blast radius:
+nothing in the library instructs a direct push to this repo's main (the matches are push-gate's
+fixtures and confirm-before-push's generic examples). The first draft said every change since
+2026-09-24 came by PR; `git log --first-parent` shows direct pushes on 2026-09-25 (`f3efb60`,
+`c96341f`), corrected to "since #4 (2026-09-28)".
