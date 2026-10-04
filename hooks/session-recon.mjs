@@ -184,10 +184,12 @@ function nowLine(cwd, fetched) {
     const rel = 'team/NOW.md';
     const path = join(cwd, 'team', 'NOW.md');
     const git = (...args) => run('git', ['-C', cwd, ...args], LOCAL_GIT_MS);
-    if (!existsSync(path))
+    // A directory at the path is as missing as no file: reading it would throw into the
+    // silent catch below.
+    if (!existsSync(path) || !statSync(path).isFile())
       // Silent unless HEAD tracks it: a deleted resume board is a state to act on.
       return git('ls-tree', '--name-only', 'HEAD', '--', rel)
-        ? rel + ' is committed but missing from the working copy: restore it (git restore ' + rel + ') and read it before acting.'
+        ? rel + ' is committed but missing from the working copy, or not a regular file: restore it (git restore ' + rel + ') and read it before acting.'
         : null;
     const text = readFileSync(path, 'utf8');
     const out = [];

@@ -314,8 +314,8 @@ details .inner { display: grid; gap: 10px; margin-top: 10px; }
     db.collection('notes').onSnapshot((s) => { notes = s.docs.map((d) => d.data()).sort((a, b) => String(a.at).localeCompare(String(b.at))); renderNotes(); }, () => {});
     db.doc('meta/status').onSnapshot((s) => {
       const v = s.exists ? s.data() : null;
-      if (s.exists) meta = 'present';
-      else if (!s.metadata.fromCache) meta = 'absent';
+      // Only the server can say the sentinel is there: a cached copy proves nothing about now.
+      if (!s.metadata.fromCache) meta = s.exists ? 'present' : 'absent';
       renderState();
       $('lead').hidden = !(v && v.text);
       if (v && v.text) { $('leadText').textContent = String(v.text); $('leadAt').textContent = v.at ? '· ' + fmt(v.at) : ''; }

@@ -41,7 +41,7 @@ async function boot() {
   const window = { claude: { use: async (n) => (n === 'db' ? db : { id: async () => 'u1' }) } };
   new Function('window', 'document', code)(window, document);
   await tick();
-  const snap = (key, docs) => { for (const { cb } of mk(key)) cb({ docs: docs.map(([id, d]) => ({ id, data: () => d })), exists: docs.length > 0, data: () => docs[0] && docs[0][1], metadata: { fromCache: false, hasPendingWrites: false } }); };
+  const snap = (key, docs, fromCache = false) => { for (const { cb } of mk(key)) cb({ docs: docs.map(([id, d]) => ({ id, data: () => d })), exists: docs.length > 0, data: () => docs[0] && docs[0][1], metadata: { fromCache, hasPendingWrites: false } }); };
   const fail = (key, e) => { for (const { err } of mk(key)) err && err(e); };
   const card = () => reg.list.children[0];
   return { reg, sets, snap, fail, card };
@@ -70,6 +70,13 @@ test('empty queue with meta/status present says no open decisions', async () => 
   p.snap('meta/status', [['status', { text: 'hi' }]]);
   p.snap('items', []); p.snap('answers', []);
   check(/No open decisions/.test(p.reg.state.textContent), p.reg.state.textContent);
+});
+
+test('a meta/status read only from cache does not let an empty queue read as empty', async () => {
+  const p = await boot();
+  p.snap('meta/status', [['status', { text: 'hi' }]], true);
+  p.snap('items', []); p.snap('answers', []);
+  check(!/No open decisions/.test(p.reg.state.textContent), p.reg.state.textContent);
 });
 
 test('a changed answer, confirmed without an echo, shows the new choice', async () => {

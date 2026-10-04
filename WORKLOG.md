@@ -158,6 +158,19 @@ The stage 1 review closed at the round cap with a CLAUDE close section and a CLA
 machine-local `exchange/` to `docs/REVIEW_team-loop-s1_2026-10-03.md` so it travels. Correction
 to commit 9's entry: GPT's round 3 answered at about 17:20 BST, not "17:2x".
 
+### Commit 12: a second GPT turn on the fixes (2026-10-04, overnight continuation)
+
+A fresh GPT seat was told to assume the fixes 9839abb, 6f15d35 and (on stage 2) a7ecf0d were
+broken (`exchange/REVIEW_team-loop-fixes_2026-10-04.md` in the stage 2 worktree). Two of its
+five points are stage 1 code, both real, both fixed here with a case red first:
+- The page set `meta = 'present'` from a cached snapshot, so empty server snapshots of items and
+  answers read "No open decisions" on the strength of a cache. The sentinel now counts only from
+  the server. `ask-board.test.mjs`'s stub takes `fromCache`; the new case was red on the parent.
+- `nowLine` treated a directory at `team/NOW.md` as a file; `readFileSync` threw into the silent
+  catch. A non-file now reads as missing. My first assertion matched the recon header's git
+  status listing and passed on the unfixed code; tightened to the nowLine message, then red.
+Every `hooks/*.test.mjs` suite and `ask-board.test.mjs` green after.
+
 ## Team-loop stage 2, plugin pieces (branch `feat/team-loop-stage2`, opened 2026-10-03)
 
 Goal: the plugin side of `docs/DESIGN_team-loop_2026-10-02.md` section 5, inert until a project
