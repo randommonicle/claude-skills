@@ -113,7 +113,11 @@ The same discipline extends beyond code and history to any encoded real-world ob
 - Verify Act, year, AND Part against the primary source (legislation.gov.uk for UK
   statutes); model memory produced two confident wrong "facts" headed for a statutory
   register (a non-existent statutory interval; a mis-attributed legal basis).
-- Statutory day-counting is inclusive ("beginning with the day X" includes day X).
+- Count a statutory period by its own words. "Beginning with the day X" is conventionally
+  read as including day X; other wordings ("after", "from", "clear days") can exclude it.
+  The authority for these readings has not been retrieved into this library, so where a
+  deadline turns on a single day, read the authority, or choose a date valid under every
+  reading.
 - Data that encodes an obligation (statutory frequencies, legal bases, deadlines) cites its
   primary source in the artifact itself, so the next reader verifies rather than trusts.
 - A specialist reviewer contradicting the brief on law earns a primary-source check, not an

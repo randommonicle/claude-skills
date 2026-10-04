@@ -64,7 +64,7 @@ rather than vanishing.
    valid under any plausible counting convention and any plausible date of giving. When a
    posted notice counts as given depends on the lease's notice clause or the statute's service
    provision; read it, or treat the date as uncertain and widen the margin. State the convention
-   you used. verified-citations owns the inclusive-counting rule.
+   you used. verified-citations owns the counting rule.
 2. **Facts are particularised from the user, never supplied.** Who, what, when, with dates and
    document references. No invented fact, legal basis, clause or statute. If no legal basis was
    given, draft on the facts and say no basis is named.
@@ -187,7 +187,7 @@ session, with your own URL and date, and a line copied from here fails that tabl
 
 - Reviewing the lease or contract the notice arises under → **contract-review**.
 - Mapping every duty a statute imposes, as a register → **statute-to-obligations-register**.
-- Counting a statutory period inclusively ("beginning with") → **verified-citations**.
+- Counting a statutory period ("beginning with", "after") → **verified-citations**.
 - Checking the citations in a notice received → **legal-citation-integrity**.
 - The generated document's own integrity (placeholders, re-extraction) → **deliverable-integrity**.
 - Sending the notice by email and proving delivery → **email-delivery-verification**.
