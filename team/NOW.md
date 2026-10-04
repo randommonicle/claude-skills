@@ -1,41 +1,33 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-04 09:43 BST, merge session on Ben's in-session "Yes to all"
-topic: team-loop stages 1 and 2, the run-seat fix and the legal fork merged to main as four PRs (#7, #8, #9, and the legal fork's, which carries this file); 51 skills
-next: the passive income pilot: ASK-0009 answered (a), recorded on the board and in that repo's pilot branch; a passive income session merges the branch, records ASK-0009 in its DECISIONS.md and deletes the item; LESSONS candidates in the handover's last two sections wait for Ben
-branches: main only; the merged feature branches remain on origin, and integrate/sunday stays a local, unpushed rehearsal
+updated: 2026-10-04 17:38 BST, a solo session while Ben was away; local commits only
+topic: the two suites that ran nowhere (run-seat, ask-board) wired into CI on branch ci/wire-unrun-suites
+next: Ben's yes to push ci/wire-unrun-suites and open its PR; that run is the first runner run of both suites, so a red there is fixed on the branch. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+branches: main, ci/wire-unrun-suites (local, unpushed), integrate/sunday (a local rehearsal)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
-- main: #7 run-seat fix (220d8cf), #8 stage 1 (5bf2ed7), #9 stage 2 (cd50e14), then the legal fork's PR after main merged into it (4e4b30c), resolved as rehearsed in docs/INTEGRATION_sunday_2026-10-04.md (on the local integrate/sunday branch, plus DECISIONS.md: both entries kept, team loop first); check-index 51, all 26 suites green before the push
-- legal fork 469ba82: its DECISIONS.md entry, landed on Ben's yes
-- legal fork 33237c1, 43430a3, 384c936, 9ffb4ae, fa3dd5e: cross-family review (GEMPRO, GPT, a fresh GPT on the converged position) and two property-reg-reviewer passes, 0 Critical 0 High; record in that branch's docs/
-- stage 1 517a654: cached board sentinel, a directory at team/NOW.md; each case red first
-- stage 2 59f797e (merge of stage 1), 1a98f9d, 5258a12: gate fixes from GPT's second turn, and a7ecf0d's team/ rule no longer refuses the pilot's team/checks/**; each case red first; 05f4c03 review record
-- stage 2 fad74d1: ride 4 (two packages at once, the pilot's gate.json, Ask steps 2 and 9 in the file form); Concurrency now says to re-gate after the milestone moves
-- integrate/sunday: all branches merged on origin/main, count 51, all 26 suites green; docs/INTEGRATION_sunday_2026-10-04.md there
-- ASK-0009 posted: the passive income pilot's first-milestone topic
+- main 2043d43 (PR #11): LESSONS 29 to 38, cross-agent-review's seat wording, verified-citations' counting line; main's CI green on it
+- The gate suite ran on the runner: main run 37192547536, step "the team-loop gate suite", "all cases passed"
+- The live library (~/.claude/skills) fast-forwarded f7de1a1 to 2043d43 by hooks/update-skills.mjs at 17:33 BST; the 06:30 task ran before the merges; check-index ok, 51
+- ci/wire-unrun-suites, this commit: run-seat.test.mjs and ask-board.test.mjs as named steps in the hooks job, each if: always(); run-seat again in hooks-windows for its one win32-only case (the PATHEXT shim); each suite exits 1 against a broken copy of its target, 0 against the real one
 
 ## In flight
 
-- Nothing running. ASK-0009's item and answer stay on the board until passive income records the decision.
+- Nothing running. ASK-0009's item stays on the board until passive income records the decision; a passive income session was live at 17:32 BST, so that repo was left alone
 
 ## Deferred, with grep anchors
 
-- `FORWARD: cross-agent-review/scripts/run-seat.test.mjs runs nowhere` in .github/workflows/check-index.yml
-- `FORWARD: team-loop/ask-board.test.mjs runs nowhere either` in the same workflow
 - `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md section 9
 - Unpinned agents: debugger, refactorer (this machine's ~/.claude/agents); PropOS backend, frontend, test
 - Accepted Low: a broad but not catch-all test-class glob in gate.json widens TESTS CHANGED (docs/REVIEW_team-loop-fixes_2026-10-04.md, CLAUDE close)
 
 ## Verification outstanding
 
-- The gate suite as a CI step on the runner: not run, nothing pushed
-- The board page in a real browser since its fixes: stub-DOM tests only
-- MT5 compile or Tester commands as JUDGED BY lines; harness worktree isolation for a spawned tl-builder
-- worktree.baseRef "head" against a repo with a remote (design 5.4)
+- The board page in a real browser since its fixes: stub-DOM tests only; the built-in browser stops at claude.ai's sign-in page, so this needs Ben's own browser
+- MT5 compile or Tester commands as JUDGED BY lines; harness worktree isolation for a spawned tl-builder; worktree.baseRef "head" against a repo with a remote (design 5.4)
 
 ## Traps
 

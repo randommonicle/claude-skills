@@ -113,20 +113,25 @@ jobs:
             echo "::endgroup::"
           done
           exit $failed
-      # The team-loop gate's suite lives beside the script, outside the glob above, so
-      # it is named here rather than left to run nowhere (LESSONS_LEARNED 28). Plain
-      # node and git, throwaway repos under the temp dir.
+      # Three suites live beside their scripts, outside the glob above, so each is
+      # named here rather than left to run nowhere (LESSONS_LEARNED 28). Each is its
+      # own step with if: always(), so one red suite does not hide the others. Node
+      # stdlib and git only, throwaway dirs under the temp dir, no real CLI spend:
+      # run-seat's seats are a fake CLI, ask-board's page runs against a stub DOM.
       - name: the team-loop gate suite
         if: always()
         run: node team-loop/scripts/gate.test.mjs
-      # FORWARD: cross-agent-review/scripts/run-seat.test.mjs runs nowhere
-      # (LESSONS_LEARNED 28). Add it as its own step once one run on this
-      # runner is green; until then it is run by hand only.
-      # FORWARD: team-loop/ask-board.test.mjs runs nowhere either, on the same rule.
+      - name: the cross-agent transport suite
+        if: always()
+        run: node cross-agent-review/scripts/run-seat.test.mjs
+      - name: the Ask board page suite
+        if: always()
+        run: node team-loop/ask-board.test.mjs
 
-  # The win32 half of the hooks job. Only the PowerShell-driven suites run here:
-  # everything else is already covered on Linux, and this job exists to close the gap
-  # that made those unrunnable, not to duplicate the other nineteen.
+  # The win32 half of the hooks job. Only the PowerShell-driven suites run here, plus
+  # the transport suite for its one win32-only case: everything else is already covered
+  # on Linux, and this job exists to close the gap that made those unrunnable, not to
+  # duplicate the other nineteen.
   hooks-windows:
     runs-on: windows-latest
     steps:
@@ -171,3 +176,11 @@ jobs:
             echo "::endgroup::"
           done
           exit $failed
+      # The transport suite again, for its one win32-only case: a seat command found on
+      # PATH where an npm install left `codex`, `codex.cmd` and `codex.ps1` side by side.
+      # Off win32 that case prints SKIP, so without this step it would run only by hand,
+      # and Windows is where the transport runs. The rest of the suite repeats the Linux
+      # run, which costs seconds.
+      - name: the transport suite's win32 case
+        if: always()
+        run: node cross-agent-review/scripts/run-seat.test.mjs
