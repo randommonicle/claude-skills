@@ -170,3 +170,95 @@ skills, all indexed, all named, all three counts agree". Stage 1 at 6f15d35: eve
 5. **unverified**: a7ecf0d makes the gate refuse a TESTS CHANGED path that no `tests`,
    `testConfig` or `fixtures` glob in `team/gate.json` matches. The pilot's `team/gate.json`
    (passive income, `team-loop/pilot-setup`) was not re-read against this rule.
+
+## Update, overnight 2026-10-04
+
+An overnight continuation, 03:26 to about 04:23 BST, ran the five-item queue Ben left. Local
+commits only; nothing pushed, no PR, `main` untouched (origin/main still f7de1a1). Context at
+writing: 42% (`get_usage`); the 5-hour window at 9% after the 04:10 BST reset.
+
+**Headline: the gate fix from the evening (a7ecf0d) would have refused every pilot package.**
+It refused any change under `team/`, but the passive income pilot's `team/gate.json` keeps its
+checks in `team/checks/**`. Found while updating doc sites, proven with a pilot-shaped case red
+first, fixed in 1a98f9d, then confirmed on ride 4: a7ecf0d's gate refused the pilot-shaped
+package with "team/checks/wp001_spread.py (A)", the current gate passed it. This answers the
+evening note's unverified item 5: the pilot config was broken by that commit.
+
+**1. Legal fork, cross-family review** (`feat/legal-fork` to fa3dd5e; record
+`docs/REVIEW_legal-fork_2026-10-04.md`). GEMPRO on the four SKILL.md files, GPT on the tables,
+references, counts and provenance, then a fresh GPT seat on the converged position. 19 points
+across the seats, each re-derived; most real and fixed (33237c1, 43430a3, 384c936, 9ffb4ae):
+result lines that could not add up or go red, worked examples usable as a retrieval, the
+references' upstream terms unmapped, s.167's £500 ceiling read as the test (now £350 and three
+years, SI 2004/3086 and SI 2005/1352, read as XML), LTA 1987 s.47B (Wales, prospective) added.
+property-reg-reviewer twice on the changed wording: 0 Critical, 0 High, 7 Low, all fixed.
+LFRA 2024 ss.53, 55, 61 are still prospective on legislation.gov.uk (commencement Nos. 1 to 3
+only). Not checked: the Welsh Act's definition of "regulated building"; whether a Welsh
+commencement order for s.74 exists that the site has not recorded.
+
+**2. Second GPT turn on the stage fixes** (record `docs/REVIEW_team-loop-fixes_2026-10-04.md`).
+Round 1: five real findings, fixed with cases red first: on stage 1 (517a654) a cached
+`meta/status` let an empty queue read as empty, and a directory at `team/NOW.md` went silent;
+on stage 2 (1a98f9d) a README-only T passed, git's quoted paths slipped the `team/` test (now
+`-z`), a catch-all `gate.json` glob widened TESTS CHANGED. Round 2: two more in my own fix (a
+file named `node` counted as a proof; `./` paths refused), fixed in 5258a12. Accepted Low: a
+broad but not catch-all test-class glob in `gate.json` still widens TESTS CHANGED; the lead's
+review of `gate.json` and the brief is the defence.
+
+**3. integrate/sunday** (`~/.claude/skills-wt-integrate-sunday`, fc0ee3d, no upstream; record
+`docs/INTEGRATION_sunday_2026-10-04.md` there). All three branches merged onto origin/main;
+only the legal fork conflicts (the three count sites and WORKLOG.md, resolved to 51 and both
+sections kept). check-index 51, check-archives ok, all 26 suites green. My first WORKLOG
+resolution left a second `# Work log` title (both branches create the file); found on the
+re-merge and removed, and the record now says to drop it.
+
+**4. Ride 4** (`docs/RIDE_team-loop-stage2_2026-10-03.md`, fad74d1). Two builders at once,
+disjoint SCOPE, the pilot's `gate.json` byte for byte, Ask steps 2 and 9 in the file form
+with stand-in answers. The second package's stale fast-forward was refused after the first
+merged; a re-gate fixed it, and the skill's Concurrency paragraph now says to re-gate and that
+an empty `suite` leaves the first package's checks un-run on the combined tree.
+
+**5. ASK-0009 on the board**: three candidate first-milestone topics for the passive income
+pilot, read-only from that repo (a: wire its Python self-tests into the empty `suite`,
+recommended; b: Quant's adverse-fill research, D-099 item 4; c: D-102 item 4 hardening, after
+the D-008 confirmation). ASK-0008 was used and withdrawn on 2026-10-03, hence 0009. Not started.
+
+### Branches at close (all local)
+
+| Branch | Tip | Ahead of origin/main | Upstream |
+|---|---|---|---|
+| `fix/run-seat-double-end` | 28d5dac | 1 | origin/main (a bare push is refused by push.default simple and the push gate; unset it if you prefer) |
+| `feat/team-loop-stage1` | 517a654 | 12 | origin/main (the same) |
+| `feat/team-loop-stage2` | this commit | 39 | none |
+| `feat/legal-fork` | fa3dd5e | 14 | none |
+| `integrate/sunday` | re-merged after this commit | | none |
+
+### Left for Ben
+
+1. Push and PR, each a separate yes: four PRs with merge commits in the order run-seat, stage
+   1, stage 2, legal fork (only the last conflicts; the resolution is mechanical, see the
+   integration record), or one PR from `integrate/sunday`.
+2. ASK-0009 on the board. The pilot branch also needs merging into a passive income main that
+   has moved 9 commits since its base (18aa41f); merging `.claude/settings.json` changes worktree
+   behaviour for every session there.
+3. The legal fork decision draft (evening note item 2), unchanged.
+4. LESSONS candidates, adding to the evening note's list (each needs its misses line):
+   - A gate rule added without re-running the pilot's own config refused every pilot package
+     (a7ecf0d). skill that should have prevented this: one-real-ride (ride the real config) or
+     blast-radius-grep (grep every `gate.json` in reach). class: config-shape regression.
+   - My round 2 ask told an agy seat it "may run git show"; agy denied it and the turn ended
+     empty, the trap already in NOW.md and in the skill. skill that should have prevented this:
+     cross-agent-review (its own text). class: seat permission granted in prose.
+   - The evening note's "unslop high 0 medium 0 low 0" does not reproduce: the same scanner
+     reports route arrows as medium hits at 6c9845b. skill that should have prevented this:
+     rerun-before-verdict. class: a gate result reported, not read.
+   - A board status carried an estimated clock time (04:20 for about 03:55), corrected at the
+     next write. skill that should have prevented this: none, new candidate (memory note
+     times-in-bst covers the zone, not the reading). class: clock times from estimate.
+5. property-reg-reviewer's note outside the diff: `verified-citations/SKILL.md:116` states
+   inclusive counting without an authority.
+
+### Verification still outstanding
+
+The gate suite as a CI step on the runner; the board page in a real browser; MT5 compile or
+Tester commands as JUDGED BY lines; harness worktree isolation for a spawned `tl-builder`.
