@@ -691,3 +691,9 @@ nothing in the library instructs a direct push to this repo's main (the matches 
 fixtures and confirm-before-push's generic examples). The first draft said every change since
 2026-09-24 came by PR; `git log --first-parent` shows direct pushes on 2026-09-25 (`f3efb60`,
 `c96341f`), corrected to "since #4 (2026-09-28)".
+
+### Commit 2: the way out of a stuck required check
+
+DECISIONS.md now says what to do if a required check is ever left "Expected": the fixing PR is
+blocked by the same check and a direct push is refused, so the admin edits ruleset 24461308
+first, then merges.

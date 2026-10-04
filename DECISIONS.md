@@ -29,7 +29,11 @@ require rules". Two repository settings changed, neither visible in the tree:
 The job names in `.github/workflows/check-index.yml` are now load-bearing: a renamed or removed
 job leaves its required check "Expected" forever and nothing merges, so a rename updates the
 ruleset in the same change. The workflow stays unfiltered by path for the same reason (its own
-header). How to read the live rule: `gh api repos/randommonicle/claude-skills/rules/branches/main`.
+header). If a merge is ever stuck on an "Expected" check, the fixing PR is blocked by the same
+check and a direct push is refused, so the exit is to edit the ruleset as the repo admin (the
+repository's Rules settings, or `gh api -X PUT repos/randommonicle/claude-skills/rulesets/24461308`
+with the corrected check list), then merge. How to read the live rule:
+`gh api repos/randommonicle/claude-skills/rules/branches/main`.
 
 ## 2026-10-03 Team loop: the gate judges by exit code; the pilot is set up today (ASK-0007, ASK-0006)
 
