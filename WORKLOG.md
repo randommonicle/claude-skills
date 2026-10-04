@@ -624,3 +624,20 @@ in order once CI is green).** #7 run-seat fix (220d8cf), #8 stage 1 (5bf2ed7), #
 into this branch (4e4b30c): the rehearsed four conflicts plus DECISIONS.md (this branch's entry
 against stage 2's two; both kept, team loop first), WORKLOG titled once. check-index "ok: 51
 skills"; check-archives ok; all 26 suites green. `team/NOW.md` updated for main.
+
+## CI: the suites that ran nowhere (branch `ci/wire-unrun-suites`, opened 2026-10-04)
+
+### Commit 1: run-seat and ask-board as named CI steps
+
+The two `FORWARD:` lines in `.github/workflows/check-index.yml` (LESSONS_LEARNED 28) are
+closed: `cross-agent-review/scripts/run-seat.test.mjs` and `team-loop/ask-board.test.mjs` are
+named steps in the hooks job, each `if: always()` beside the gate suite's step. run-seat also
+runs in hooks-windows, because its one win32-only case (an npm install's `codex`, `codex.cmd`
+and `codex.ps1` side by side on PATH) prints SKIP off win32 and would otherwise run only by
+hand. Can go red: each suite exited 1 against a broken copy of its target in the scratchpad
+(run-seat.mjs writing a wrong terminator: 2 FAIL; ask-board.html with the `fromCache` guard on
+`meta/status` removed: 1 of 6 failed) and 0 against the real one. Both are Node stdlib only; the
+seats are a fake CLI, so no real CLI spend. The FORWARD rule asked for one green run on the
+runner before wiring; this branch's own PR run is that run, as it was for the gate suite, and a
+red there is fixed on the branch. Also confirmed: the gate suite's step ran on main's run
+37192547536 (2043d43) and printed "all cases passed". `team/NOW.md` rewritten within 40 lines.
