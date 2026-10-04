@@ -617,3 +617,10 @@ the service-charge bullet; the draft consequence part uses commas, so the line k
 per table; the examples' header says "unless another date is given", since s.74 was read
 2026-10-04. Not checked by the reviewer or me: the Welsh Act's definition of "regulated
 building". Gates green.
+
+**Merged to main, 2026-10-04 (Ben's in-session "Yes to all", then his picks: four PRs, merged
+in order once CI is green).** #7 run-seat fix (220d8cf), #8 stage 1 (5bf2ed7), #9 stage 2
+(cd50e14), each with archives, hooks, hooks-windows and index passing. origin/main then merged
+into this branch (4e4b30c): the rehearsed four conflicts plus DECISIONS.md (this branch's entry
+against stage 2's two; both kept, team loop first), WORKLOG titled once. check-index "ok: 51
+skills"; check-archives ok; all 26 suites green. `team/NOW.md` updated for main.

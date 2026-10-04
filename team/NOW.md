@@ -1,14 +1,16 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-04 04:30 BST, overnight continuation; its update is the last section of the handover
-topic: team-loop stages 1 and 2 and the legal fork, reviewed, ridden and rehearsed for Sunday's merges
-next: read docs/HANDOVER_team-loop-build_2026-10-03.md, "Update, overnight 2026-10-04"; Ben decides pushes and PRs, and answers ASK-0009
-branches: feat/team-loop-stage1 (~/.claude/skills-wt-team-loop-s1), feat/team-loop-stage2 (~/.claude/skills-wt-team-loop-s2), fix/run-seat-double-end (~/.claude/skills-wt-run-seat-end), feat/legal-fork (~/.claude/skills-wt-legal-fork), integrate/sunday (~/.claude/skills-wt-integrate-sunday)
+updated: 2026-10-04 09:43 BST, merge session on Ben's in-session "Yes to all"
+topic: team-loop stages 1 and 2, the run-seat fix and the legal fork merged to main as four PRs (#7, #8, #9, and the legal fork's, which carries this file); 51 skills
+next: the passive income pilot: ASK-0009 answered (a), recorded on the board and in that repo's pilot branch; a passive income session merges the branch, records ASK-0009 in its DECISIONS.md and deletes the item; LESSONS candidates in the handover's last two sections wait for Ben
+branches: main only; the merged feature branches remain on origin, and integrate/sunday stays a local, unpushed rehearsal
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
+- main: #7 run-seat fix (220d8cf), #8 stage 1 (5bf2ed7), #9 stage 2 (cd50e14), then the legal fork's PR after main merged into it (4e4b30c), resolved as rehearsed in docs/INTEGRATION_sunday_2026-10-04.md (on the local integrate/sunday branch, plus DECISIONS.md: both entries kept, team loop first); check-index 51, all 26 suites green before the push
+- legal fork 469ba82: its DECISIONS.md entry, landed on Ben's yes
 - legal fork 33237c1, 43430a3, 384c936, 9ffb4ae, fa3dd5e: cross-family review (GEMPRO, GPT, a fresh GPT on the converged position) and two property-reg-reviewer passes, 0 Critical 0 High; record in that branch's docs/
 - stage 1 517a654: cached board sentinel, a directory at team/NOW.md; each case red first
 - stage 2 59f797e (merge of stage 1), 1a98f9d, 5258a12: gate fixes from GPT's second turn, and a7ecf0d's team/ rule no longer refuses the pilot's team/checks/**; each case red first; 05f4c03 review record
@@ -18,7 +20,7 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## In flight
 
-- Nothing running. ASK-0009 is open on the board and blocks only the pilot's step 0.
+- Nothing running. ASK-0009's item and answer stay on the board until passive income records the decision.
 
 ## Deferred, with grep anchors
 
