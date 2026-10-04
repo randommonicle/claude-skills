@@ -4,3 +4,8 @@ Copyright 2026 Ben Graham
 The unslop-text, unslop-ui and unslop-code skills are derived from
 https://github.com/JCarterJohnson/vibecoded-design-tells and remain under that
 project's terms; see each skill's UPSTREAM.md.
+
+The contract-review, legal-citation-integrity, statute-to-obligations-register
+and legal-notice-handling skills are derived from
+https://github.com/rohasnagpal/legal-ai-skills (MIT, Copyright (c) 2026 Rohas
+Nagpal); the MIT notice is reproduced in each skill's UPSTREAM.md.
