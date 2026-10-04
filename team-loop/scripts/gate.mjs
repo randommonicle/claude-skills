@@ -271,7 +271,11 @@ export function gate(argv) {
     // An older red test can satisfy check 2 alone; T must still be the package's tests commit:
     // a test or fixture file, or a file a JUDGED BY command names (a proof script).
     if (!tFiles.length) throw new GateError('check 3: T changes no files, so it is not a tests commit');
-    const named = judged.flatMap((j) => j.command.split(/\s+/).map((w) => w.replace(/^["']|["']$/g, '').replace(/\\/g, '/')));
+    // Only path-like words count (a slash or an extension), so a file named "node" is no proof.
+    const named = judged
+      .flatMap((j) => j.command.split(/\s+/))
+      .map((w) => w.replace(/^["']|["']$/g, '').replace(/\\/g, '/').replace(/^\.\//, ''))
+      .filter((w) => w.includes('/') || /\.\w+$/.test(w));
     if (!tFiles.some((p) => matchesAny(p, [...testGlobs, ...fixtureGlobs]) || named.includes(p)))
       throw new GateError('check 3: T changes no test or fixture file and no file a JUDGED BY command names, so it is not a tests commit');
     const touchedAfterT = git(repo, ['diff', '--name-only', '-z', T, head, '--', ...tFiles]).out.split('\0').filter(Boolean);

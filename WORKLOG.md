@@ -340,3 +340,15 @@ pilot's own checks, since the passive income `team/gate.json` (4713ff9) puts tes
 but ran before a7ecf0d. A pilot-shaped case was red; a check T adds under `team/` that a tests or
 fixture glob matches is now allowed, never `team/gate.json` or `team/packages/`. That guard was
 mutated off once and its case went red. Gate, recon and board suites green; check-index 47.
+
+### Commit 15: GPT's round 2 on 1a98f9d
+
+Two of its three open points were real and are fixed, each case red first: the JUDGED BY word
+match counted any word, so a T adding a file literally named `node` passed as a tests commit;
+and `./proofs/check.mjs` in a command did not match the git path `proofs/check.mjs`, falsely
+refusing a real proof script. Only path-like words (a slash or an extension) count now, with a
+leading `./` dropped. Its third point, a broad but not catch-all glob such as
+`testConfig: ["src/**"]` letting TESTS CHANGED name production code, stands as an accepted
+Low: it needs the lead to write both the glob and the brief line, and the gate cannot tell a
+wrong glob from a right one. GPT conceded the `team/` exception, the `-z` parsing and both
+stage 1 fixes. Gate suite green.

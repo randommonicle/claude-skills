@@ -163,6 +163,24 @@ test(
   failsAt(3, /no test or fixture file/),
 );
 
+const PROOF = "import { add } from '../src/add.mjs';\nprocess.exit(add(2, 2) === 4 ? 0 : 1);\n";
+test(
+  'a T whose only change is a proof script its JUDGED BY command names as ./path passes',
+  () =>
+    fixture({
+      base: (f) => f.w('tests/add.test.mjs', ADD_TEST),
+      beforeT: (f) => f.w('proofs/check.mjs', PROOF),
+      brief: BRIEF({ judged: '- proof: node ./proofs/check.mjs', scope: 'src/**' }),
+    }),
+  (r) => (r.pass ? true : 'refused a named proof script: ' + (r.failure || r.error)),
+);
+
+test(
+  'check 3: a T that adds only a file named like a command word is refused',
+  () => fixture({ base: (f) => f.w('tests/add.test.mjs', ADD_TEST), beforeT: (f) => f.w('node', 'x\n') }),
+  failsAt(3, /no test or fixture file/),
+);
+
 test(
   'check 3: a change under team/ to a path git would quote is still refused',
   () => fixture({ brief: BRIEF({ scope: '**' }), build: (f) => (f.w('src/add.mjs', FIXED), f.w('team/été.md', 'x\n')) }),
