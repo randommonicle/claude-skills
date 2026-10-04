@@ -113,9 +113,16 @@ jobs:
             echo "::endgroup::"
           done
           exit $failed
+      # The team-loop gate's suite lives beside the script, outside the glob above, so
+      # it is named here rather than left to run nowhere (LESSONS_LEARNED 28). Plain
+      # node and git, throwaway repos under the temp dir.
+      - name: the team-loop gate suite
+        if: always()
+        run: node team-loop/scripts/gate.test.mjs
       # FORWARD: cross-agent-review/scripts/run-seat.test.mjs runs nowhere
       # (LESSONS_LEARNED 28). Add it as its own step once one run on this
       # runner is green; until then it is run by hand only.
+      # FORWARD: team-loop/ask-board.test.mjs runs nowhere either, on the same rule.
 
   # The win32 half of the hooks job. Only the PowerShell-driven suites run here:
   # everything else is already covered on Linux, and this job exists to close the gap

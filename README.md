@@ -16,7 +16,7 @@ test that cannot go red is not a test.
 
 **Four kinds of thing live here.**
 
-- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 50.
+- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 51.
 - **Hooks**: small scripts that run automatically around what Claude does. One stops and asks you
   before Claude uploads any code to GitHub. One checks a file Claude has just edited for mistakes,
   using whatever checker that project already uses. One looks up what has changed in your project
@@ -64,7 +64,7 @@ it in [CONTRIBUTING.md](CONTRIBUTING.md).
 Skills are installed at the **user level**, so they apply to every project on the machine with no
 per-project setup.
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 50 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 51 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
@@ -117,6 +117,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **flag-deferred-items** | leaf | Grep-able anchors at the deferred work's landing site; .fixme() carries the anchor; dormant controls say so. |
 | **checkpoint-log** | leaf | Per-commit checkpoint notes in a committed WORKLOG.md for multi-commit units; close with an explicit checklist walk, wiring steps included. |
 | **handover** | leaf | Structured handover from a real context reading (/context, or the desktop app's get_usage tool), or an honestly recorded gap where neither exists; supersession stamps; carry-forwards cite live state. |
+| **team-loop** | leaf (candidate) | The team-lead loop. Stage 1: team/NOW.md as an overwritten resume board that session-recon checks against git, one Ask queue per project (a private claude.ai board for unregulated projects, team/ASK.md for regulated ones) read at every start, and effort pins on agents. Stage 2, per project: the tl- role agents, a board of work packages, a living spec, a ledger, and a gate script that decides a merge from git and the package's own checks. |
 | **committee-review** | process | Three-lens review with shared evidence, attribution-stripped consolidation, and voting. |
 | **cross-agent-review** | process | Adversarially review a scoped change/design/finding by debating one or more independent AI agents (Gemini via the agy CLI or GPT via the codex CLI, driven by Claude itself with no pasting; or a chat you drive; several seats at once) over a shared file relay, grounded in live read-only evidence; converge or two positions. |
 | **skill-library-builder** | process | Turn a repo into a project-specific skill library; skills encode mechanical steps, not awareness. |
@@ -137,6 +138,16 @@ can call one directly, for example `@agent-ash:property-reg-reviewer`.
 |-------|-----------------|
 | [code-reviewer](agents/code-reviewer.md) | A specific diff or file, as an independent second opinion on correctness, security, failure modes and test adequacy. |
 | [property-reg-reviewer](agents/property-reg-reviewer.md) | A change touching service-charge maths, demands, client money, leaseholder-facing output, retention or erasure, or AI surfaces, against LTA 1985, the RICS Service Charge Code, TPI, BSA 2022 and UK GDPR. Run it as well as code-reviewer on regulated changes. |
+
+The **team-loop** skill's stage 2 adds four role agents. They build and research rather than
+review, each pinned to model, effort and `maxTurns`, and none can spawn agents of its own.
+
+| Agent | What it does |
+|-------|--------------|
+| [tl-researcher](agents/tl-researcher.md) | One topic, one `team/research/<topic>/FINDINGS.md`, with sources and options. |
+| [tl-builder](agents/tl-builder.md) | An unregulated work package in its own worktree: tests first in their own commit, then the build when resumed. |
+| [tl-test-writer](agents/tl-test-writer.md) | A regulated package's tests, from the spec, independently of the builder. |
+| [tl-builder-regulated](agents/tl-builder-regulated.md) | A regulated package, built on top of the test writer's commit. |
 
 ## Install on a new machine
 

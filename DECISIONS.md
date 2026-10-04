@@ -5,6 +5,50 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-10-03 Team loop: the gate judges by exit code; the pilot is set up today (ASK-0007, ASK-0006)
+
+Answered by Ben in the session at 12:47 BST, not on the board.
+
+- **ASK-0007, "commands": a brief's JUDGED BY lines are commands judged by exit code,** red
+  at T and green on the merge, not per-test ids read from JUnit results as the design had it.
+  It fits the pilot, whose proofs are Python scripts, and any normal test suite. Two rides
+  tested it (`docs/RIDE_team-loop-stage2_2026-10-03.md`). The guarantee that no check is
+  skipped moves to red-at-T plus check 3, and the gate prints each check's red-at-T reason
+  because it cannot judge a wrong reason.
+- **ASK-0006, "today-branch": the passive income pilot is set up today on its own branch,**
+  a `team/` folder, the worktree setting and `gate.json`, without touching the work of the
+  sessions active in that repo.
+
+## 2026-10-03 Team loop: the first Ask board's answers (ASK-0002 to ASK-0005)
+
+Answered by Ben on the Ask board between 09:58Z and 09:59Z on 2026-10-03, from the page, with
+no notes unless quoted. These are the four decision-log candidates of
+`docs/HANDOVER_team-loop_2026-10-02.md` section 7, plus the two design choices that section
+10 of `docs/DESIGN_team-loop_2026-10-02.md` left open.
+
+- **ASK-0002, "board": one private Ask board for all unregulated projects; regulated
+  projects, PropOS included, use `team/ASK.md`.** One link to check from a phone. The board
+  is steering only: an answer there never authorises a push, merge, release or spend, which
+  stay per-action in the session. Privacy is enforced by the board's owner-only `db` access
+  rule, not by prose (`docs/PROBE_ask-board_2026-10-03.md`).
+- **ASK-0005, "accepted", item 1: subagents in worktrees, not the experimental agent-teams
+  feature,** for the four reasons in the design's section 5.4: teammates inherit the lead's
+  effort, are not restored on resume, message each other directly, and cost more tokens with
+  the `skills` field ignored. Revisit if agent teams leave experimental status and gain
+  per-teammate effort and resume.
+- **ASK-0005, item 2: the Ask board is steering only, and regulated projects stay off cloud
+  pages.** As above; recorded separately because it binds stage 2's spec-review pages too.
+- **ASK-0005, item 3: `commission-the-roster` gains `maxTurns` as a harness-enforced
+  ceiling.** It lands with the stage 2 agents, which are the first to use it.
+- **ASK-0005, item 4: PropOS `backend` moves to the strong tier for regulated work, or
+  splits.** Made through PropOS's own change control, never from this library; until then
+  `team/NOW.md` lists it as unpinned.
+- **ASK-0003, "build-now": stage 2's plugin pieces are built now,** on a local branch, inert
+  until a project opts in. The question did not cover when the pilot milestone starts.
+- **ASK-0004, "passive-income": the passive income (MT5) project pilots stage 2.** It is not
+  RICS-regulated work. Its own sessions are active, so the pilot's setup in that repo
+  follows `parallel-work-recon` and waits for its own branch.
+
 ## 2026-10-03 Porting a foreign-jurisdiction skill library (the legal fork)
 
 Planned 2026-09-11 (`docs/HANDOVER_legal-fork_2026-09-11.md`, section 12), built 2026-10-03 on

@@ -5,10 +5,12 @@
 // stale snapshot. Fail-open: any error or timeout yields no context, never a
 // broken session. The pre-commit re-run stays behavioural in the skill —
 // this hook only covers session start. It also checks that this machine's
-// CLAUDE.md still carries the Layer 1 norm block (normsLine, below), and that
-// its user-level agents match the library's (agentsLine).
+// CLAUDE.md still carries the Layer 1 norm block (normsLine, below), that
+// its user-level agents match the library's (agentsLine), and, in a repo with a
+// team-loop resume board, how far HEAD has moved past it (nowLine).
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -84,6 +86,37 @@ function agentsLine() {
   }
 }
 
+// Under a plugin install the team loop's role agents (agents/tl-*.md) load from the plugin,
+// but a project or user agent of the same name wins (sub-agents documentation: project over
+// user over plugin) and silently replaces the plugin's role contract. agentsLine is skipped
+// under a plugin, so this is that layout's own check. A direct clone copies the tl- agents
+// into the user's agents directory like the others, and there this stays silent. The name
+// that counts is the frontmatter's, so a file named anything with `name: tl-...` is caught.
+// Fail-open.
+function shadowLine(cwd) {
+  try {
+    if (!process.env.CLAUDE_PLUGIN_ROOT) return null;
+    const userDir = join(process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude'), 'agents');
+    const found = [];
+    for (const [where, dir] of [['project', join(cwd, '.claude', 'agents')], ['user', userDir]]) {
+      if (!existsSync(dir)) continue;
+      for (const file of readdirSync(dir)) {
+        if (!file.endsWith('.md')) continue;
+        // YAML may quote the name: "tl-builder" and 'tl-builder' are the same agent.
+        const name = /^name:\s*(["']?)(\S+?)\1\s*$/m.exec(readFileSync(join(dir, file), 'utf8'))?.[2] ?? file.slice(0, -3);
+        if (/^tl-/i.test(name)) found.push(name + ' (' + where + ', ' + join(dir, file) + ')');
+      }
+    }
+    if (!found.length) return null;
+    return (
+      'Team-loop agents shadowed: ' + found.join('; ') +
+      '. A project or user agent wins over the plugin\'s, so the plugin\'s role contract does not run. Remove or rename them.'
+    );
+  } catch {
+    return null;
+  }
+}
+
 // update-skills.mjs writes this beside the repo after each unattended run. Stay
 // SILENT while the library is current: a line appears only when something wants
 // a human, so a stopped updater cannot read as a healthy one. A missing file is
@@ -132,6 +165,111 @@ function skillsUpdateLine() {
   }
 }
 
+// team/NOW.md is the team-loop resume board (team-loop/SKILL.md): described state, so a
+// session that resumes from it must check it against git first (live-state-first). This
+// does the mechanical half: whether NOW.md is committed, whether the working copy differs
+// from that commit, how many commits HEAD has moved since, and which branches on its
+// `branches:` line exist neither locally nor on origin. It surfaces the `ask:` line too,
+// because the operator's answers are read at session start. At most five git calls of
+// 1.5 s each, whatever NOW.md says, so a long branches line adds no time; the hook's older
+// fetch, status, log and gh calls are what can approach its 20 s limit on a slow machine.
+// A git call that fails returns null, and every null here is reported as a failed check,
+// never read as "absent". Silent when the repo has no team/NOW.md. Fail-open.
+const LOCAL_GIT_MS = 1500;
+// A file queue lives inside the repo: a relative .md path with no '..' segment.
+const ASK_FILE = /^(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9._\/-]+\.md$/;
+
+function nowLine(cwd, fetched) {
+  try {
+    const rel = 'team/NOW.md';
+    const path = join(cwd, 'team', 'NOW.md');
+    const git = (...args) => run('git', ['-C', cwd, ...args], LOCAL_GIT_MS);
+    // A directory at the path is as missing as no file: reading it would throw into the
+    // silent catch below.
+    if (!existsSync(path) || !statSync(path).isFile())
+      // Silent unless HEAD tracks it: a deleted resume board is a state to act on.
+      return git('ls-tree', '--name-only', 'HEAD', '--', rel)
+        ? rel + ' is committed but missing from the working copy, or not a regular file: restore it (git restore ' + rel + ') and read it before acting.'
+        : null;
+    const text = readFileSync(path, 'utf8');
+    const out = [];
+    // Committed means present in HEAD. `git log -- path` alone also finds the commit that
+    // deleted it, which would call a recreated, untracked NOW.md committed.
+    const inHead = git('ls-tree', '--name-only', 'HEAD', '--', rel);
+    const last = inHead ? git('log', '-1', '--format=%h %cs', '--', rel) : inHead;
+    if (inHead === null || last === null) {
+      out.push(rel + ' exists, but whether it is committed could not be read (git failed or timed out); check git status and git log before acting on it.');
+    } else if (!inHead || !last) {
+      out.push(rel + ' exists but is not committed, so no other checkout or machine sees it. Read it, then commit it.');
+    } else {
+      const [sha, date] = last.split(' ');
+      const count = git('rev-list', '--count', sha + '..HEAD');
+      const behind = count === null ? NaN : Number(count);
+      const dirty = git('status', '--porcelain', '--', rel);
+      out.push(
+        rel + ' is the resume board: read it first. Last committed at ' + sha + ' on ' + date +
+          (!Number.isFinite(behind)
+            ? '; how far HEAD has moved since could not be counted, so check it against git log before acting on it.'
+            : behind > 0
+              ? '; ' + behind + ' commit(s) have landed on this branch since, so check it against git log before acting on it.'
+              : ', level with HEAD.') +
+          (dirty ? ' Its working copy has uncommitted edits, so other checkouts still see the committed version.' : ''),
+      );
+    }
+    const branches = /^branches:[ \t]*(.*)$/im.exec(text);
+    if (branches) {
+      // One listing, so each entry is a set lookup and no entry ever reaches git.
+      // lstrip=2, not short: short turns branch v1 into "heads/v1" when a tag v1 exists.
+      const refs = git('for-each-ref', '--format=%(refname:lstrip=2)', 'refs/heads', 'refs/remotes/origin');
+      if (refs === null) out.push('The branches NOW.md names could not be checked: git for-each-ref failed.');
+      else {
+        const known = new Set(refs.split('\n').map((s) => s.trim()).filter(Boolean));
+        const missing = [];
+        // A note after a name, "name (note)", may hold commas, so notes go before the split.
+        // Only a note after whitespace: "feat/(legacy)" is a valid branch name.
+        for (const entry of branches[1].replace(/\s\([^)]*\)/g, '').split(',')) {
+          const name = entry.trim().split(/\s/)[0].replace(/`/g, '');
+          if (!name || /^none$/i.test(name)) continue;
+          if (!known.has(name) && !known.has('origin/' + name)) missing.push(name);
+        }
+        if (missing.length)
+          out.push(
+            fetched
+              ? 'Branches NOW.md names that do not exist here, locally or on origin: ' + missing.join(', ') + '.'
+              : 'Branches NOW.md names that do not exist here: ' + missing.join(', ') +
+                  '. The fetch failed, so origin\'s branches may be out of date; one of these may exist there.',
+          );
+      }
+    }
+    const ask = /^ask:[ \t]*(\S.*)$/im.exec(text);
+    // The same dressing the branches line allows: backticks, and a note after whitespace.
+    const where = ask ? ask[1].replace(/\s\([^)]*\)\s*$/, '').replace(/`/g, '').trim() : '';
+    if (ask && where && !/^none$/i.test(where)) {
+      if (/^https?:\/\//i.test(where)) {
+        out.push(
+          'Ask queue: ' + where + '. Read its meta/status, answers and notes before starting work; if it cannot be read, say so and ask in the session, never report it empty.',
+        );
+      } else if (!ASK_FILE.test(where)) {
+        out.push('Ask queue: NOW.md names ' + where + ', which is neither a link nor a .md file inside this repo.');
+      } else {
+        const file = join(cwd, ...where.split('/'));
+        let open = null;
+        try {
+          if (statSync(file).isFile()) open = (readFileSync(file, 'utf8').match(/^## ASK-\d+/gm) || []).length;
+        } catch {}
+        out.push(
+          open === null
+            ? 'Ask queue: NOW.md names ' + where + ', which does not exist here or cannot be read.'
+            : 'Ask queue: ' + where + ' holds ' + open + ' open item(s); read their answers before starting work.',
+        );
+      }
+    }
+    return out.join(' ');
+  } catch {
+    return null;
+  }
+}
+
 // argv form, never a shell string. cwd is untrusted text: a directory name may
 // legally contain a double quote on POSIX, and interpolating it into a shell
 // command made this hook injectable. The .git test below is not a defence, since
@@ -157,12 +295,14 @@ process.stdin.on('end', () => {
     if (norms) parts.push(norms);
     const agents = agentsLine();
     if (agents) parts.push(agents);
-    const toPerson = [norms, agents].filter(Boolean).join('\n');
+    const shadow = shadowLine(cwd);
+    if (shadow) parts.push(shadow);
+    const toPerson = [norms, agents, shadow].filter(Boolean).join('\n');
     const update = skillsUpdateLine();
     if (update) parts.push(update);
 
     if (existsSync(join(cwd, '.git'))) {
-      run('git', ['-C', cwd, 'fetch', '--quiet'], 8000);
+      const fetched = run('git', ['-C', cwd, 'fetch', '--quiet'], 8000) !== null;
       const status = run('git', ['-C', cwd, 'status', '-sb']);
       const log = run('git', ['-C', cwd, 'log', '--oneline', '--decorate', '--all', '-8']);
       const prs = run('gh', ['pr', 'list', '--state', 'open', '--limit', '10'], 8000);
@@ -170,6 +310,8 @@ process.stdin.on('end', () => {
       if (status) parts.push(`status:\n${status}`);
       if (log) parts.push(`recent commits (all refs, post-fetch):\n${log}`);
       if (prs) parts.push(`open PRs:\n${prs}`);
+      const now = nowLine(cwd, fetched);
+      if (now) parts.push(now);
     }
     if (!parts.length) process.exit(0);
 
