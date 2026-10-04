@@ -600,3 +600,13 @@ the service-charge bullet; the draft consequence part uses commas, so the line k
 per table; the examples' header says "unless another date is given", since s.74 was read
 2026-10-04. Not checked by the reviewer or me: the Welsh Act's definition of "regulated
 building". Gates green.
+
+## Integration rehearsal (branch `integrate/sunday`, 2026-10-04)
+
+A local branch from origin/main f7de1a1 merging `fix/run-seat-double-end` (28d5dac),
+`feat/team-loop-stage2` (05f4c03, carrying stage 1 at 517a654) and `feat/legal-fork` (fa3dd5e),
+so Ben's Sunday PR merges are mechanical. Record: `docs/INTEGRATION_sunday_2026-10-04.md`.
+Only the third merge conflicted: the three skill-count sites and this file, all resolved by rule
+(count 51; WORKLOG sections team-loop first, legal fork after), predicted beforehand with
+`git merge-tree`. check-index "ok: 51 skills, all indexed, all named, all three counts agree";
+check-archives ok; all 26 suites green. No upstream, nothing pushed, `main` untouched.
