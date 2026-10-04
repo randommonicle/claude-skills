@@ -641,3 +641,30 @@ seats are a fake CLI, so no real CLI spend. The FORWARD rule asked for one green
 runner before wiring; this branch's own PR run is that run, as it was for the gate suite, and a
 red there is fixed on the branch. Also confirmed: the gate suite's step ran on main's run
 37192547536 (2043d43) and printed "all cases passed". `team/NOW.md` rewritten within 40 lines.
+
+### Merged: PR #12 (b5371b4), 2026-10-04, on Ben's "merge when green"
+
+All four checks green. The run log (37217896929) shows the three named steps ran: on Linux the
+board suite "all 6 passed" and the transport suite "all cases passed"; on Windows the shim case
+"PASS". GitHub refused auto-merge (not allowed on this repo), so the merge was by hand once green.
+
+## run-seat: a skipped case printed PASS (branch `fix/run-seat-skip-not-pass`, opened 2026-10-04)
+
+### Commit 1: SKIP counted apart, never as a PASS
+
+PR #12's Linux log showed the shim case print "SKIP" and then "PASS" for the same case, and the
+suite end on "all cases passed": the case printed its own SKIP and returned `true`, which the
+runner counts as a pass. Reproduced here by running the suite with `process.platform` set to
+`linux` through `node --import`. Now a case returns `{ skip: reason }`; the runner prints
+"SKIP ... (a skip is not a pass)", counts it apart, and the summary reads "all run cases passed;
+1 skipped, not run here". Checked as Linux (41 PASS, 1 SKIP, exit 0) and on win32 (42 PASS,
+"all cases passed"). The case still runs in hooks-windows (PR #12).
+
+The same defect one level up: the four `// @win32-only` suites print "SKIP not a pass" and exit
+0 off win32, and the ubuntu job's loop then echoed "PASS" for each. The loop's label now reads
+the same marker hooks-windows discovers by and says "SKIP ... executed by hooks-windows"; the
+suites still execute there, so one that loses its skip guard goes red. All four marker suites
+checked to skip at their top on `process.platform !== 'win32'`. The loop body run here with the
+platform set to linux: SKIP for watchdog-network, PASS for check-index, exit 0; a marked suite
+that exits 1: FAIL, exit 1. hooks-windows keeps PASS, since the suites run there. push-gate's
+skip (git absent) never fires on a runner and is left alone.
