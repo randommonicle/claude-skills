@@ -237,3 +237,11 @@ print clean; and the lease reference's "risk-allocation prose" exists only in a 
 a default quick lease review had to drop it or widen its mode. A red line for the sum, and the
 mapping now sends those findings to the issues table outside a full audit. No statutory text
 changed. Gates green after.
+
+Second property-reg-reviewer pass, scoped to `33237c1..384c936`: approve, 0 Critical, 0 High,
+0 Medium; s.47B's limb re-read exact from asc/2026/5 s.74. Three Lows, all taken: "open rows
+above the draft" moves into supporting rule 4 so it covers every formal requirement, not only
+the service-charge bullet; the draft consequence part uses commas, so the line keeps one part
+per table; the examples' header says "unless another date is given", since s.74 was read
+2026-10-04. Not checked by the reviewer or me: the Welsh Act's definition of "regulated
+building". Gates green.

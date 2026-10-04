@@ -30,7 +30,7 @@ Notices fail on the details a reader checks later, usually in front of a tribuna
 with a part for each of those tables and no other; any failure is red.** The counts below are
 illustrations.
 
-- Draft: `Deadlines 3 (3 with calendar date and arithmetic) | Consequences asked 3 | kept 2 (2 confirmed, 2 with basis, 2 available now) | cut 1 (reported to the client)`
+- Draft: `Deadlines 3 (3 with calendar date and arithmetic) | Consequences asked 3, kept 2 (2 confirmed, 2 with basis, 2 available now), cut 1 (reported to the client)`
 - Reply or analysis: `Deadlines 2 (2 with calendar date and arithmetic) | Allegations 6 in notice, 6 answered (0 admissions without a characterisation entry)`
 
 Count `in notice` from the notice itself, not from your table, and `asked` from the client's
@@ -72,7 +72,9 @@ rather than vanishing.
    the clause or provision it rests on, and the sum.
 4. **Formal requirements are a verification list, not an assertion.** Prescribed form, required
    content, method of service, minimum periods: cite what you read this session, or list it as
-   open. Never state that a notice satisfies a statutory requirement you did not read.
+   open. Never state that a notice satisfies a statutory requirement you did not read. Open rows
+   go above the draft, not after it, so the client sees what was not checked before the notice
+   goes out.
 5. **Service note on every drafted notice.** How it is to be served, to which address, and what
    to keep as proof of the date and method.
 6. **Global points first in a reply.** A defective notice, wrong party, limitation, or a missing
@@ -95,7 +97,7 @@ rather than vanishing.
 ## Worked examples: England and Wales residential leasehold
 
 Each provision below was read on legislation.gov.uk on 2026-10-03 (latest available revised
-text). Several carry prospective changes; re-read before relying on any of them. They show what
+text) unless another date is given. Several carry prospective changes; re-read before relying on any of them. They show what
 the tables catch; they are not advice on a file, and they are not a retrieval for one: a basis
 cell, or a deadline row whose period comes from a statute, needs the provision read in your
 session, with your own URL and date, and a line copied from here fails that table.
@@ -140,9 +142,8 @@ session, with your own URL and date, and a line copied from here fails that tabl
   demand is served are irrecoverable unless the tenant was notified in writing within the period
   in [LTA 1985 s.20B(2)](https://www.legislation.gov.uk/ukpga/1985/70/section/20B) (see
   statute-to-obligations-register for that row). In draft mode each of these is a row on the
-  verification list: read this session and checked against the demand, or marked open. Open rows
-  go above the draft, not after it, so the client sees what was not checked before the demand
-  goes out.
+  verification list (supporting rule 4): read this session and checked against the demand, or
+  marked open above the draft.
 - **Threatening forfeiture over service charges.** For premises let as a dwelling, a landlord
   may not exercise a right of re-entry or forfeiture for failure to pay a service charge or
   administration charge unless it is finally determined by a tribunal, court or post-dispute
