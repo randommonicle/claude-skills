@@ -363,3 +363,11 @@ in 1a98f9d; the current gate passed both. The second package's stale fast-forwar
 after the first merged, and a re-gate on the moved milestone fixed it. The skill's Concurrency
 paragraph now says so, and that an empty `suite` leaves the first package's checks un-run on
 the combined tree.
+
+### Commit 18: overnight close (2026-10-04)
+
+ASK-0009 written to the board (`items/ASK-0009`, version 1) and read back: three candidate
+first-milestone topics for the passive income pilot, drawn read-only from that repo's
+`team/NOW.md` on `team-loop/pilot-setup` and its HANDOVER.md section of 2026-10-04. ASK-0008
+was used and withdrawn on 2026-10-03, so 0009. The handover's "Update, overnight 2026-10-04"
+and `team/NOW.md` record the night; `node hooks/session-recon.test.mjs` and check-index green.
