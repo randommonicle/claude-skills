@@ -1378,15 +1378,18 @@ back as `heads/v1`, so the check named a branch that does not exist under that n
 **What happened.** On 2026-10-04 a review round asked the GEMPRO seat (agy) to attack a commit
 and said it "may run git show". agy auto-denied a RunCommand and the turn ended with nothing
 recorded after 203,424 input tokens; a rerun that forbade every command answered. The transport
-records no command text for a denial (`4f1a093`), so whether the denied call was the permitted
-`git show` is unknown. The rule already existed in three places: `cross-agent-review` ("forbid
-shell"), this repo's NOW.md traps, and the seat's `promptSuffix`, which itself says git and rg
-are allowed headlessly. **verified**: the transport-failure note in
-`docs/REVIEW_legal-fork_2026-10-04.md`.
+records no command text for a denial (`4f1a093`). This machine's agy settings allow
+`command(git)` and `command(rg)` by prefix (the shipped template, confirmed in agy's own log),
+so a plain `git show` would have run: whatever the seat ran was outside those rules, perhaps a
+piped or compound command, and cannot be named. The rule already existed: the team-loop NOW.md
+traps said to forbid every command in an agy ask. **verified**: the transport-failure note in
+`docs/REVIEW_legal-fork_2026-10-04.md`; the allow rules in agy's settings and log.
 
-**The lesson.** An agy ask permits nothing: name the files and forbid every command, git
-included. A permission in prose invites a call the CLI may refuse, and the shipped
-`promptSuffix`'s "git and rg are allowed" did not hold here; that line wants correcting.
+**The lesson.** An agy ask permits nothing beyond what the seat's `promptSuffix` already says
+(git and rg, nothing piped or chained), and the safest ask forbids every command. A permission
+in prose invites a call the allow rules do not cover, and the turn is lost with no trace of
+what was tried. A first draft of this entry blamed the suffix; checking the installed rules
+showed the suffix was right.
 
 **skill that should have prevented this:** `cross-agent-review`.
 
