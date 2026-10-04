@@ -12,6 +12,7 @@ is untouched; the branch has no upstream.
 |---|---|---|---|
 | 1 | `fix/run-seat-double-end` | 28d5dac | clean (2e67386) |
 | 2 | `feat/team-loop-stage2`, which carries `feat/team-loop-stage1` | 05f4c03 (stage 1 at 517a654) | clean (e02c279) |
+| 4 | `feat/team-loop-stage2` again, for the ride 4 record | fad74d1 | one WORKLOG conflict (stage 2's new entry against the legal fork section that follows it here): stage 2's entry kept at the end of its own section; my first resolution's duplicate `# Work log` title removed |
 | 3 | `feat/legal-fork` | fa3dd5e | four conflicts, resolved below (7044485) |
 
 Predicted with `git merge-tree` before the run, and confirmed by it: stage 1 alone applies
@@ -29,7 +30,7 @@ count sites against the skill directories, so it is the proof of the resolution.
 | `.claude-plugin/marketplace.json` | 1 | "47 guardrail skills" | "50 guardrail skills" | either side, number set to `51 guardrail skills` |
 | `.claude-plugin/plugin.json` | 1 | "47 guardrail skills" | "50 guardrail skills" | the same |
 | `README.md` | 2 | "lists all 47." and "so 47 skills coexist" | "all 50." and "so 50 skills" | the same: `lists all 51.` and `so 51 skills coexist` |
-| `WORKLOG.md` | 1 (add/add) | stage 1 and stage 2 sections | the legal fork section | keep both: team-loop sections first, legal fork after |
+| `WORKLOG.md` | 1 (add/add) | stage 1 and stage 2 sections, under the title `# WORKLOG` | the legal fork section, under its own title `# Work log` | keep both: team-loop sections first, legal fork after; drop the legal fork side's `# Work log` title line, since main has no WORKLOG.md and each branch created one |
 
 The two sides of each count-site block differ only in the number (checked by diffing the
 sides). The README skill table, the rows for `team-loop` and the four legal skills, merged

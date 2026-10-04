@@ -353,7 +353,16 @@ Low: it needs the lead to write both the glob and the brief line, and the gate c
 wrong glob from a right one. GPT conceded the `team/` exception, the `-z` parsing and both
 stage 1 fixes. Gate suite green.
 
-# Work log
+### Commit 17: ride 4, two packages at once on the pilot's own gate.json (2026-10-04)
+
+Recorded in `docs/RIDE_team-loop-stage2_2026-10-03.md`, "Ride 4". Two builders on sonnet ran at
+once with disjoint SCOPE in a throwaway repo carrying the pilot's `team/gate.json` byte for byte;
+Ask steps 2 and 9 ran in the file form with stand-in answers. a7ecf0d's gate refused the first
+package on the pilot shape ("team/checks/wp001_spread.py (A)"), confirming the regression fixed
+in 1a98f9d; the current gate passed both. The second package's stale fast-forward was refused
+after the first merged, and a re-gate on the moved milestone fixed it. The skill's Concurrency
+paragraph now says so, and that an empty `suite` leaves the first package's checks un-run on
+the combined tree.
 
 ## Legal-skills fork (feat/legal-fork, opened 2026-10-03)
 

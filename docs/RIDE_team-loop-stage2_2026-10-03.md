@@ -108,3 +108,56 @@ open Medium, which is the gap below.
 **Covered by the three rides:** both package kinds, both check styles (node tests, Python
 scripts), `copy`, every gate check passing and failing. **Not yet:** two packages at once, the
 Ask queue steps 2 and 9, MT5 compile or Tester commands.
+
+## Ride 4: two packages at once, on the pilot's own gate.json, 2026-10-04 04:00 BST
+
+The overnight continuation's ride, on a throwaway repo, `ride4-repo`, shaped like the pilot: no
+`package.json`, stdlib-only Python checks, and `team/gate.json` copied byte for byte from the
+passive income pilot branch (4713ff9): `tests` `["team/checks/**", "docs/evidence/**"]`, empty
+`suite` and `setup`. Gate: `integrate/sunday`'s `team-loop/scripts/gate.mjs` (stage 2 at 5258a12).
+Synthetic topic: `spread_points` (WP-001, SCOPE `src/spread.py`) and `round_lots` (WP-002, SCOPE
+`src/lots.py`), disjoint, nothing shared. The lead was this session; two general-purpose
+subagents on sonnet played the `tl-builder` contract, as in rides 1 to 3 (`~/.claude/agents` has
+no `tl-*`). The lead made their worktrees with `git worktree add`, so harness isolation was not
+exercised.
+
+**Ask steps in the file form.** `team/ASK.md` stood in for the shared board: an item there is
+cheap to throw away, while a board item is the operator's phone channel, consumes an id that is
+never reused, and an answer written by Claude cannot be told from his. The board's lead-side
+mechanics (pinned writes, delete after the record) ran for real on ASK-0006/0007 on 2026-10-03
+and on ASK-0009 tonight. Both answers below are stand-ins written by the hub, labelled so.
+
+| Step | What happened | Evidence (ride4-repo) |
+|---|---|---|
+| 2, ask | ASK-0001 (floor or nearest for lot rounding) written once; NOW.md `next:` parked on it | c40963e |
+| 2, answer and record | Stand-in answer `a`; grep found no earlier record; D-001 written with the answer verbatim and committed; the record read back from the commit (2 hits); only then the item's section deleted, in its own commit | 44e97ca, 87553f7, 1f5af4b |
+| 3 | SPEC rev 1 (D-001 folded in) and both briefs committed to `milestone/m1` before any spawn; both briefs read by the gate's own `parseBrief` first | 8eb4617 |
+| 5, tests | Two builders at once. WP-001: T 8284593, one file, 24 assertions red on the stub. WP-002: T 307bf20, one file, 29 red. Each proved its check against a reference and wrong versions outside the repo | 75,679 and 78,934 tokens |
+| 5, lead review | Values checked by hand (150.123 to 150.145 at 3 digits is 22; 1.99 at step 0.25 floors to 1.75; 0.019 with a 0.02 minimum is refused); WP-002's builder flagged a spec gap (a `vmax` written with fewer places than the step), recorded as a judgement call; both T pinned on the BOARD | a10e006 |
+| 6, build | Both resumed; each changed only its SCOPE file | heads cf6fdef, 226b66b; 78,108 and 81,382 tokens |
+| 8, gate both | Both PASS against the same tip, tested merges 3203bb0 and ae1916a; each check's red-at-T reason was the stub's NotImplementedError, matching its id | 1.8 s each |
+| 8, the regression | a7ecf0d's gate (evening 2026-10-03) on WP-001: **FAIL, "check 3: the package changed team/ files, which are the lead's: team/checks/wp001_spread.py (A)"**. Every pilot package would have failed so. Its failing run also deleted WP-001's tested ref, as designed, so WP-001 was re-gated (5c04f0a) | exit 1 |
+| 8, first merge | `--ff-only` onto WP-001's tested merge, then the BOARD row and ledger line committed, moving the milestone | 5c04f0a, 78770c9 |
+| 8, second merge | WP-002's tested ref, built on the old tip: `--ff-only` **refused** ("Not possible to fast-forward"), milestone unchanged. Re-gated on the moved tip: PASS, tested merge a90ea8c, fast-forward, BOARD row and ledger line | exit 128; a90ea8c, 351eb1b |
+| 8, can it fail | A copy of WP-002's head that also edits `src/spread.py`: FAIL, "check 3: changed outside SCOPE: src/spread.py" | exit 1 |
+| 9 | ASK-0002 (`review`, with the two commands to run); the commands printed 20 and 0.15 as the item says; stand-in `ok`; recorded as `build_review` on both ledger lines, read back from the commit (2 hits); then the item deleted | 9a729e7, 13278c2, e0e5476, e433c82 |
+| close | Builder worktrees and branches removed; milestone `milestone/m1`, 19 commits, both checks green on it | |
+
+**What the ride changed (this commit):**
+- The skill now says what to do with the second of two packages: its tested merge is built on
+  the tip it was gated against, so once the first package's merge and BOARD commit move the
+  milestone, its fast-forward is refused; re-run the gate on the moved milestone, then
+  fast-forward (team-loop/SKILL.md, Concurrency).
+- The same paragraph now says that with an empty `suite`, as in the pilot, the second
+  package's gate runs only its own checks on the combined tree: the first package's checks are
+  not re-run unless a suite runs them. Here the lead ran both by hand on the milestone (24 and
+  29 passed). SCOPE disjointness stops a package editing the other's files (the probe above),
+  not breaking it through a shared module.
+
+**Also observed.** A failing gate run deletes that package's tested ref even when the run is a
+probe, so a probe under a live package's id costs a re-gate. Ledger `turns` here are the Agent
+tool's tool-use counts, since it reports no turn count. Cost: builders 314,103 tokens over four
+segments, about 3 minutes of agent time.
+
+**Still not covered:** MT5 compile or Tester commands as JUDGED BY lines; harness worktree
+isolation for a spawned `tl-builder`; the board page in a real browser.
