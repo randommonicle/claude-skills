@@ -88,6 +88,23 @@ test('appends a section with the correct handle, round number and terminator', (
   return true;
 });
 
+test('a seat that writes its own header and terminator leaves exactly one of each', (s) => {
+  const r = runSeat(s.review, 'GPT', 'self-terminated');
+  if (r.code !== 0) return 'exit ' + r.code + ' :: ' + r.out.slice(0, 200);
+  const headers = (r.md.match(/^## \[GPT round 1\]$/gm) || []).length;
+  const ends = (r.md.match(/^\[\[END GPT round 1\]\]$/gm) || []).length;
+  if (headers !== 1 || ends !== 1) return headers + ' header(s) and ' + ends + ' terminator(s)';
+  if (!/GEMPRO wrote \[\[END GEMPRO round 1\]\] above\./.test(r.md)) return 'another seat\'s marker in the body was removed';
+  return true;
+});
+
+test('a reply that is nothing but its own markers is an empty reply, not a section', (s) => {
+  const r = runSeat(s.review, 'GPT', 'only-markers');
+  if (/^## \[GPT round 1\]$/m.test(r.md)) return 'appended a section for a reply with no body';
+  if (!/did not complete/.test(r.md)) return 'no visible failure note: ' + r.md.slice(-300);
+  return true;
+});
+
 test('records the thread id and usage in the metadata comment', (s) => {
   runSeat(s.review, 'GPT', 'success');
   const md = readFileSync(s.review, 'utf8');
