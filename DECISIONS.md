@@ -130,6 +130,41 @@ The England and Wales worked examples cite statute read as legislation.gov.uk `/
 the date read; a summarising fetch is not a source. Review: GEMPRO, GPT and a fresh GPT seat
 (`docs/REVIEW_legal-fork_2026-10-04.md`), and property-reg-reviewer twice, 0 Critical, 0 High.
 
+## 2026-09-29 Occam runs as a machine-local, pinned, time-boxed trial
+
+Third-party rule text injected at session start is new ground. The 2026-08-10 and 2026-09-14
+entries cover skill packs, which load only when a description matches. `quisbaum-prog/occam` is
+a plugin whose SessionStart hook puts its working rules into every session, and its SubagentStart
+hook adds a shorter block to every subagent. The review is `docs/REVIEW_occam_2026-09-29.md`.
+
+Decided on Ben's word, 2026-09-29:
+
+- **Trial, not fork.** Occam is installed as its own plugin at user scope on the home machine
+  only, at `OCCAM_LEVEL=lite`, for one week, to 2026-10-06. Nothing of it enters this library
+  during the trial, and the `VENDOR` sets are untouched, because a plugin does not live in
+  `~/.claude/skills`.
+- **Pinned.** The marketplace source is a local clone fixed at `244c2fc`
+  (`C:\Users\bengr\Projects\vendor\occam`), not the GitHub repository, so an upstream push
+  cannot change the rules under the measurement. Upstream made 17 commits in its first two days.
+- **PropOS is not excluded on this machine**, by Ben's choice: PropOS work runs on the work
+  computer, which has no Occam install. The exclusion (`OCCAM_LEVEL=off` in a project's
+  `.claude/settings.json`) is proven and recorded in the review for the day it is needed.
+- **Read at the end** from the two per-1,000-call counts in the review's trial plan, against the
+  2026-09-29 baseline. One good week is a candidate result, not a verdict
+  (`rerun-before-verdict`).
+
+What the trial does not decide. Forking the rules into the library would put a second always-on
+block beside the six norms, which R-19 caps. That needs its own entry saying what it displaces
+or why the cap does not apply, and it must first rewrite `rules.md:21` (verify once, then stop)
+and `rules.md:23` (subagents only for broad searches), which conflict with library norms and
+both survive `lite`. Vendoring `plugin/tools/audit.py` (MIT) is a separate choice; until it is
+made, the audit runs from the vendor clone with `--top 0`, because its default prints 70
+characters of past command text into the transcript.
+
+To end the trial early: `claude plugin uninstall occam@occam`, then
+`claude plugin marketplace remove occam`, then delete `OCCAM_LEVEL` from the `env` block of
+`~/.claude/settings.json`.
+
 ## 2026-09-28 Agents ship from agents/, and the repo copy is canonical
 
 Two subagent definitions joined the library on Ben's instruction ("it should BE in the
