@@ -3,7 +3,7 @@
 template: team-loop NOW v1
 updated: 2026-10-09 19:58 BST, a Rimagent session on Ben's brief to merge the three local branches, then his "yes to all"
 topic: the three local branches are on main by PR (#15 to #17); origin and the local clone hold main only
-next: Ben decides what follows the Occam trial read (docs/REVIEW_occam_2026-09-29.md, "Trial read, 2026-10-09"): both counts fell, a candidate result. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+next: on or after 2026-10-16, read the Occam trial again and decide (DECISIONS 2026-10-09, second week). Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
 branches: main; docs/occam-read-lesson-40 until merged
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
