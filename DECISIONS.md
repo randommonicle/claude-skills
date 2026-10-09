@@ -35,6 +35,36 @@ relayed in that brief; Rimagent's `LESSONS_LEARNED.md` was not read when this wa
   `hooks/check-index.test.mjs`), as its own commit so it can be dropped without losing the
   direct-clone hook. `~/.claude/settings.json` is per machine and was not touched.
 
+## 2026-10-04 main takes changes by PR only, after the four CI checks pass
+
+Ben, in the session on 2026-10-04 at about 18:00 BST: "yes turn on auto merge", then "yes add the
+require rules". Two repository settings changed, neither visible in the tree:
+
+- **`allow_auto_merge` is on.** GitHub merges a PR by itself once it can, so "merge when green"
+  needs no session watching CI.
+- **Ruleset 24461308, "main: the four CI checks must pass",** on the default branch, active:
+  `index`, `archives`, `hooks` and `hooks-windows` from the GitHub Actions app (15368) must
+  pass. Without it auto-merge had nothing to wait for: no check was required, so every PR read
+  as ready the moment it opened.
+- **No bypass actors.** A direct push to main is refused for everyone, the maintainer included,
+  because its commit has no passing checks. Every change lands by PR, as each one since #4
+  (2026-09-28) already had; the last direct pushes, `f3efb60` and `c96341f` on 2026-09-25, would
+  now be refused.
+- **Not strict.** A PR need not be up to date with main before it merges, since stacked branches
+  merge with merge commits here. The cost: a PR whose checks ran on an old base can merge
+  untested against the new one. #3 (opened 2026-09-26) was merged locally onto main, and its
+  index and archive gates were run on the result, before it was merged on GitHub; do the same
+  for any PR whose base is well behind main.
+
+The job names in `.github/workflows/check-index.yml` are now load-bearing: a renamed or removed
+job leaves its required check "Expected" forever and nothing merges, so a rename updates the
+ruleset in the same change. The workflow stays unfiltered by path for the same reason (its own
+header). If a merge is ever stuck on an "Expected" check, the fixing PR is blocked by the same
+check and a direct push is refused, so the exit is to edit the ruleset as the repo admin (the
+repository's Rules settings, or `gh api -X PUT repos/randommonicle/claude-skills/rulesets/24461308`
+with the corrected check list), then merge. How to read the live rule:
+`gh api repos/randommonicle/claude-skills/rules/branches/main`.
+
 ## 2026-10-03 Team loop: the gate judges by exit code; the pilot is set up today (ASK-0007, ASK-0006)
 
 Answered by Ben in the session at 12:47 BST, not on the board.

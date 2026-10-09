@@ -62,6 +62,11 @@ on:
 # Deliberately NOT paths-filtered. A paths filter on a required check leaves it
 # permanently "Expected" and nothing merges, and this workflow's whole job is to
 # notice a deleted directory, which is exactly the change a naive filter misses.
+#
+# The four job names (index, archives, hooks, hooks-windows) ARE the required
+# checks: ruleset 24461308 names them on main since 2026-10-04 (DECISIONS.md).
+# Renaming or removing a job leaves its check "Expected" forever, so a rename
+# updates the ruleset in the same change.
 jobs:
   index:
     runs-on: ubuntu-latest

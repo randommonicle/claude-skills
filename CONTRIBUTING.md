@@ -30,6 +30,11 @@ its directory, a non-empty description, the wiring of the two command gates, and
 skill counts. The archive gate asserts each committed `.skill` zip against its directory. Both run
 in CI on every push and PR.
 
+Changes reach main by PR only. Since 2026-10-04 a ruleset requires the four CI jobs (`index`,
+`archives`, `hooks`, `hooks-windows`) to pass before a merge, and refuses a direct push to main
+for everyone; auto-merge is on, so a PR can be set to merge itself once green. Why, and the cost
+of the rule not being strict: DECISIONS.md, 2026-10-04.
+
 How they work, and the drift that caused each: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Adding a skill
