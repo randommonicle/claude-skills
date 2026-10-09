@@ -625,6 +625,19 @@ into this branch (4e4b30c): the rehearsed four conflicts plus DECISIONS.md (this
 against stage 2's two; both kept, team loop first), WORKLOG titled once. check-index "ok: 51
 skills"; check-archives ok; all 26 suites green. `team/NOW.md` updated for main.
 
+## Integration rehearsal (branch `integrate/sunday`, 2026-10-04)
+
+A local branch from origin/main f7de1a1 merging `fix/run-seat-double-end` (28d5dac),
+`feat/team-loop-stage2` (05f4c03, carrying stage 1 at 517a654) and `feat/legal-fork` (fa3dd5e),
+so Ben's Sunday PR merges are mechanical. Record: `docs/INTEGRATION_sunday_2026-10-04.md`.
+Only the third merge conflicted: the three skill-count sites and this file, all resolved by rule
+(count 51; WORKLOG sections team-loop first, legal fork after), predicted beforehand with
+`git merge-tree`. check-index "ok: 51 skills, all indexed, all named, all three counts agree";
+check-archives ok; all 26 suites green. No upstream, nothing pushed, `main` untouched.
+
+The merges it rehearsed landed on main by PR the same day (#7 to #10). This branch merged to
+main on 2026-10-09 as the record only: main merged in first, WORKLOG.md the one conflict.
+
 ## CI: the suites that ran nowhere (branch `ci/wire-unrun-suites`, opened 2026-10-04)
 
 ### Commit 1: run-seat and ask-board as named CI steps
