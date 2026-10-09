@@ -1222,3 +1222,193 @@ suite added red to CI would block every PR. FORWARD anchor planted in the workfl
 go red where anyone sees it.
 
 **class:** recurrence of the hooks job's gap: a test suite outside the CI glob runs nowhere.
+
+## 29. A gate rule was proven on fixtures and broke the one real config it governs
+
+**What happened.** On the evening of 2026-10-03, `a7ecf0d` made the team-loop gate refuse any
+change under `team/`, so a builder could not edit the brief, `gate.json` or a verdict. Every
+fixture passed. The only project set up to use the gate, the passive income pilot, keeps its
+checks in `team/checks/**` (its `team/gate.json` since 063b545), so every pilot package would have
+failed check 3 on the tests commit itself. The evening note listed re-reading the pilot's
+`gate.json` as outstanding, but for a different rule. Ride 2 had used a pilot-shaped repo, but
+it kept its checks in `checks/` and ran before `a7ecf0d`. **verified**: found on 2026-10-04
+while updating doc sites; a pilot-shaped case was red, then fixed in `1a98f9d`; on ride 4 the
+old gate refused the pilot's exact config with "check 3: the package changed team/ files,
+which are the lead's: team/checks/wp001_spread.py (A)", and the current gate passed it.
+
+**The lesson.** A rule that constrains a consumer's layout is proven against that consumer's
+real config, not only against fixtures written by the rule's author. When the gate changes,
+grep every `gate.json` in reach for the paths the new rule touches, then ride one package
+on the real shape.
+
+**skill that should have prevented this:** `one-real-ride` (ride the real config after the rule
+changed), with `blast-radius-grep` (every `gate.json` in reach).
+
+**class:** a config-shape regression: a rule change validated against fixtures, not against the
+real config it governs.
+
+## 30. A check that failed for the wrong reason passed the red-at-T test
+
+**What happened.** On ride 2 (2026-10-03) a second milestone branch had the `copy` list
+emptied, so the gitignored data file the checks read was missing from the scratch worktree.
+Both checks were red at T, the reason was `FileNotFoundError`, not the behaviour their ids name,
+and check 2 accepted that. Only check 4, green on the merge, caught it. **verified**: recorded
+in `docs/RIDE_team-loop-stage2_2026-10-03.md`, ride 2.
+
+**The lesson.** "Exits non-zero" proves a check fails, not that it fails for the named reason,
+and the gate cannot tell the two apart. Fixed in `5b8454d` by surfacing, not deciding: the gate
+prints each check's red-at-T reason (`red | <id> (exit N at T): <tail>`) for the lead to read
+at step 8, asserted in the suite.
+
+**skill that should have prevented this:** `prove-it-can-fail`: ask what the check prints when
+the thing is broken, and also when the environment is.
+
+**class:** a test that fails for the wrong reason reads as a test that fails correctly.
+
+## 31. The date at the top of a statute page is not the provision's date
+
+**What happened.** On 2026-10-03, while building the legal fork, the first draft of the
+statutory table and two skills gave each provision a "revised text valid from" date. Those were
+the Act-level `<Body>` dates in legislation.gov.uk's XML, not the provision's; even the
+provision-level `P1group` dates were unreliable as commencement dates (CLRA 2002 s.167 and LTA
+1985 s.21B both showed 2002-07-26). Separately, a summarising fetch of the s.21 page named the
+amending Act wrongly, and that worked example was dropped. **verified**: the legal fork entries
+in `WORKLOG.md`, and property-reg-reviewer's finding H4, confirmed in the XML.
+
+**The lesson.** Read statute text through the section's `/data.xml`, never through a summarising
+fetch, and record commencement from the provision's own status and its unapplied effects, never
+from the date the page shows for the whole Act. Both rules now sit in
+`statute-to-obligations-register` (supporting rule 1) and `legal-citation-integrity`
+(supporting rule 2).
+
+**skill that should have prevented this:** `verified-citations`: its statutory section says to
+verify against the primary source, but not which date on the page belongs to the provision.
+
+**class:** provenance dates on statutory citations.
+
+## 32. A statutory effect was stated without its exception and passed a review
+
+**What happened.** `legal-notice-handling` said that until the landlord gives an address in
+England and Wales for service, rent, service charges and administration charges are "treated
+as not due" (LTA 1987 s.48). That passed the build's own review. A scoped re-review on
+2026-10-03, reading the section's XML, found s.48(3): the rule does not apply while a court- or
+tribunal-appointed receiver or manager collects those sums. **verified**: fixed in `6c9845b`,
+with s.167(3)'s narrower scope in the same commit.
+
+**The lesson.** A summary of what a provision does is checked against the whole section,
+exceptions included, and states each exception or says it is omitted. A review that reads for
+whether the rule is right can pass a rule that is right but incomplete.
+
+**skill that should have prevented this:** none, new candidate: a statutory effect is stated
+with its exceptions, or marked as subject to them.
+
+**class:** an effect stated without its exception.
+
+## 33. An unattended continuation stopped at a permission prompt nobody was there to answer
+
+**What happened.** On 2026-10-03 a probe (10:51 BST) showed that a desktop scheduled task runs
+in the folder of the session that created it and stalls on a permission prompt for any write
+outside that folder, with nobody watching. The team-loop continuation then used session crons
+and background subagents instead. The same failure happened in another repo the same day: the
+passive income project's scheduled continuation stalled on a permission prompt and was
+restarted in bypass mode on Ben's word (that repo's D-101, commit 70e3864). **verified**: the
+probe in the team-loop handover, section 7; the passive income record, read only.
+
+**The lesson.** Unattended work needs a mechanism that cannot stop for a prompt: a session cron
+in a live session with the right permission mode, or a background subagent. A desktop scheduled
+task is for work inside its own folder.
+
+**skill that should have prevented this:** none, new candidate.
+
+**class:** unattended continuation that halts on an interactive gate.
+
+## 34. Clock times taken from the wrong clock, then from no clock
+
+**What happened.** On 2026-10-03 Git Bash `date` printed GMT on this machine (no time-zone
+database), so log times written from it read an hour early in BST. On 2026-10-04 an Ask board
+status line said 04:20 BST when it was written at about 03:55, and later the same day, after
+that slip had been corrected and written into memory and NOW.md's traps, another said 10:00
+BST and 09:00Z when the clock read 09:59 and 08:59Z. Both were corrected at once.
+**verified**: the board's `meta/status` versions 13 and 17 carry the corrections.
+
+**The lesson.** A clock time in a record is a reading, not a recollection. Take it from
+PowerShell `Get-Date` in the same command that writes the record, so the write path carries the
+reading; a note saying "use Get-Date" did not stop the second slip within hours.
+
+**skill that should have prevented this:** none, new candidate (the `times-in-bst` memory covers
+the zone, not the reading).
+
+**class:** clock times from estimate or from the wrong clock.
+
+## 35. Shell quoting changed the pattern the check ran
+
+**What happened.** On 2026-10-03 Git Bash heredocs and `node -e` ate regex backslashes four
+times (recorded in the team-loop handover, section 7; the instances are not itemised), although
+a memory note on exactly that existed. On 2026-10-04 a line-ending check, `grep -c $'\r'`
+inside a double-quoted command substitution, searched for the letter `r` and reported hundreds
+of carriage returns in clean blobs. It was caught only because the parent commit showed zero
+against a 37-line diff, which could not be right. **verified**: the rerun with a real carriage
+return (`CR=$(printf '\r')`) showed zero in every blob.
+
+**The lesson.** Write regexes and control characters through a file or the Edit tool, not
+through a shell's quoting, and try a new check on one known-positive and one known-negative
+input before trusting its count.
+
+**skill that should have prevented this:** `prove-it-can-fail` for the check; none for the
+heredocs, where the memory note existed and was not consulted.
+
+**class:** shell quoting changed the pattern a check or an edit ran.
+
+## 36. A short ref name was unambiguous until a tag shared it
+
+**What happened.** On 2026-10-03 `session-recon` listed branches with `%(refname:short)`.
+With a branch and a tag both named `v1`, git disambiguates the short name, and the branch came
+back as `heads/v1`, so the check named a branch that does not exist under that name.
+**verified**: a hook case red before the fix; fixed in `041959a` with `%(refname:lstrip=2)`.
+
+**The lesson.** Scripts that read ref names use `lstrip=2` (or the full refname), never
+`short`, whose output depends on which other refs exist.
+
+**skill that should have prevented this:** none, new candidate.
+
+**class:** a git format that is unambiguous until a name collides.
+
+## 37. An agy seat was told it could run a command, and its turn was lost
+
+**What happened.** On 2026-10-04 a review round asked the GEMPRO seat (agy) to attack a commit
+and said it "may run git show". agy auto-denied a RunCommand and the turn ended with nothing
+recorded after 203,424 input tokens; a rerun that forbade every command answered. The transport
+records no command text for a denial (`4f1a093`). This machine's agy settings allow
+`command(git)` and `command(rg)` by prefix (the shipped template, confirmed in agy's own log),
+so a plain `git show` would have run: whatever the seat ran was outside those rules, perhaps a
+piped or compound command, and cannot be named. The rule already existed: the team-loop NOW.md
+traps said to forbid every command in an agy ask. **verified**: the transport-failure note in
+`docs/REVIEW_legal-fork_2026-10-04.md`; the allow rules in agy's settings and log.
+
+**The lesson.** An agy ask permits nothing beyond what the seat's `promptSuffix` already says
+(git and rg, nothing piped or chained), and the safest ask forbids every command. A permission
+in prose invites a call the allow rules do not cover, and the turn is lost with no trace of
+what was tried. A first draft of this entry blamed the suffix; checking the installed rules
+showed the suffix was right.
+
+**skill that should have prevented this:** `cross-agent-review`.
+
+**class:** recurrence of the denied-command empty turn (first recorded 2026-09-15).
+
+## 38. A gate result was reported, and the gate said something else
+
+**What happened.** The legal fork's evening entry (2026-10-03) recorded "unslop high 0 medium 0
+low 0" on each of the four new SKILL.md files, run before that evening's fix. On 2026-10-04 the
+same scanner, run on the files as they stood both before that fix (`6452578`) and after it
+(`6c9845b`), reported medium hits in all four, 1, 3, 5 and 3: every one a route arrow read as
+an emoji. Either a different revision was scanned or the output was summarised rather than
+read; the record cannot say which. The correction made the same slip smaller: the 2026-10-04
+WORKLOG entry said "three of the four files"; a rescan of both revisions showed four.
+**verified**: both revisions rescanned file by file on 2026-10-04.
+
+**The lesson.** A gate result in a record is the command's output line, quoted, with the
+revision it ran on. A paraphrased all-clear is the proxy signal the always-on norm forbids.
+
+**skill that should have prevented this:** `rerun-before-verdict`.
+
+**class:** a gate result reported, not read.

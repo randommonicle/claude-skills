@@ -68,7 +68,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 
 ## Layers
 
-- **Hooks** ([hooks/HOOKS.md](hooks/HOOKS.md)) — deterministic enforcement in `~/.claude/settings.json`, per machine: push gate (with a live freshness block in the ask), surgery gate (destructive SQL asks, carrying the target script's own header), secret-echo guard (a command that would print a secret value is denied with the safe form in the reason), skill fire log, session recon, and the warn family that fires where descriptions cannot: schedule-cost, migration-write, test-write, lint-after-edit.
+- **Hooks** ([hooks/HOOKS.md](hooks/HOOKS.md)) — deterministic enforcement in `~/.claude/settings.json`, per machine: push gate (with a live freshness block in the ask), surgery gate (destructive SQL asks, carrying the target script's own header), secret-echo guard (a command that would print a secret value is denied with the safe form in the reason), kill guard (a process kill chosen by name or pattern is denied with the by-PID form in the reason), skill fire log, session recon, and the warn family that fires where descriptions cannot: schedule-cost, migration-write, test-write, lint-after-edit.
 - **Norms** ([NORMS.md](NORMS.md)) — six always-on one-liners copied into the global `~/.claude/CLAUDE.md`; each points at its skill playbook.
 - **Hubs** — skills owning a workflow moment, each with a routing table to leaves.
 - **Leaves** — narrow triggers, orthogonal vocabulary, one "does not fire on" line each.
@@ -161,13 +161,15 @@ prerequisite first.
 **What installing changes about your sessions**, stated plainly because none of it is obvious
 afterwards and one item can interrupt you:
 
-- **Nine command hooks are wired**, listed in [hooks/HOOKS.md](hooks/HOOKS.md). Two are gates that
+- **Ten command hooks are wired**, listed in [hooks/HOOKS.md](hooks/HOOKS.md). Two are gates that
   ask for confirmation rather than warn: `push-gate` intercepts `git push`, `gh pr merge` and
   remote branch deletion, and `sql-surgery-warn` intercepts destructive SQL in an execution
   context. Both match the `Bash` and `PowerShell` tools, which is load-bearing on Windows desktop:
   a `Bash`-only matcher leaves both gates absent on the PowerShell path, and shipped that way
   until 2026-09-16. If you do not want a confirmation prompt on every push, do not install the plugin
-  mode; take the skills only.
+  mode; take the skills only. Two more deny rather than ask: `secret-echo-guard` (a command that
+  would print a secret value) and `kill-guard` (a process kill chosen by name or pattern, such as
+  `Stop-Process -Name` or `pkill`; kills by PID pass).
 - **A SessionStart hook runs `git fetch` and `gh pr list`** in your repo at the start of every
   session, and injects the result as context. That is network activity in your repo, on your
   credentials, without a prompt.

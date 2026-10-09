@@ -24,7 +24,15 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const RUN = join(HERE, 'run-seat.mjs');
 const FAKE = join(HERE, 'fake-seat.mjs');
 let fails = 0;
+let skips = 0;
 const pass = (m) => console.log('PASS  | ' + m);
+// A case that cannot run on this platform returns { skip: reason }. It prints SKIP and
+// is counted apart, never as a PASS: the summary must not read "all cases passed" over a
+// case that did not run.
+const skip = (m) => {
+  console.log('SKIP  | ' + m + ' (a skip is not a pass)');
+  skips++;
+};
 const fail = (m) => {
   console.log('FAIL  | ' + m);
   fails++;
@@ -304,9 +312,8 @@ test('the composed prompt frames the exchange file as untrusted material', (s) =
 test('prefers the executable shim over an identically-named POSIX one', (s) => {
   if (process.platform !== 'win32') {
     // Not a silent skip: on POSIX the extensionless file IS the right answer, so there is
-    // no wrong choice to make and the case cannot fail. Say so rather than print PASS.
-    console.log('SKIP  | prefers the executable shim (win32-only: no PATHEXT on this platform)');
-    return true;
+    // no wrong choice to make and the case cannot fail. It runs in the hooks-windows job.
+    return { skip: 'win32-only: no PATHEXT on this platform' };
   }
   const binDir = join(s.root, 'fakebin');
   mkdirSync(binDir, { recursive: true });
@@ -655,6 +662,7 @@ for (const [name, fn] of cases) {
   try {
     const r = fn(s);
     if (r === true) pass(name);
+    else if (r && typeof r.skip === 'string') skip(name + ': ' + r.skip);
     else fail(name + ' -> ' + r);
   } catch (e) {
     fail(name + ' -> threw ' + e.message);
@@ -663,5 +671,7 @@ for (const [name, fn] of cases) {
   }
 }
 
-console.log(fails ? `\n${fails} case(s) failed` : '\nall cases passed');
+console.log(
+  fails ? `\n${fails} case(s) failed` : skips ? `\nall run cases passed; ${skips} skipped, not run here` : '\nall cases passed'
+);
 process.exit(fails ? 1 : 0);

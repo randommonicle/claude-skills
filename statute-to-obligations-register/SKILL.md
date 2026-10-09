@@ -74,7 +74,7 @@ it goes in the verification list.
    register entry, a dated record. "We have a policy" is not evidence.
 7. **Deadlines carry the statute's own words.** Quote the period as the text states it
    (`beginning with`, `after`, `not less than`), then the counting convention you applied.
-   verified-citations owns the inclusive-counting rule; this skill defers to it.
+   verified-citations owns the counting rule; this skill defers to it.
 8. **Status records commencement, not your view of it.** `In force`, `In force; prospective
    change pending (<amending provision>)`, `Prospective, not in force`, or `Partly in force`,
    each as the page shows it on the date read. A pending change becomes a control: a review
@@ -136,7 +136,7 @@ an authority, not for the register's author; settle it before setting R1's clock
 ## Routes and scope
 
 - A contract's or lease's own obligations → **contract-review** (its full-audit ledger).
-- Citing a statute in a handover, plan or decision log, and inclusive day counting →
+- Citing a statute in a handover, plan or decision log, and statutory day counting →
   **verified-citations**.
 - Auditing the citations in someone else's register or opinion → **legal-citation-integrity**.
 - Turning a register row into a notice to serve → **legal-notice-handling**.

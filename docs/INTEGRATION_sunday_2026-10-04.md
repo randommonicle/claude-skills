@@ -1,5 +1,8 @@
 # Integration rehearsal for Sunday's merges, 2026-10-04
 
+> Status, 2026-10-09: the merges rehearsed here landed on main by PR #7 to #10 on 2026-10-04.
+> This record reached main by PR on 2026-10-09; the text below is as written on 2026-10-04.
+
 A local branch, `integrate/sunday`, built from `origin/main` (f7de1a1) in the worktree
 `~/.claude/skills-wt-integrate-sunday`, merging the four open branches in the order the
 team-loop handover sets (section 7.1). Its purpose is to make Ben's PR merges mechanical: every

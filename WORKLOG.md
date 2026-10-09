@@ -618,6 +618,13 @@ per table; the examples' header says "unless another date is given", since s.74 
 2026-10-04. Not checked by the reviewer or me: the Welsh Act's definition of "regulated
 building". Gates green.
 
+**Merged to main, 2026-10-04 (Ben's in-session "Yes to all", then his picks: four PRs, merged
+in order once CI is green).** #7 run-seat fix (220d8cf), #8 stage 1 (5bf2ed7), #9 stage 2
+(cd50e14), each with archives, hooks, hooks-windows and index passing. origin/main then merged
+into this branch (4e4b30c): the rehearsed four conflicts plus DECISIONS.md (this branch's entry
+against stage 2's two; both kept, team loop first), WORKLOG titled once. check-index "ok: 51
+skills"; check-archives ok; all 26 suites green. `team/NOW.md` updated for main.
+
 ## Integration rehearsal (branch `integrate/sunday`, 2026-10-04)
 
 A local branch from origin/main f7de1a1 merging `fix/run-seat-double-end` (28d5dac),
@@ -627,3 +634,50 @@ Only the third merge conflicted: the three skill-count sites and this file, all 
 (count 51; WORKLOG sections team-loop first, legal fork after), predicted beforehand with
 `git merge-tree`. check-index "ok: 51 skills, all indexed, all named, all three counts agree";
 check-archives ok; all 26 suites green. No upstream, nothing pushed, `main` untouched.
+
+The merges it rehearsed landed on main by PR the same day (#7 to #10). This branch merged to
+main on 2026-10-09 as the record only: main merged in first, WORKLOG.md the one conflict.
+
+## CI: the suites that ran nowhere (branch `ci/wire-unrun-suites`, opened 2026-10-04)
+
+### Commit 1: run-seat and ask-board as named CI steps
+
+The two `FORWARD:` lines in `.github/workflows/check-index.yml` (LESSONS_LEARNED 28) are
+closed: `cross-agent-review/scripts/run-seat.test.mjs` and `team-loop/ask-board.test.mjs` are
+named steps in the hooks job, each `if: always()` beside the gate suite's step. run-seat also
+runs in hooks-windows, because its one win32-only case (an npm install's `codex`, `codex.cmd`
+and `codex.ps1` side by side on PATH) prints SKIP off win32 and would otherwise run only by
+hand. Can go red: each suite exited 1 against a broken copy of its target in the scratchpad
+(run-seat.mjs writing a wrong terminator: 2 FAIL; ask-board.html with the `fromCache` guard on
+`meta/status` removed: 1 of 6 failed) and 0 against the real one. Both are Node stdlib only; the
+seats are a fake CLI, so no real CLI spend. The FORWARD rule asked for one green run on the
+runner before wiring; this branch's own PR run is that run, as it was for the gate suite, and a
+red there is fixed on the branch. Also confirmed: the gate suite's step ran on main's run
+37192547536 (2043d43) and printed "all cases passed". `team/NOW.md` rewritten within 40 lines.
+
+### Merged: PR #12 (b5371b4), 2026-10-04, on Ben's "merge when green"
+
+All four checks green. The run log (37217896929) shows the three named steps ran: on Linux the
+board suite "all 6 passed" and the transport suite "all cases passed"; on Windows the shim case
+"PASS". GitHub refused auto-merge (not allowed on this repo), so the merge was by hand once green.
+
+## run-seat: a skipped case printed PASS (branch `fix/run-seat-skip-not-pass`, opened 2026-10-04)
+
+### Commit 1: SKIP counted apart, never as a PASS
+
+PR #12's Linux log showed the shim case print "SKIP" and then "PASS" for the same case, and the
+suite end on "all cases passed": the case printed its own SKIP and returned `true`, which the
+runner counts as a pass. Reproduced here by running the suite with `process.platform` set to
+`linux` through `node --import`. Now a case returns `{ skip: reason }`; the runner prints
+"SKIP ... (a skip is not a pass)", counts it apart, and the summary reads "all run cases passed;
+1 skipped, not run here". Checked as Linux (41 PASS, 1 SKIP, exit 0) and on win32 (42 PASS,
+"all cases passed"). The case still runs in hooks-windows (PR #12).
+
+The same defect one level up: the four `// @win32-only` suites print "SKIP not a pass" and exit
+0 off win32, and the ubuntu job's loop then echoed "PASS" for each. The loop's label now reads
+the same marker hooks-windows discovers by and says "SKIP ... executed by hooks-windows"; the
+suites still execute there, so one that loses its skip guard goes red. All four marker suites
+checked to skip at their top on `process.platform !== 'win32'`. The loop body run here with the
+platform set to linux: SKIP for watchdog-network, PASS for check-index, exit 0; a marked suite
+that exits 1: FAIL, exit 1. hooks-windows keeps PASS, since the suites run there. push-gate's
+skip (git absent) never fires on a runner and is left alone.

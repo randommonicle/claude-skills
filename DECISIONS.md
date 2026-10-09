@@ -5,6 +5,36 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-10-09 kill-guard denies a kill chosen by name or pattern; a kill by PID is never judged
+
+Built on Ben's brief. The incident text (a `pytest` sweep that could reach other sessions' runs,
+and a `*director.py run*` sweep that hit the session's own monitor probes, both 2026-10-03) is as
+relayed in that brief; Rimagent's `LESSONS_LEARNED.md` was not read when this was written.
+
+- **A deny, not an ask,** for the reason of 2026-09-20 below: an ask is auto-approved and shown to
+  nobody in a bypass-permissions session, and a deny reaches the model with the rewrite whatever the
+  mode.
+- **The unit judged is the selection of the target set,** not the kill word. `Stop-Process -Id 12`,
+  `taskkill /PID 12`, `kill 12` pass; `Stop-Process -Name`, `taskkill /IM`, `pkill`, and any process
+  listing not limited to explicit PIDs that feeds a kill are denied. A list of bad strings would
+  miss the third form, which is how the second incident happened.
+- **The absolute-path exemption is syntactic,** as the brief's rule is: a drive or POSIX path of at
+  least two segments in the same statement. It cannot tell this checkout's path from a shared one
+  (`C:\Python312\...`, `C:\Users\bengr`). The event does carry `cwd`, and the hook does not read it:
+  a prefix check against `cwd` is the tightening to add if a shared path is ever seen passing. A
+  sweep of 24,263 historical commands on this machine showed none, so it was not built. The reason
+  says to write the path out literally.
+- **`pkill -f <absolute path>` passes;** `killall`, `Stop-Process -Name` and `taskkill /IM` never do.
+  The brief lists `pkill` as a deny but also names a path-scoped command line as the safe form, and
+  `pkill -f` is the one pkill form that can express it.
+- **Residuals accepted, with the skill as the backstop:** a PID list assigned outside the command,
+  a script run by name, kills selected by port (`lsof -ti:N | xargs kill`, `Get-NetTCPConnection`,
+  `npx kill-port`), `Stop-Service`, `kill -9 -1`. Port kills are the same class (a shared resource
+  chosen by pattern) and are the first thing to add if a second incident names one.
+- **Plugin wiring ships with it** (`hooks/hooks.json`, and the `commandGates` assertion in
+  `hooks/check-index.test.mjs`), as its own commit so it can be dropped without losing the
+  direct-clone hook. `~/.claude/settings.json` is per machine and was not touched.
+
 ## 2026-10-03 Team loop: the gate judges by exit code; the pilot is set up today (ASK-0007, ASK-0006)
 
 Answered by Ben in the session at 12:47 BST, not on the board.
@@ -48,6 +78,27 @@ no notes unless quoted. These are the four decision-log candidates of
 - **ASK-0004, "passive-income": the passive income (MT5) project pilots stage 2.** It is not
   RICS-regulated work. Its own sessions are active, so the pilot's setup in that repo
   follows `parallel-work-recon` and waits for its own branch.
+
+## 2026-10-03 Porting a foreign-jurisdiction skill library (the legal fork)
+
+Planned 2026-09-11 (`docs/HANDOVER_legal-fork_2026-09-11.md`, section 12), built 2026-10-03 on
+Ben's in-session yes to re-clone, reviewed 2026-10-04, and landed here on his "Yes to all" in
+the session of 2026-10-04.
+
+Forked four skills from `rohasnagpal/legal-ai-skills` (MIT, commit a5c00ec) into this library:
+`contract-review`, `legal-citation-integrity`, `statute-to-obligations-register` and
+`legal-notice-handling`. Admission rule for a foreign-jurisdiction source: keep a skill only where
+the foreign statute is merely an example and the method is jurisdiction-neutral; drop any skill
+whose subject is the foreign statute. Port as house-style guardrails (a check that can go red
+first), never as persona-drafting skills. The notice trio is consolidated into one skill to
+respect the no-shared-trigger-vocabulary rule. `contract-review` keeps all three upstream
+references verbatim (neutral, integral to its routing), bound to its own checks by a mapping
+paragraph so they cannot displace them. Provenance and the MIT notice live in each skill's
+`UPSTREAM.md` and in `NOTICE`.
+
+The England and Wales worked examples cite statute read as legislation.gov.uk `/data.xml` with
+the date read; a summarising fetch is not a source. Review: GEMPRO, GPT and a fresh GPT seat
+(`docs/REVIEW_legal-fork_2026-10-04.md`), and property-reg-reviewer twice, 0 Critical, 0 High.
 
 ## 2026-09-28 Agents ship from agents/, and the repo copy is canonical
 

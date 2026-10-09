@@ -109,8 +109,10 @@ code discussion and citations only; never personal data, credentials, secrets, o
   Ridden to convergence on 2026-09-15 (GPT via codex and GEMPRO via agy, three rounds, both seats
   resuming their threads; the record is `docs/REVIEW_run-seat-guards_2026-09-15.md`). What that ride
   fixed in the seat config: pass `--cwd <repo root>` so an agy seat's file reads are inside a
-  workspace and auto-allowed; give exact paths and forbid shell (the shipped `promptSuffix` does, and a
-  denied command ends the turn with nothing at 80k tokens); and treat the exchange file as a **shared
+  workspace and auto-allowed; give exact paths and allow no shell beyond `git` and `rg` (the shipped
+  `promptSuffix` says so, matching `templates/antigravity-settings.example.json`; anything else is
+  denied and ends the turn with nothing at 80k tokens, so an ask never grants more in prose, LESSONS
+  37); and treat the exchange file as a **shared
   budget**, because an argv seat receives the whole file and is refused above 30,000 characters, which
   a three-round, two-seat review with 4,000-character sections reaches at round three. That ceiling
   is Windows' command line, and stdin is not the way round it for agy: its stream-json input drops a

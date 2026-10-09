@@ -1,39 +1,33 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-04 04:30 BST, overnight continuation; its update is the last section of the handover
-topic: team-loop stages 1 and 2 and the legal fork, reviewed, ridden and rehearsed for Sunday's merges
-next: read docs/HANDOVER_team-loop-build_2026-10-03.md, "Update, overnight 2026-10-04"; Ben decides pushes and PRs, and answers ASK-0009
-branches: feat/team-loop-stage1 (~/.claude/skills-wt-team-loop-s1), feat/team-loop-stage2 (~/.claude/skills-wt-team-loop-s2), fix/run-seat-double-end (~/.claude/skills-wt-run-seat-end), feat/legal-fork (~/.claude/skills-wt-legal-fork), integrate/sunday (~/.claude/skills-wt-integrate-sunday)
+updated: 2026-10-04 17:48 BST, a solo session while Ben was away, on his "carry on"
+topic: run-seat.test.mjs printed PASS for a case it had skipped (seen in PR #12's Linux log); fixed on branch fix/run-seat-skip-not-pass
+next: Ben's yes to push fix/run-seat-skip-not-pass and open its PR. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+branches: main, fix/run-seat-skip-not-pass (local, unpushed), integrate/sunday (a local rehearsal)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
-- legal fork 33237c1, 43430a3, 384c936, 9ffb4ae, fa3dd5e: cross-family review (GEMPRO, GPT, a fresh GPT on the converged position) and two property-reg-reviewer passes, 0 Critical 0 High; record in that branch's docs/
-- stage 1 517a654: cached board sentinel, a directory at team/NOW.md; each case red first
-- stage 2 59f797e (merge of stage 1), 1a98f9d, 5258a12: gate fixes from GPT's second turn, and a7ecf0d's team/ rule no longer refuses the pilot's team/checks/**; each case red first; 05f4c03 review record
-- stage 2 fad74d1: ride 4 (two packages at once, the pilot's gate.json, Ask steps 2 and 9 in the file form); Concurrency now says to re-gate after the milestone moves
-- integrate/sunday: all branches merged on origin/main, count 51, all 26 suites green; docs/INTEGRATION_sunday_2026-10-04.md there
-- ASK-0009 posted: the passive income pilot's first-milestone topic
+- main b5371b4 (PR #12, on Ben's "merge when green"): run-seat.test.mjs and ask-board.test.mjs run in CI; all four checks green, the new steps' output read in run 37217896929 (Linux: board 6 of 6, transport all cases; Windows: the shim case PASS)
+- The gate suite ran on the runner: main run 37192547536, "all cases passed"
+- The live library (~/.claude/skills) at b5371b4 via hooks/update-skills.mjs, 17:46 BST
+- fix/run-seat-skip-not-pass, this commit: a case returns { skip: reason }, the runner prints SKIP and counts it apart, and the summary off win32 reads "all run cases passed; 1 skipped, not run here"; checked as Linux (41 PASS, 1 SKIP) and on win32 (42 PASS); the ubuntu hooks loop now labels the four @win32-only suites SKIP, not PASS
 
 ## In flight
 
-- Nothing running. ASK-0009 is open on the board and blocks only the pilot's step 0.
+- Nothing running. ASK-0009's item stays on the board until passive income records the decision; a passive income session was live at 17:32 BST, so that repo was left alone
 
 ## Deferred, with grep anchors
 
-- `FORWARD: cross-agent-review/scripts/run-seat.test.mjs runs nowhere` in .github/workflows/check-index.yml
-- `FORWARD: team-loop/ask-board.test.mjs runs nowhere either` in the same workflow
 - `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md section 9
 - Unpinned agents: debugger, refactorer (this machine's ~/.claude/agents); PropOS backend, frontend, test
 - Accepted Low: a broad but not catch-all test-class glob in gate.json widens TESTS CHANGED (docs/REVIEW_team-loop-fixes_2026-10-04.md, CLAUDE close)
 
 ## Verification outstanding
 
-- The gate suite as a CI step on the runner: not run, nothing pushed
-- The board page in a real browser since its fixes: stub-DOM tests only
-- MT5 compile or Tester commands as JUDGED BY lines; harness worktree isolation for a spawned tl-builder
-- worktree.baseRef "head" against a repo with a remote (design 5.4)
+- The board page in a real browser since its fixes: stub-DOM tests only; the built-in browser stops at claude.ai's sign-in page, so this needs Ben's own browser
+- MT5 compile or Tester commands as JUDGED BY lines; harness worktree isolation for a spawned tl-builder; worktree.baseRef "head" against a repo with a remote (design 5.4)
 
 ## Traps
 
