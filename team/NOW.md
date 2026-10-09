@@ -1,17 +1,16 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-04 18:08 BST, a solo session while Ben was away, on his "carry on"
-topic: main now takes changes by PR only, after the four CI checks (ruleset 24461308); this branch records it
-next: if docs/main-ruleset is not on main yet, Ben's yes to push it and merge (auto-merge waits for the four checks); once it is, nothing is queued here. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
-branches: main, docs/main-ruleset (local until Ben's yes), integrate/sunday (a local rehearsal)
+updated: 2026-10-09 19:40 BST, a Rimagent session on Ben's brief to merge the three local branches
+topic: docs/main-ruleset, integrate/sunday and docs/occam-trial reach main by PR, one at a time, each re-merged with main first
+next: whichever of integrate/sunday and docs/occam-trial is not on main yet, Ben's yes to push it and merge it once the four checks pass. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+branches: main; integrate/sunday and docs/occam-trial until merged; origin keeps the merged branches of PRs 1 to 14 until Ben says to delete them
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
-- main 07af1ca (PR #13): a skipped case prints SKIP, never PASS, in run-seat.test.mjs and in the ubuntu hooks loop; main 01194b4 (PR #3, open since 2026-09-26): commission-the-roster, a gate never runs alongside the step it certifies, merged locally onto main first with index and archives green; main's CI on 01194b4 (run 37219111004) all four jobs green, SKIP labels in the log
-- On Ben's yes: allow_auto_merge on; ruleset 24461308 requires index, archives, hooks, hooks-windows on main, no bypass, not strict; nine merged worktrees removed, local branches kept; the live library at 01194b4
-- docs/main-ruleset, this commit: DECISIONS.md entry for the two settings, the workflow header and CONTRIBUTING.md say the job names are required checks
+- main 765c8ae (PR #14): kill-guard, merged 2026-10-09 19:25 BST after its four required checks passed; the live library and ~/.claude/settings.json point at hooks/kill-guard.mjs
+- docs/main-ruleset: DECISIONS.md entry for the ruleset and auto-merge, the workflow header and CONTRIBUTING.md say the job names are required checks; main merged in, DECISIONS.md kept newest first
 
 ## In flight
 
@@ -25,7 +24,7 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Verification outstanding
 
-- The ruleset has not yet held a PR: the first PR after it should show "waiting for checks" before auto-merge
+- The ruleset held PR #14 (four checks passed before the merge); a merge refused while checks ran has not been seen
 - The board page in a real browser since its fixes: stub-DOM tests only; the built-in browser stops at claude.ai's sign-in page, so this needs Ben's own browser. MT5 compile or Tester commands as JUDGED BY lines; harness worktree isolation for a spawned tl-builder; worktree.baseRef "head" against a repo with a remote (design 5.4)
 
 ## Traps
