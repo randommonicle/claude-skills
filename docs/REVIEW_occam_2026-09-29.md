@@ -205,6 +205,31 @@ script makes no network calls.
    with session length whatever the rules say, so neither is evidence either way. Under
    `rerun-before-verdict`, one good week is a candidate result, not a verdict.
 
+## Trial read, 2026-10-09
+
+Read three days after the planned end (2026-10-06), with Occam still on at `lite`, by a Rimagent
+session on Ben's "yes". Upstream `audit.py` from the pinned clone (`244c2fc`, no local changes),
+`--top 0`, Python 3.14.4, at about 19:57 BST. `--days` selects transcripts by file time, so the window is
+2026-10-02 to 2026-10-09, all of it with Occam on.
+
+| Set | Transcripts | API calls | Whole-file reads over 8k | per 1,000 | Same-file re-reads | per 1,000 |
+|---|---|---|---|---|---|---|
+| Baseline, 2026-09-29 | | 17,886 | 84 | 4.7 | 855 | 47.8 |
+| All, `--days 7` | 456 | 36,464 | 57 | 1.6 | 859 | 23.6 |
+| Without the RimWorld ride | 220 | 28,301 | 55 | 1.9 | 790 | 27.9 |
+
+The second row's output lines, quoted: `456 transcripts, 36464 API calls, est. $3861.56 at list
+price`; `Read of a whole large file (>8k tokens, no limit)      57x  $29.17`; `Same file read
+again in a session                     859x`. The third row excludes transcripts under the ride's
+worktrees (`handover-continuation-0bc258`, `game-agent-unattended-setup`), whose director play is
+many API calls with few file reads and would flatter a per-call rate; it ran the same `main()`
+over the other files through a wrapper.
+
+Both counts fell clearly, with or without the ride; without it, whole-file reads fell by about
+three fifths and re-reads by about two fifths. Under `rerun-before-verdict` this is a candidate result, not a
+verdict: one week, a different mix of work from the baseline week, and no control week without
+Occam since. The decision on what follows is Ben's.
+
 ## DECISIONS candidate
 
 Either outcome is a standing choice. Route one is the first third-party always-on text allowed

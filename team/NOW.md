@@ -1,17 +1,18 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-09 19:50 BST, a Rimagent session on Ben's brief to merge the three local branches
+updated: 2026-10-09 19:58 BST, a Rimagent session on Ben's brief to merge the three local branches, then his "yes to all"
 topic: the three local branches are on main by PR (#15 to #17); origin and the local clone hold main only
-next: the Occam trial (DECISIONS 2026-09-29) ended 2026-10-06 and has not been read; the plugin is still active at lite. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
-branches: main only, on origin and locally
+next: Ben decides what follows the Occam trial read (docs/REVIEW_occam_2026-09-29.md, "Trial read, 2026-10-09"): both counts fell, a candidate result. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+branches: main; docs/occam-read-lesson-40 until merged
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
 - main 765c8ae (PR #14): kill-guard, merged 2026-10-09 19:25 BST after its four required checks passed; the live library and ~/.claude/settings.json point at hooks/kill-guard.mjs
 - main 6d2bdc8 (PR #15, docs/main-ruleset), 01eda99 (PR #16, integrate/sunday), b8e0214 (PR #17, docs/occam-trial, its lesson renumbered 39): each with main merged in first and all four checks green; #15 showed BLOCKED while a check was pending
-- On Ben's yes: the live library at b8e0214 via hooks/update-skills.mjs; the three worktrees removed (the Occam one's files had been wiped from Temp, nothing uncommitted); 15 merged branches deleted on origin and 12 locally
+- On Ben's yes: the live library at 7e47cd9 (PR #18) via hooks/update-skills.mjs; the three worktrees removed (the Occam one's files had been wiped from Temp, nothing uncommitted); 15 merged branches deleted on origin and 12 locally
+- This branch: the Occam trial read into the review; lesson 40, a worktree emptied in a Temp scratchpad
 
 ## In flight
 
