@@ -5,6 +5,16 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-10-09 The Occam trial runs a second week, to 2026-10-16
+
+Ben, 2026-10-09, after the first read (`docs/REVIEW_occam_2026-09-29.md`, "Trial read,
+2026-10-09"): both counts Occam targets fell, so it stays installed at `lite`, pinned at
+`244c2fc`, for a second week. On or after 2026-10-16, read again the same way (`audit.py --days 7
+--top 0` from the pinned clone, with and without the RimWorld ride's transcripts) and decide:
+keep, or remove by the three steps in the 2026-09-29 entry. **Why:** `rerun-before-verdict`; one
+week of a different mix of work is a candidate result. Everything else in the 2026-09-29 entry
+stands, including that nothing of Occam enters the library during the trial.
+
 ## 2026-10-09 kill-guard denies a kill chosen by name or pattern; a kill by PID is never judged
 
 Built on Ben's brief. The incident text (a `pytest` sweep that could reach other sessions' runs,
