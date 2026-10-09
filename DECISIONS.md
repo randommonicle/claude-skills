@@ -18,10 +18,12 @@ relayed in that brief; Rimagent's `LESSONS_LEARNED.md` was not read when this wa
   `taskkill /PID 12`, `kill 12` pass; `Stop-Process -Name`, `taskkill /IM`, `pkill`, and any process
   listing not limited to explicit PIDs that feeds a kill are denied. A list of bad strings would
   miss the third form, which is how the second incident happened.
-- **The absolute-path exemption is syntactic:** a drive or POSIX path of at least two segments in
-  the same statement. It cannot tell this checkout's path from a shared one (`C:\Python312\...`).
-  Taken as accepted, because a semantic test would need the checkout path, which a hook that reads
-  only the command string does not have. The reason says to write the path out literally.
+- **The absolute-path exemption is syntactic,** as the brief's rule is: a drive or POSIX path of at
+  least two segments in the same statement. It cannot tell this checkout's path from a shared one
+  (`C:\Python312\...`, `C:\Users\bengr`). The event does carry `cwd`, and the hook does not read it:
+  a prefix check against `cwd` is the tightening to add if a shared path is ever seen passing. A
+  sweep of 24,263 historical commands on this machine showed none, so it was not built. The reason
+  says to write the path out literally.
 - **`pkill -f <absolute path>` passes;** `killall`, `Stop-Process -Name` and `taskkill /IM` never do.
   The brief lists `pkill` as a deny but also names a path-scoped command line as the safe form, and
   `pkill -f` is the one pkill form that can express it.
