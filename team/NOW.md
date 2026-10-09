@@ -1,16 +1,17 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-09 19:40 BST, a Rimagent session on Ben's brief to merge the three local branches
-topic: docs/main-ruleset, integrate/sunday and docs/occam-trial reach main by PR, one at a time, each re-merged with main first
-next: whichever of integrate/sunday and docs/occam-trial is not on main yet, Ben's yes to push it and merge it once the four checks pass. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
-branches: main; integrate/sunday and docs/occam-trial until merged; origin keeps the merged branches of PRs 1 to 14 until Ben says to delete them
+updated: 2026-10-09 19:50 BST, a Rimagent session on Ben's brief to merge the three local branches
+topic: the three local branches are on main by PR (#15 to #17); origin and the local clone hold main only
+next: the Occam trial (DECISIONS 2026-09-29) ended 2026-10-06 and has not been read; the plugin is still active at lite. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+branches: main only, on origin and locally
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
 - main 765c8ae (PR #14): kill-guard, merged 2026-10-09 19:25 BST after its four required checks passed; the live library and ~/.claude/settings.json point at hooks/kill-guard.mjs
-- docs/main-ruleset: DECISIONS.md entry for the ruleset and auto-merge, the workflow header and CONTRIBUTING.md say the job names are required checks; main merged in, DECISIONS.md kept newest first
+- main 6d2bdc8 (PR #15, docs/main-ruleset), 01eda99 (PR #16, integrate/sunday), b8e0214 (PR #17, docs/occam-trial, its lesson renumbered 39): each with main merged in first and all four checks green; #15 showed BLOCKED while a check was pending
+- On Ben's yes: the live library at b8e0214 via hooks/update-skills.mjs; the three worktrees removed (the Occam one's files had been wiped from Temp, nothing uncommitted); 15 merged branches deleted on origin and 12 locally
 
 ## In flight
 
@@ -24,7 +25,6 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Verification outstanding
 
-- The ruleset held PR #14 (four checks passed before the merge); a merge refused while checks ran has not been seen
 - The board page in a real browser since its fixes: stub-DOM tests only; the built-in browser stops at claude.ai's sign-in page, so this needs Ben's own browser. MT5 compile or Tester commands as JUDGED BY lines; harness worktree isolation for a spawned tl-builder; worktree.baseRef "head" against a repo with a remote (design 5.4)
 
 ## Traps
