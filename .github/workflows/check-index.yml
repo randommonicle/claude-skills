@@ -103,20 +103,40 @@ jobs:
           git config --global user.name CI
       # Every suite runs even after one fails, so a red run reports the whole
       # picture rather than only the first fault. A single early exit would turn
-      # one platform defect into an unknown number of them.
+      # one platform defect into an unknown number of them. A suite that declares
+      # "// @win32-only" (the marker hooks-windows discovers by) skips itself here and
+      # exits 0, so its label says SKIP: until 2026-10-04 it said PASS for a suite that
+      # had not run. It still executes here, so one that loses its skip guard goes red.
       - name: every hook suite
         run: |
           failed=0
           for t in hooks/*.test.mjs; do
             echo "::group::$t"
-            if node "$t"; then echo "PASS $t"; else echo "FAIL $t"; failed=1; fi
+            if node "$t"; then
+              if grep -qE '^// @win32-only\b' "$t"; then echo "SKIP $t (win32-only, executed by hooks-windows)"; else echo "PASS $t"; fi
+            else echo "FAIL $t"; failed=1; fi
             echo "::endgroup::"
           done
           exit $failed
+      # Three suites live beside their scripts, outside the glob above, so each is
+      # named here rather than left to run nowhere (LESSONS_LEARNED 28). Each is its
+      # own step with if: always(), so one red suite does not hide the others. Node
+      # stdlib and git only, throwaway dirs under the temp dir, no real CLI spend:
+      # run-seat's seats are a fake CLI, ask-board's page runs against a stub DOM.
+      - name: the team-loop gate suite
+        if: always()
+        run: node team-loop/scripts/gate.test.mjs
+      - name: the cross-agent transport suite
+        if: always()
+        run: node cross-agent-review/scripts/run-seat.test.mjs
+      - name: the Ask board page suite
+        if: always()
+        run: node team-loop/ask-board.test.mjs
 
-  # The win32 half of the hooks job. Only the PowerShell-driven suites run here:
-  # everything else is already covered on Linux, and this job exists to close the gap
-  # that made those unrunnable, not to duplicate the other nineteen.
+  # The win32 half of the hooks job. Only the PowerShell-driven suites run here, plus
+  # the transport suite for its one win32-only case: everything else is already covered
+  # on Linux, and this job exists to close the gap that made those unrunnable, not to
+  # duplicate the other nineteen.
   hooks-windows:
     runs-on: windows-latest
     steps:
@@ -161,3 +181,11 @@ jobs:
             echo "::endgroup::"
           done
           exit $failed
+      # The transport suite again, for its one win32-only case: a seat command found on
+      # PATH where an npm install left `codex`, `codex.cmd` and `codex.ps1` side by side.
+      # Off win32 that case prints SKIP, so without this step it would run only by hand,
+      # and Windows is where the transport runs. The rest of the suite repeats the Linux
+      # run, which costs seconds.
+      - name: the transport suite's win32 case
+        if: always()
+        run: node cross-agent-review/scripts/run-seat.test.mjs

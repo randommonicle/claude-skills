@@ -178,6 +178,13 @@ one-PR-at-a-time rule is common, and a newly arriving run can cancel an older qu
 required check never reports at all. A third builder in flight buys queue thrash and rework, not
 throughput. Non-PR work (design notes, probes, docs) runs alongside freely.
 
+**A gate is never "alongside".** A checkpoint, audit or sign-off certifies another step's final state, so it
+starts only after that state is committed. Launched beside the step it certifies, it sees an unfinished state and
+can only fail on the sequence, and the round is spent twice. Measured 2026-09-26 (passive income, L-058): a D-008
+checkpoint run beside the confirmation round it certifies returned NO-GO for exactly that reason, although every
+content check it made passed. If a gate must start early for time, brief it to check content only and give no
+verdict, and take the verdict in a turn after the sequence completes.
+
 ## The commission prompt
 
 Paste this at the top of any wave whose shape is not yet known. It is the operator's half; the
@@ -244,7 +251,11 @@ interns, zero watchers.
   by a factor of four. Write the number anyway, because it sets intent and it makes the overrun
   legible afterwards, but never treat it as a control. The only real ceilings are one the harness
   enforces and a scope too small to overrun. **If a task genuinely must not exceed a budget, cut
-  the scope until it cannot.**
+  the scope until it cannot.** `maxTurns` in an agent's frontmatter is the harness-enforced
+  kind: at the limit Claude Code stops the agent and returns its output marked partial, and the
+  lead can resume it (sub-agents documentation). It caps turns, not tokens, so it bounds an
+  agent that loops rather than one that reads too much; set it on every standing role and
+  state it in the roster row (DECISIONS.md, 2026-10-03, ASK-0005).
 
 ## Routes
 

@@ -408,6 +408,12 @@ and refine the retry-versus-park split the first time a real limit is observed. 
 direction: it under-retries rather than hammering a limited endpoint, and the transcript
 records the seat as absent rather than silently missing.
 
+> **UPDATE 2026-10-02: observed for codex.** codex-cli 0.156.1 on an exhausted allowance
+> writes an `error` event and then a `turn.failed` event carrying the message and the reset
+> time, both on stdout, with empty stderr and exit 1. `run-seat.mjs` recorded the first one as
+> "the seat returned an empty reply"; it now names the CLI's own reason. The agy value is still
+> unobserved.
+
 MCP and A2A statements in section 1 come from the official specification changelog, the MCP
 blog and Linux Foundation press releases, all dated 2026.
 

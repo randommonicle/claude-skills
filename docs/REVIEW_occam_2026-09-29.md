@@ -1,7 +1,7 @@
 # Review: quisbaum-prog/occam, fork-and-use assessment (2026-09-29)
 
 > **Outcome, 2026-09-29.** Ben's answers: commit this review, run the trial, write the
-> DECISIONS entry and a LESSONS entry (27). PropOS is not excluded on this machine, on his word:
+> DECISIONS entry and a LESSONS entry (39). PropOS is not excluded on this machine, on his word:
 > PropOS work runs on the work computer, which has no Occam install, so trial step 1 is dropped
 > here and a PropOS session opened on this machine would run with Occam `lite`. The trial
 > started the same day on this machine only, with one change from step 2 below: the marketplace
@@ -14,7 +14,7 @@
 > lists the hooks as "harness-only" with "no model context cost", but the SessionStart hook injects
 > 1,665 bytes of rules at `lite`, so the tool understates the always-on cost. `audit.py` is not
 > vendored yet; the end-of-week audit runs the vendor clone's copy with `--top 0`. The trial
-> ends 2026-10-06. Decision: DECISIONS 2026-09-29. Lesson: LESSONS_LEARNED 27.
+> ends 2026-10-06. Decision: DECISIONS 2026-09-29. Lesson: LESSONS_LEARNED 39.
 
 Source: `https://github.com/quisbaum-prog/occam`, reviewed at commit `244c2fc` (2026-09-28,
 merge of PR #5), plugin version 1.0.0, MIT licence (`LICENSE:3`, copyright quisbaum-prog).

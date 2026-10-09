@@ -63,6 +63,7 @@ function stage(status, cwdIsRepo, layout = null) {
   }
   const cwd = join(root, 'session-dir');
   mkdirSync(cwd, { recursive: true });
+  if (layout?.prep) layout.prep(root, cwd);
   if (cwdIsRepo) {
     // No remote: `git fetch` fails and the hook ignores it, so this stays offline.
     spawnSync('git', ['init', '-q', '-b', 'main', cwd], { encoding: 'utf8' });
@@ -71,6 +72,7 @@ function stage(status, cwdIsRepo, layout = null) {
     spawnSync('git', ['-C', cwd, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'init'], {
       encoding: 'utf8',
     });
+    if (layout?.repo) layout.repo(cwd, (...args) => spawnSync('git', ['-C', cwd, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { encoding: 'utf8' }));
   }
   return { root, hook: join(lib, 'hooks', 'session-recon.mjs'), cwd, env: layout?.env ?? {} };
 }
@@ -381,6 +383,313 @@ test(
   },
   false,
   { normsMd: NORMS_MD, claudeMd: NO_BLOCK, agents: { lib: { 'alpha.md': agent('alpha') }, user: {} } },
+);
+
+// team/NOW.md cases (2026-10-03). They red against a version with no check, one that
+// treats an uncommitted NOW.md as current, one that never counts commits since it,
+// one that reports no branch at all or every branch, and one that drops the ask line.
+// After cross-agent review (exchange record, 2026-10-03) they also red against a
+// version that misses uncommitted edits to a committed NOW.md, splits a parenthesised
+// note at its comma, misses a branch written as origin/<name>, or tells a session
+// that an empty team/ASK.md is a fault.
+const NOW = (extra = '') => '# NOW\n\ntemplate: team-loop NOW v1\nnext: write the tests\n' + extra;
+const writeNow = (cwd, text) => {
+  mkdirSync(join(cwd, 'team'), { recursive: true });
+  writeFileSync(join(cwd, 'team', 'NOW.md'), text, 'utf8');
+};
+const commitNow = (cwd, g, text) => {
+  writeNow(cwd, text);
+  g('add', '-A');
+  g('commit', '-qm', 'now');
+};
+const nowCase = (name, repo, check) => test(name, { state: 'current', at: hoursAgo(1) }, check, true, { repo });
+
+nowCase('a repo with no team/NOW.md says nothing about it', () => {}, async (r) => {
+  if (/NOW\.md/.test(r.out)) return 'mentioned NOW.md where none exists: ' + r.out;
+  return true;
+});
+
+nowCase('a committed NOW.md level with HEAD is pointed at, and said to be level', (cwd, g) => commitNow(cwd, g, NOW()), async (r) => {
+  if (!/team\/NOW\.md is the resume board/.test(r.context)) return 'no pointer to NOW.md: ' + r.out;
+  if (!/level with HEAD/.test(r.context)) return 'not reported level with HEAD: ' + r.context;
+  return true;
+});
+
+nowCase(
+  'commits after NOW.md are counted',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    for (const n of [1, 2]) {
+      writeFileSync(join(cwd, 'later' + n + '.txt'), 'x\n');
+      g('add', '-A');
+      g('commit', '-qm', 'later ' + n);
+    }
+  },
+  async (r) => {
+    if (!/2 commit\(s\) have landed on this branch since/.test(r.context)) return 'did not count the two later commits: ' + r.context;
+    return true;
+  },
+);
+
+nowCase('an uncommitted NOW.md is called out, never read as current', (cwd) => writeNow(cwd, NOW()), async (r) => {
+  if (!/is not committed/.test(r.context)) return 'an untracked NOW.md was not called out: ' + r.context;
+  if (/level with HEAD/.test(r.context)) return 'an untracked NOW.md was reported level with HEAD';
+  return true;
+});
+
+nowCase(
+  'a branch NOW.md names that is gone is named, and one that exists is not',
+  (cwd, g) => commitNow(cwd, g, NOW('branches: `main`, feat/gone (worktree somewhere), none\n')),
+  async (r) => {
+    if (!/do not exist here[^.]*: feat\/gone\./.test(r.context)) return 'feat/gone not named as missing: ' + r.context;
+    if (/do not exist here[^.]*main/.test(r.context)) return 'main reported missing though it exists';
+    return true;
+  },
+);
+
+nowCase(
+  'a branches line whose branches all exist adds no warning',
+  (cwd, g) => commitNow(cwd, g, NOW('branches: main\n')),
+  async (r) => {
+    if (/do not exist here/.test(r.context)) return 'warned with every branch present: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'an entry that is not a branch name is reported missing',
+  (cwd, g) => commitNow(cwd, g, NOW('branches: --all, a;b\n')),
+  async (r) => {
+    if (!/do not exist here[^\n]*--all, a;b\./.test(r.context)) return 'junk entries not reported: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'the ask line reaches the session with the unreadable-is-not-empty rule',
+  (cwd, g) => commitNow(cwd, g, NOW('ask: https://claude.ai/artifact/EXAMPLE\n')),
+  async (r) => {
+    if (!/Ask queue: https:\/\/claude\.ai\/artifact\/EXAMPLE/.test(r.context)) return 'ask line not surfaced: ' + r.context;
+    if (!/never report it empty/.test(r.context)) return 'the unreadable rule was dropped';
+    return true;
+  },
+);
+
+nowCase(
+  'uncommitted edits to a committed NOW.md are called out',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    writeNow(cwd, NOW('next: something newer\n'));
+  },
+  async (r) => {
+    if (!/uncommitted edits/.test(r.context)) return 'a dirty NOW.md read as clean: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'a comma inside a parenthesised note does not split a branch entry',
+  (cwd, g) => commitNow(cwd, g, NOW('branches: main (worktree at ../wt, clean), feat/gone\n')),
+  async (r) => {
+    if (/clean\)/.test(r.context)) return 'the note was split at its comma: ' + r.context;
+    if (!/do not exist here[^.]*: feat\/gone\./.test(r.context)) return 'feat/gone not named: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'a branch written as origin/<name>, or bare, is found on the remote',
+  (cwd, g) => {
+    g('update-ref', 'refs/remotes/origin/feat-r', 'HEAD');
+    commitNow(cwd, g, NOW('branches: origin/feat-r, feat-r\n'));
+  },
+  async (r) => {
+    if (/do not exist here/.test(r.context)) return 'a remote branch was reported missing: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'a file queue reports its open items and is never told empty is a fault',
+  (cwd, g) => {
+    mkdirSync(join(cwd, 'team'), { recursive: true });
+    writeFileSync(join(cwd, 'team', 'ASK.md'), '# ASK\n\n## ASK-0001 · decision\n\n## ASK-0002 · review\n', 'utf8');
+    commitNow(cwd, g, NOW('ask: team/ASK.md\n'));
+  },
+  async (r) => {
+    if (!/team\/ASK\.md holds 2 open item\(s\)/.test(r.context)) return 'open items not counted: ' + r.context;
+    if (/never report it empty/.test(r.context)) return 'a file queue was given the board rule';
+    return true;
+  },
+);
+
+nowCase(
+  'a file queue that does not exist is named',
+  (cwd, g) => commitNow(cwd, g, NOW('ask: team/ASK.md\n')),
+  async (r) => {
+    if (!/names team\/ASK\.md, which does not exist here/.test(r.context)) return 'missing ASK.md not named: ' + r.context;
+    return true;
+  },
+);
+
+// Round 2 of the same review: a parenthesis inside a branch name, and ask: values that
+// point outside the repo or at a directory, which once threw and silenced the whole report.
+nowCase(
+  'a branch whose name holds parentheses is found',
+  (cwd, g) => {
+    g('branch', 'feat/(legacy)');
+    commitNow(cwd, g, NOW('branches: feat/(legacy), main (the trunk)\n'));
+  },
+  async (r) => {
+    if (/do not exist here/.test(r.context)) return 'feat/(legacy) reported missing: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'an ask: path that is a directory is named, and the rest of the report survives',
+  (cwd, g) => commitNow(cwd, g, NOW('ask: .\n')),
+  async (r) => {
+    if (!/team\/NOW\.md is the resume board/.test(r.context)) return 'the NOW report was silenced: ' + r.context;
+    if (!/names \., which is neither/.test(r.context)) return 'ask: . not named: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'an ask: path outside the repo is refused, never read',
+  (cwd, g) => {
+    writeFileSync(join(cwd, '..', 'OUTSIDE.md'), '## ASK-0001\n', 'utf8');
+    commitNow(cwd, g, NOW('ask: ../OUTSIDE.md\n'));
+  },
+  async (r) => {
+    if (/holds 1 open item/.test(r.context)) return 'read a file outside the repo: ' + r.context;
+    if (!/neither a link nor a \.md file inside this repo/.test(r.context)) return 'the outside path was not refused: ' + r.context;
+    return true;
+  },
+);
+
+// Shadowing cases (2026-10-03, team-loop stage 2). They red against a version with no check,
+// one that runs outside a plugin install (a direct clone copies tl- agents to the user dir by
+// design), one that reads file names instead of the frontmatter name, one that reports every
+// agent, and one that tells only the model.
+const tlAgent = (name) => '---\nname: ' + name + '\ndescription: x\n---\nbody\n';
+const shadowCase = (name, plugin, files, check) =>
+  test(name, { state: 'current', at: hoursAgo(1) }, check, false, {
+    prep(root, cwd) {
+      this.env = { CLAUDE_CONFIG_DIR: join(root, 'cfg'), ...(plugin ? { CLAUDE_PLUGIN_ROOT: join(root, 'plugin') } : {}) };
+      for (const [where, file, text] of files) {
+        const dir = where === 'user' ? join(root, 'cfg', 'agents') : join(cwd, '.claude', 'agents');
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(join(dir, file), text, 'utf8');
+      }
+    },
+  });
+
+shadowCase('a user agent named tl-builder under a plugin install is reported to the person', true, [['user', 'tl-builder.md', tlAgent('tl-builder')]], async (r) => {
+  if (!/Team-loop agents shadowed: tl-builder \(user/.test(r.system)) return 'the person was not told: ' + r.out;
+  return true;
+});
+
+shadowCase('a project agent whose frontmatter name is tl-* is caught whatever its file name', true, [['project', 'mine.md', tlAgent('tl-researcher')]], async (r) => {
+  if (!/tl-researcher \(project/.test(r.context)) return 'frontmatter name not read: ' + r.out;
+  return true;
+});
+
+shadowCase('a quoted frontmatter name is caught', true, [['project', 'q.md', tlAgent('"tl-builder"')]], async (r) => {
+  if (!/Team-loop agents shadowed: tl-builder \(project/.test(r.system)) return 'a quoted name slipped past: ' + r.out;
+  return true;
+});
+
+shadowCase('outside a plugin install a user tl- agent is expected and stays silent', false, [['user', 'tl-builder.md', tlAgent('tl-builder')]], async (r) => {
+  if (/shadowed/.test(r.out)) return 'reported a direct-clone copy as shadowing: ' + r.out;
+  return true;
+});
+
+shadowCase('other user agents under a plugin install are not reported', true, [['user', 'code-reviewer.md', tlAgent('code-reviewer')]], async (r) => {
+  if (/shadowed/.test(r.out)) return 'reported a non-tl agent: ' + r.out;
+  return true;
+});
+// Round 3 stand-in (code-reviewer subagent, 2026-10-03): a failed git call read as "not
+// committed", a branch shadowed by a same-named tag, a failed fetch reported as fact about
+// origin, a recreated NOW.md called committed, and ask: dressing refused.
+test(
+  'a git failure is reported as an unreadable check, never as "not committed"',
+  { state: 'current', at: hoursAgo(1) },
+  async (r) => {
+    if (/is not committed/.test(r.context)) return 'a git failure read as not committed: ' + r.context;
+    if (!/could not be read/.test(r.context)) return 'the failure was not named: ' + r.context;
+    return true;
+  },
+  true,
+  { repo: (cwd, g) => commitNow(cwd, g, NOW()), env: { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'log.date', GIT_CONFIG_VALUE_0: 'bogus' } },
+);
+
+nowCase(
+  'a branch that shares its name with a tag is found',
+  (cwd, g) => {
+    g('branch', 'v1');
+    g('tag', 'v1');
+    commitNow(cwd, g, NOW('branches: v1\n'));
+  },
+  async (r) => (/do not exist here/.test(r.context) ? 'v1 reported missing: ' + r.context : true),
+);
+
+nowCase(
+  'when the fetch fails, a missing branch is not claimed absent from origin',
+  (cwd, g) => {
+    g('remote', 'add', 'origin', join(cwd, '..', 'no-such-remote'));
+    commitNow(cwd, g, NOW('branches: feat/elsewhere\n'));
+  },
+  async (r) => {
+    if (/locally or on origin/.test(r.context)) return 'asserted origin state after a failed fetch: ' + r.context;
+    if (!/The fetch failed/.test(r.context)) return 'the failed fetch was not named: ' + r.context;
+    return true;
+  },
+);
+
+nowCase(
+  'a NOW.md deleted in a commit and recreated untracked is not called committed',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    g('rm', '-q', 'team/NOW.md');
+    g('commit', '-qm', 'drop now');
+    writeNow(cwd, NOW());
+  },
+  async (r) => (/is not committed/.test(r.context) ? true : 'a recreated NOW.md read as committed: ' + r.context),
+);
+
+nowCase(
+  'a committed NOW.md missing from the working copy is reported, not silent',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    rmSync(join(cwd, 'team', 'NOW.md'));
+  },
+  async (r) => (/missing from the working copy/.test(r.context) ? true : 'a deleted resume board went unreported: ' + r.context),
+);
+
+nowCase(
+  'a committed NOW.md replaced by a directory is reported, not silent',
+  (cwd, g) => {
+    commitNow(cwd, g, NOW());
+    rmSync(join(cwd, 'team', 'NOW.md'));
+    mkdirSync(join(cwd, 'team', 'NOW.md'));
+  },
+  async (r) => (/team\/NOW\.md is committed but/.test(r.context) ? true : 'a resume board obstructed by a directory went unreported: ' + r.context),
+);
+
+nowCase(
+  'an ask: path in backticks with a note is read, and ask: none is silent',
+  (cwd, g) => {
+    mkdirSync(join(cwd, 'team'), { recursive: true });
+    writeFileSync(join(cwd, 'team', 'ASK.md'), '# ASK\n\n## ASK-0001 · decision\n', 'utf8');
+    commitNow(cwd, g, NOW('ask: `team/ASK.md` (regulated)\n'));
+  },
+  async (r) => (/team\/ASK\.md holds 1 open item/.test(r.context) ? true : 'dressed ask: not read: ' + r.context),
+);
+
+nowCase('ask: none says nothing about a queue', (cwd, g) => commitNow(cwd, g, NOW('ask: none\n')), async (r) =>
+  /Ask queue/.test(r.context) ? 'reported a queue for ask: none: ' + r.context : true,
 );
 
 const run = async () => {
