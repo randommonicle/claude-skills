@@ -47,10 +47,14 @@
 // assigned outside the command (`Stop-Process -Id $ids` with $ids from an earlier call), a
 // script run by name (`node kill.mjs`, `bash x.sh`), kills selected by port (lsof -ti:N |
 // xargs kill, Get-NetTCPConnection, npx kill-port), Stop-Service, `kill -9 -1`, a kill
-// word built at run time, cmd `for /f` loops over tasklist, and a kill inside a $(...)
-// argument of a denylisted command (`echo $(pkill x)`). The absolute-path test is syntactic: it
-// cannot tell this checkout's path from a shared one (C:\Python312\python.exe, C:\Users\x),
-// and the path may sit anywhere in the same statement bar a redirect target.
+// word built at run time, cmd `for /f` loops over tasklist, a listing written to a file and
+// killed from it in the same command (`ps ... >> pids; xargs kill < pids`: no variable, so no
+// taint), and a kill inside a $(...) argument of a denylisted command (`echo $(pkill x)`).
+// Known false positive, one retry: a Where-Object on PID that the pass cannot prove is
+// literal, e.g. `$_.Id -eq $x.Id`. The absolute-path test is syntactic: it cannot tell this
+// checkout's path from a shared one (C:\Python312\python.exe, C:\Users\x), and the path may sit
+// anywhere in the same statement bar a redirect target or the program's own path. The event
+// carries `cwd`, which this hook does not read; a prefix check against it is the tightening.
 // Fail-open: any script error exits 0 with no output.
 const MAX_DEPTH = 4;
 const SEP = '\u0001';
@@ -91,7 +95,7 @@ const KILL_BY_NAME = nameFlag('kill', 2);
 const SEG = R`[A-Za-z0-9_.@+-]+`;
 const NOT_PATH_TAIL = R`(?<![\w.~$:/\\-])`;
 const ABS_PATH = new RegExp(
-  R`[A-Za-z]:[\\/]+[^\\/\s'"\x60*?<>|:]+[\\/]+[^\\/\s'"\x60*?<>|:]+` +
+  R`(?<![A-Za-z0-9])[A-Za-z]:(?:\\{1,2}|/)[^\\/\s'"\x60*?<>|:]+(?:\\{1,2}|/)[^\\/\s'"\x60*?<>|:]+` +
     R`|${NOT_PATH_TAIL}/[A-Za-z]/${SEG}/${SEG}` +
     R`|${NOT_PATH_TAIL}/(?![A-Za-z]/)${SEG}/${SEG}`,
 );
@@ -285,9 +289,10 @@ function wrapperBodies(g, ps) {
 const PROGRAM_PATH = /\S*[\\/](?:pkill|killall|kill|taskkill|pgrep|pidof|ps|xargs|bash|sh|powershell|pwsh|cmd)(?:\.exe)?(?=\s|$)/gi;
 const pathExempt = (text) => ABS_PATH.test(text.replace(REDIRECT, ' ').replace(PROGRAM_PATH, ' '));
 
-// A filter clause that names only PIDs: `ProcessId=12 or ProcessId=14`, `$_.Id -eq 12`.
+// A filter clause that names only PIDs: `ProcessId=12 or ProcessId=14`, `$_.Id -eq 12`, `$_.Id -eq $target`
+// (a variable is trusted here; one assigned from a listing is caught by the taint pass).
 const pidOnly = (text) =>
-  text.split(/\s+-?or\s+|\|\|/i).every((c) => /^\(?\s*(?:\$_\.)?(?:ProcessId|Id)\s*(?:=|-eq)\s*\d+\s*\)?$/i.test(c.trim()));
+  text.split(/\s+-?or\s+|\|\|/i).every((c) => /^\(?\s*(?:\$_\.)?(?:ProcessId|Id)\s*(?:=|-eq)\s*(?:\d+|\$\w+)\s*\)?$/i.test(c.trim()));
 
 // The listing in this statement is limited to explicit PIDs: Get-Process -Id 12, ps -p 12,
 // -Filter "ProcessId=12", Where-Object { $_.Id -eq 12 }.

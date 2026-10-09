@@ -165,6 +165,19 @@ deny('2> after Stop-Process is a redirect, not a PID', 'Get-Process python | Sto
 deny('one-segment drive path is not enough', R`Get-Process | Where-Object { $_.Path -like 'C:\Windows*' } | Stop-Process`, PS);
 deny('one segment after an MSYS drive is not enough', 'pgrep -f /c/Users | xargs kill', SH);
 deny('relative path is not absolute', 'pgrep -f proj/venv/bin | xargs kill', SH);
+deny('a URL is not a drive path (bash)', 'pgrep -f https://example.com/api/health | xargs kill', SH);
+deny(
+  'a URL is not a drive path (PowerShell filter)',
+  "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*https://x.y/a/b*' } | Stop-Process",
+  PS,
+);
+deny('a drive-letter lookalike with // is not a drive path', 'pgrep -f "s://h/a/b" | xargs kill', SH);
+deny(
+  'a PID variable assigned from a name listing still taints the PID filter',
+  '$target = (Get-Process python*).Id; Get-Process | Where-Object { $_.Id -eq $target } | Stop-Process',
+  PS,
+);
+deny('a PID property of a listing variable is not a literal PID', '$x = Get-Process python*; Get-Process | Where-Object { $_.Id -eq $x.Id } | Stop-Process', PS);
 deny('a path in another statement does not scope the kill', `cd ${WT_FWD}; pkill -f pytest`, SH);
 deny('a path as a redirect target does not scope the kill', `Get-Process python | Stop-Process 2> ${WT}\\err.txt`, PS);
 deny('Stop-Process -Name is never path-scoped', R`Stop-Process -Name python # C:\Users\bengr\x`, PS);
@@ -211,6 +224,7 @@ allow(
   'Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -eq 1234 } | ForEach-Object { Stop-Process -Id $_.ProcessId }',
   PS,
 );
+allow('Where-Object { $_.Id -eq $variable } | Stop-Process', 'Get-Process | Where-Object { $_.Id -eq $target } | Stop-Process', PS);
 allow('wmic process where ProcessId=<digits> delete', 'wmic process where "ProcessId=1234" delete');
 allow('wmic process where processid=<digits> call terminate', 'wmic process where processid=1234 call terminate');
 allow('a listing and a literal-PID kill in one block', 'if (Get-Process node -ErrorAction SilentlyContinue) { Stop-Process -Id 1234 }', PS);
