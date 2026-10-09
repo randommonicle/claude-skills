@@ -1449,3 +1449,25 @@ model to establish what it can see".
 
 **class:** the class `prove-it-can-fail` exists for, a check never shown able to report the
 other answer; new surface: a model questioned about its own context.
+
+## 40. A worktree in a session scratchpad was emptied, and read as 175 files of unsaved work
+
+**What happened.** On 2026-09-29 a session in `Projects\Unslop` put the worktree for
+`docs/occam-trial` in its own scratchpad, under `%LOCALAPPDATA%\Temp\claude\`. On 2026-10-07 at
+09:07 every tracked file in it except `.gitignore` was deleted from disk; the folders stayed,
+empty, and the `.git` file survived. What deleted them was not established. The branch's three
+commits were safe in the clone. Rimagent's handover of 2026-10-09 then recorded that the worktree
+"holds 175 uncommitted files", which reads as work to save. Committing them would have committed
+the deletion of the whole library onto the branch. **verified**: on 2026-10-09, `git status -s`
+showed 175 entries, all ` D`; `git ls-files -d` listed every tracked file but `.gitignore`;
+`find -type f` found only `.gitignore` and `.git`; the folders' times were 2026-10-07 09:07.
+
+**The lesson.** Anything that must outlive the session, a worktree above all, goes beside the
+clone (`~/.claude/skills-wt-<name>`, as the others do), never in a scratchpad or under Temp. A
+handover reports uncommitted files by their status letters, not as a count: 175 deletions and
+175 edits are opposite situations.
+
+**skill that should have prevented this:** none - new candidate (where a worktree may live);
+`live-state-first` caught the misreading before anything was committed.
+
+**class:** state that must outlive a session kept where the system may clean it.
