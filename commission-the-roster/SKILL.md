@@ -241,6 +241,21 @@ interns, zero watchers.
 - **The lead's own context is billed at the highest rate in the commission.** A lead drifting
   past half its window re-sends that window every turn. Keep the lead reading briefs and diffs,
   never repositories.
+- **The cheap tier is cheap only while its context is small.** Checked 2026-10-11: the current
+  cheap model bills every rate, cache reads included, five times higher on a prompt over 100,000
+  tokens. That moves it from about a twentieth of the mid tier's per-token price to about a
+  quarter, and its cache reads from a tenth of the mid tier's to a half. This skill's own
+  measurements put orientation alone at 60k to 120k, so a cheap-tier agent crosses the line early
+  and stays above it. Price a cheap-tier row at the over-100K rate unless its scope provably keeps
+  it under; for that tier, context per agent sets the rate as well as the volume (figures in
+  context-economy's `references/provider-mechanics.md`, prices in **claude-api**).
+- **Write the effort into the Model column, and never run a cheap-tier agent that owns a
+  verification step at low effort.** An unstated effort is the harness default, and the defaults
+  differ by model. The evidence for the floor is single-source: an operator's published comparison
+  (Reddit, 2026-10) in which the cheap model at low effort skipped verification and explained the
+  gap with a build stall that never happened, while at high effort it made 385 requests against
+  29 at medium for no gain in quality and spent most of its price advantage. Treat both as a
+  hypothesis to measure on our own waves.
 - **Two agents in one working copy invalidate every recon either did.** Give each agent its own
   worktree or serialise them, and expect a fresh worktree to need a dependency install before
   anything runs. See **parallel-work-recon**.

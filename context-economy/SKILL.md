@@ -68,7 +68,7 @@ listing to the prompt at all.
 
 ## Rule 3: keep the prefix stable
 
-Every major provider bills a cache read at roughly a tenth of fresh input, and every one of them
+Every major provider bills a cache read at a tenth of fresh input or less, and every one of them
 gives the same structural rule in near-identical words: **stable content first, volatile content
 last.** Anthropic: place the breakpoint *"at the end of the static prefix, not on the varying
 block"*. OpenAI: *"Put stable developer instructions and shared reference material first"*, and
