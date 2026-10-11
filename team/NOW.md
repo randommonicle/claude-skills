@@ -1,26 +1,23 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-11 23:30 BST, an Unslop session on Ben's brief: check a Reddit Haiku 5.5 claim against the roster skill, then check the repo and its upstreams
-topic: the Haiku 5.5 pricing edits (PR #20); the repo and upstream check's findings wait on Ben, listed under In flight
-next: on or after 2026-10-16, read the Occam trial again and decide (DECISIONS 2026-10-09, second week). Before that, Ben's calls on the In flight items from the 2026-10-11 check. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
-branches: main; docs/haiku-5-5-pricing until merged (worktree ~/.claude/skills-wt-haiku-5-5, remove after the merge)
+updated: 2026-10-12 00:07 BST, an Unslop session on Ben's "agree to all ... do it all" after the 2026-10-11 repo and upstream check
+topic: fork licences gated, unslop Reddit quotes paraphrased, legal upstream check recorded, ~/.agents/skills refreshed, Cloudflare pack reviewed (PR #21)
+next: on or after 2026-10-16, read the Occam trial again and decide (DECISIONS 2026-10-09, second week). Ben's two open calls on the Cloudflare pack (In flight). Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+branches: main; fix/fork-licences until merged (worktree ~/.claude/skills-wt-fork-licences, remove after the merge)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
-- main 6cf6883 (PR #19): the Occam trial read, a second week, lesson 40; the live library updated to it on 2026-10-11
-- This branch: commission-the-roster's two traps (Haiku 5.5's fivefold price step over 100K prompt tokens; effort named in the roster, no low effort on a cheap-tier agent that owns verification); provider-mechanics' Anthropic caching figures re-read for the 5.5 models. Tier policy unchanged
+- main 4f64d66 (PR #20): commission-the-roster's Haiku 5.5 price-step and effort traps; provider-mechanics re-read for the 5.5 models; tier policy unchanged (DECISIONS 2026-10-11)
+- This branch: LICENSE files in the three unslop forks, bundled into their archives; their 36 Reddit quotes paraphrased; hooks/check-licences.mjs with its suite, in the archives job; the legal forks' Last checked lines; DECISIONS (licences, ~/.agents/skills, the Cloudflare source, Haiku 5.5); LESSONS 41; docs/REVIEW_cloudflare-pack_2026-10-12.md
+- Machine, on Ben's word: library agents copied to ~/.claude/agents (all six match); ~/.agents/skills backed up to ~/.agents/skills-backup-2026-10-12 and reset to origin/main with no rewrite (DECISIONS 2026-10-12)
 
 ## In flight
 
 - Nothing running. ASK-0009's item stays on the board until passive income records the decision
-- Found on 2026-10-11, waiting on Ben, none acted on:
-  - unslop-code, unslop-text and unslop-ui ship without the MIT notice their upstream's LICENSE requires, in the repo and in their .skill archives (UPSTREAM.md is not packed), and the README says their UPSTREAM.md records those terms. The same LICENSE excludes "harvested Reddit text" from the grant, and the three tells.md files carry dozens of verbatim, attributed Reddit quotes; the DATA_NOTE.md it points to does not exist upstream
-  - ~/.agents/skills is a second clone of this repo at bea30c9 (2026-08-06), 249 commits behind, with CLAUDE.md rewritten to AGENTS.md in 17 tracked files and newer skills copied in untracked; something outside this repo rewrote its team-loop/SKILL.md on 2026-10-11. Nothing here documents it
-  - rohasnagpal/legal-ai-skills is 38 commits past our pin (head ad5df19): the forked files moved to plugins/legal-ai-skills/, seven of nine are byte-identical, the other two add tool-dependent sections our forks already cover. UPSTREAM.md paths are stale; nothing to adopt
-  - JCarterJohnson/vibecoded-design-tells: identical to our pin
-  - this machine's ~/.claude/agents: the four tl- agents are absent; code-reviewer and property-reg-reviewer lack the effort line
+- Open with Ben: reinstall the Cloudflare pack at upstream head (210 commits newer); and whether to write down that the library's guardrails outrank a vendor skill's examples (docs/REVIEW_cloudflare-pack_2026-10-12.md)
+- ~/.agents/skills: pull it after each merge until something does it automatically; modified files there mean the Codex app imported again
 
 ## Deferred, with grep anchors
 
