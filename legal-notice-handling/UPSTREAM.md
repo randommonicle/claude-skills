@@ -8,6 +8,12 @@
 - **Upstream commit:** `a5c00ec629146101831ba0404a64109402d77077` (2026-09-02, "Make release
   checksums cross-platform"; cloned 2026-10-03)
 - **Plan:** `docs/HANDOVER_legal-fork_2026-09-11.md`
+- **Last checked:** 2026-10-11 against upstream head `ad5df19` (just after its release 4.1.1,
+  38 commits past the pin). The files moved to `plugins/legal-ai-skills/skills/`. The reply and
+  analyser bodies are byte-identical to the pin; the demand drafter adds one "Calculations"
+  section that sends interest figures to the upstream's bundled calculator tool. Not adopted:
+  this library ships no such tool, and rule 3 here ("Money is shown with its arithmetic")
+  already requires every interest figure with its rate.
 
 Heavily rewritten into a house-style guardrail; not a verbatim copy. All three upstream bodies
 were read in full on 2026-10-03 before distilling (the plan had them as spot-checked only).
