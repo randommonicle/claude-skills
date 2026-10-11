@@ -1,6 +1,6 @@
 # The vibe-coded tells: full catalog
 
-Each entry has the data evidence (so you can weight it), a real quote from the threads,
+Each entry has the data evidence (so you can weight it), a paraphrase of what people said in the threads,
 the code-level signatures the scanner keys on, and the fix. Ordered by priority (comment
 share in the on-topic data, which is the cleanest signal). Source: ~3.2M posts across 47
 AI/SaaS subreddits and 3,033 comments from 125 "why do AI sites all look the same"
@@ -69,9 +69,10 @@ completes to.
 **Evidence:** named in 2.5% of on-topic comments, the single most-cited concrete cause
 of the "they all look the same" reaction. Independent commenters across 6+ subreddits.
 
-**Quote:** "Every Claude/Cursor project defaults to the same shadcn components with
-identical slate gray cards, that specific blue accent, and the same padding rhythm. You
-can spot it from a screenshot." (r/ClaudeAI). Also: "It is because everyone use shadcn/ui."
+**What people say:** Every Claude or Cursor project is said to land on the same shadcn
+components, slate grey cards, one particular blue accent and the same padding rhythm,
+recognisable from a screenshot (r/ClaudeAI). Another put it down simply to everyone using
+shadcn/ui.
 
 **Why it reads as AI:** shadcn/ui and Tailwind are excellent, but their *defaults* are
 the most common output a model produces. The slate/zinc/gray neutral cards, the default
@@ -101,9 +102,10 @@ If not, you have not themed it.
 "gradients" more than any other pair (32 times). Commenters trace it directly to
 Tailwind's default indigo.
 
-**Quote:** "this purple is used way too much everywhere." And: "That black/purple theme
-80% of the time for me." And from Anthropic's own frontend-design guidance, quoted by a
-user: avoid "cliched color schemes (particularly purple gradients on white background)."
+**What people say:** Posters complain that this purple appears everywhere and that the
+black-and-purple theme turns up most of the time. A user also pointed to Anthropic's own
+frontend-design guidance, which tells the model to avoid clichéd colour schemes, purple
+gradients on white in particular.
 
 **Why it reads as AI:** Tailwind's default-ish accent and a lot of starter templates land
 on indigo/violet (#6366f1, violet-500/600). Models reach for it when no brand color is
@@ -127,9 +129,9 @@ color, not the default one.
 **Evidence:** named in 2.0% of comments. The single highest-scored design comment in the
 entire dataset (373 upvotes) leads with it.
 
-**Quote:** "the purple-to-blue gradient is the biggest tell lol. also bento grid layouts,
-rounded corners on everything, hero section with gradient text that says 'transform your
-X', and way too much whitespace." (r/ClaudeAI, 373 upvotes)
+**What people say:** The top answer in one thread (373 upvotes, r/ClaudeAI) named the
+purple-to-blue gradient as the biggest tell, then bento grids, rounded corners on everything, a
+hero with gradient text promising to transform something, and far too much whitespace.
 
 **Why it reads as AI:** the purple-to-blue (or purple-to-pink) gradient on the hero,
 gradient-filled headings, and gradient buttons are a template default. Gradient *body
@@ -156,9 +158,9 @@ beats a gradient almost every time.
 signal (the keyword catches tool mentions and positive notes too), so weight it below
 the color and layout tells.
 
-**Quote:** "It's always the unnecessary hover animations and gradients that give it away
-in my opinion." Also: "What triggers me is the grow animation on hover." And complaints
-about scrolljacking (the page hijacking your scroll to play transitions).
+**What people say:** Unneeded hover animations and gradients are named as the giveaway, the
+grow-on-hover effect in particular, along with scrolljacking (the page hijacking your scroll to
+play transitions).
 
 **Why it reads as AI:** generated sites tend to bolt fade-in-on-scroll onto every section
 and a scale-up on every card hover, because the starter components include it. The motion
@@ -181,8 +183,8 @@ If every section animates the same way, none of it means anything; cut it.
 
 **Evidence:** named in 0.8% of comments, and it appears in the top-scored comment's list.
 
-**Quote:** "The blue and purple with the rounded boxes looks very vibecoded to me." And:
-"Purple gradients and the urge to put a box around everything."
+**What people say:** Blue and purple with rounded boxes is described as looking vibe-coded, as
+is the urge to put a box around everything.
 
 **Why it reads as AI:** one large radius applied uniformly (cards, inputs, buttons,
 images, the whole page) plus fully-pill buttons is a default. Real design uses radius
@@ -205,8 +207,8 @@ buttons are fine occasionally, not as the only button shape.
 **Evidence:** named in 0.7% of comments, multi-author and multi-subreddit, several noting
 the model adds the glow even when never asked.
 
-**Quote:** "AI loves this glowing shit. for no reason. but at least there is no purple
-gradients. it's something." (r/webdev)
+**What people say:** A web developer complained that AI adds glow effects for no reason,
+conceding only that at least they were not purple gradients (r/webdev).
 
 **Why it reads as AI:** dark background plus neon `text-shadow`/`box-shadow` glow on
 headings, buttons, or borders, unprompted, is a generated-template default. Dark mode
@@ -230,8 +232,8 @@ contrast and spacing, not glow.
 "emoji-as-icons" pattern (the post-level count is inflated by emoji appearing in post
 bodies generally, so weight the *icon* usage, not emoji in copy broadly).
 
-**Quote:** "Emojis as icons. If I see them, I instantly doubt the creators ability to
-even vibe-code properly. And it gives me a hint of the 'quality' of the backend." (r/ClaudeAI)
+**What people say:** One poster said emoji used as icons make them doubt the creator's
+competence and hint at the quality of the backend (r/ClaudeAI).
 
 **Why it reads as AI:** 🚀 ✨ ⚡ 🔒 used as feature-card icons or section bullets is a
 generated default (it needs no asset pipeline, so models reach for it). It renders
@@ -254,10 +256,10 @@ copy where a person would actually use one is fine; emoji standing in for UI ico
 **understated**, because many more people just say "generic font" or "same fonts over and
 over" without naming one.
 
-**Quote:** Anthropic's own frontend-design skill, quoted by a user, says to avoid
-"overused font families (Inter, Roboto, Arial, system fonts)." And: "Black background,
-neon and lime green text. Inter font. 3 cards with thick border on left only" (offered as
-a checklist of giveaways).
+**What people say:** A user pointed to Anthropic's own frontend-design skill, which warns
+against overused font families such as Inter, Roboto, Arial and system fonts. Another offered a
+checklist of giveaways: a black background, neon and lime text, Inter, and three cards with a
+thick left border.
 
 **Why it reads as AI:** Inter and Geist are the default sans for Tailwind/Next starters,
 so leaving them is "nobody chose the type." Good type is one of the fastest ways to look
@@ -287,9 +289,9 @@ type system you can justify, not the starter font and not the starter "nice" fon
 **Evidence:** named in 0.4% of comments and 1.6% of posts. Tied directly to shadcn
 defaults by commenters.
 
-**Quote:** "the issue usually isn't the prompt, it's that shadcn defaults give you
-symmetric centered hero + 3 feature cards + cta, which is the dead giveaway. break the
-grid: asymmetric hero, one oversized screenshot or loom-style video." (r/ClaudeCode)
+**What people say:** One answer argued the prompt is rarely the problem: shadcn defaults
+produce a symmetric centred hero, three feature cards and a call to action, and the fix is to
+break the grid with an asymmetric hero and one oversized screenshot or video (r/ClaudeCode).
 
 **Why it reads as AI:** the exact page skeleton (centered hero with a big headline and two
 buttons, then a 3-column grid of icon feature cards, then a centered CTA band) is the most

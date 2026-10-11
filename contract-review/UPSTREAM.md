@@ -6,6 +6,10 @@
 - **Upstream commit:** `a5c00ec629146101831ba0404a64109402d77077` (2026-09-02, "Make release
   checksums cross-platform"; cloned 2026-10-03)
 - **Plan:** `docs/HANDOVER_legal-fork_2026-09-11.md`
+- **Last checked:** 2026-10-11 against upstream head `ad5df19` (just after its release 4.1.1,
+  38 commits past the pin). The files moved to
+  `plugins/legal-ai-skills/skills/contract-reviewer/`; `SKILL.md` and all three references are
+  byte-identical to the pin. Nothing to adopt.
 
 `SKILL.md` is heavily rewritten into a house-style guardrail; it is not a verbatim copy. The three
 files under `references/` are verbatim copies.

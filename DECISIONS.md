@@ -5,6 +5,57 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-10-12 Fork licences are gated, and the unslop forks carry no verbatim Reddit text
+
+Ben, 2026-10-11 ("agree to all"), on the repo and upstream check. Three parts:
+
+- Every fork carries its upstream's notice, and `hooks/check-licences.mjs` (run in the
+  `archives` job) fails the build when one does not. A fork that ships a `.skill` archive keeps
+  the notice in a `LICENSE` file, the only place it can reach the archive. **Why:** the README
+  asserted it and nothing enforced it, and three of seven forks had no notice (LESSONS_LEARNED 41).
+- The unslop forks' 36 Reddit quotes are paraphrased, subreddit kept. **Why:** the upstream's
+  LICENSE excludes "the harvested Reddit text in the data files" from its MIT grant and names a
+  `DATA_NOTE.md` that does not exist, while its own skill text quoted Reddit posts verbatim. A
+  paraphrase keeps every tell's evidence without relying on a grant that may not reach the
+  text. An upstream refresh brings the quotes back, so each `UPSTREAM.md` lists the paraphrase
+  as a patch to re-apply.
+- The legal forks' upstream moved and rebranded; seven of the nine forked files are unchanged
+  and the two changes depend on upstream tools we do not ship. Nothing adopted; each
+  `UPSTREAM.md` has a Last checked line.
+
+## 2026-10-12 ~/.agents/skills is kept as a clean checkout of this repo
+
+`~/.agents/skills` was created on 2026-08-09 by the Codex app's import of the Claude setup: a
+copy of this clone at `bea30c9` with `.git` included, rewritten word for word, so "CLAUDE.md"
+became "AGENTS.md" but also "claude.ai" became "Codex.ai" and `.claude/` became `.Codex/`. By
+2026-10-11 it was 249 commits behind, and later skills had been copied in untracked with the
+same rewrite. On Ben's word it was backed up to `~/.agents/skills-backup-2026-10-12` and reset to
+`origin/main` with no rewrite; the vendor packs and `synced/` beside it are ignored and stayed.
+**Why:** the rewrite corrupted references, and a clean checkout can be kept current with
+`git -C ~/.agents/skills pull --ff-only`. The Codex app may import again and rewrite; if
+`git -C ~/.agents/skills status` shows modified files, that is what happened. Nothing compares
+it automatically yet.
+
+## 2026-10-12 The Cloudflare pack's source is recorded
+
+The 2026-08-10 rule says each machine reinstalls a vendor pack from its own source, and no source
+was written down. It is `https://github.com/cloudflare/skills`: every local file hash-matches its
+commit `f96bff7` (2026-08-07, "Add stable and @next Sandbox agent skills"). On 2026-10-12 upstream
+was at `c430dd9`, 210 commits ahead, with all 13 skills changed and four new ones. The pack stays
+machine-local and unedited. Its conflicts with this library's guardrails are in
+`docs/REVIEW_cloudflare-pack_2026-10-12.md`.
+
+## 2026-10-11 Haiku 5.5 does not change the tier policy
+
+Checked against a Reddit claim that Haiku 5.5 at medium effort can be the main coding agent at
+about a twentieth of Sonnet 5.5's cost. commission-the-roster's allocation stays as it is: the
+cheap tier for mechanical work only. **Why:** the twentieth holds only below 100,000 prompt
+tokens, above which every Haiku 5.5 rate rises fivefold (a quarter of Sonnet per token, half on
+cache reads), and this library's agents pass that line during orientation. Anthropic's launch page
+keeps Sonnet 5.5 and Opus 5.5 for complex agentic coding (Terminal-Bench 4.0: 39.2% against
+70.6%). The price step and an effort trap went into commission-the-roster (PR #20). Revisit on
+our own measurement, never on a third party's single run.
+
 ## 2026-10-09 The Occam trial runs a second week, to 2026-10-16
 
 Ben, 2026-10-09, after the first read (`docs/REVIEW_occam_2026-09-29.md`, "Trial read,
