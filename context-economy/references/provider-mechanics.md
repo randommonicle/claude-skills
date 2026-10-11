@@ -10,7 +10,8 @@
 - What does not port
 - Re-verification
 
-**All figures below were read from the vendor's own page on 2026-09-16.** They move. Re-read the
+**All figures below were read from the vendor's own page on 2026-09-16, except the Anthropic cache
+minimums and multipliers, re-read on 2026-10-11 for the 5.5 models.** They move. Re-read the
 page before quoting any number from this file in anything that leaves the building. Full extraction
 notes, including which facts came from a search summary rather than the page itself, are in
 [docs/RESEARCH_2026-09-16_token-efficiency.md](../../docs/RESEARCH_2026-09-16_token-efficiency.md).
@@ -25,7 +26,7 @@ are the only things safe to assume without checking.
 1. **The whole prefix is re-sent on every turn.** Conversations are stateless at the provider.
 2. **Stable content first, volatile content last.** All three give this rule for caching; Google
    gives the same ordering independently for accuracy.
-3. **A cache read costs roughly a tenth of fresh input.** Hence: do not disturb the prefix.
+3. **A cache read costs a tenth of fresh input or less.** Hence: do not disturb the prefix.
 4. **A minimum cacheable length exists, and falling below it fails silently.**
 5. **Caches expire in minutes**, not hours, unless explicitly extended.
 6. **Changing a setting can invalidate a cache**, not only changing content.
@@ -35,7 +36,8 @@ are the only things safe to assume without checking.
 ## Anthropic mechanics
 
 Source: `https://platform.claude.com/docs/en/build-with-claude/prompt-caching`
-(`docs.claude.com` 302-redirects here). Read 2026-09-16.
+(`docs.claude.com` 302-redirects here). Read 2026-09-16; minimums and multipliers re-read
+2026-10-11.
 
 **Explicit breakpoints.** Marking a block with `cache_control` writes exactly one cache entry: a
 hash of the prefix ending at that block. No entries are written for earlier positions.
@@ -52,14 +54,14 @@ across the requests you want to share a cache."* For a varying suffix (timestamp
 context, the incoming message), the breakpoint goes at the end of the static prefix, never on the
 varying block.
 
-**Minimum cacheable prefix**, per the page's table on 2026-09-16:
+**Minimum cacheable prefix**, per the page's list on 2026-10-11:
 
 | Model | Minimum tokens |
 |---|---|
-| Fable 5.1, Mythos 5.1, Opus 5, Fable 5, Mythos 5 | 512 |
+| Fable 5.1, Mythos 5.1, Opus 5.5, Opus 5, Sonnet 5.5, Fable 5, Mythos 5, Haiku 5.5 | 512 |
 | Opus 4.8, Sonnet 5, Sonnet 4.6, Sonnet 4.5, Opus 4.1, Opus 4, Sonnet 4 | 1,024 |
 | Mythos Preview, Opus 4.7 | 2,048 |
-| Haiku 3.5 | 2,048 |
+| Haiku 3.5 (retired except on Google Cloud) | 2,048 |
 | Opus 4.6, Opus 4.5, Haiku 4.5 | 4,096 |
 
 Quoted: *"Shorter prompts cannot be cached, even if marked with `cache_control`. Any requests to
@@ -67,7 +69,12 @@ cache fewer than this number of tokens will be processed without caching, and no
 returned."*
 
 **Price multipliers against base input:** 5-minute write 1.25x, 1-hour write 2x, read 0.1x for
-most models and 0.025x for Fable 5.1 and Mythos 5.1.
+most models, 0.05x for Opus 5.5 and Sonnet 5.5, and 0.025x for Fable 5.1 and Mythos 5.1.
+
+**Haiku 5.5 is priced by prompt size.** Every rate, cache reads and writes included, is five times
+higher on a prompt over 100,000 tokens. An agent whose context passes that line pays the higher rate
+on every turn while it stays above it, so the cheap tier is cheap only for small contexts. The
+prices themselves live in **claude-api**.
 
 **Non-obvious invalidators:** toggling web search, toggling citations, changing the speed setting,
 and changing `tool_choice` all invalidate at or below `system`. Images invalidate `tools` and
@@ -156,7 +163,7 @@ gives no degradation figures — it does not, on its own, support any claim abou
 |---|---|---|---|
 | Caching mode | Explicit `cache_control` | Implicit; explicit on GPT-5.6+ | Implicit (2.5+) |
 | Minimum prefix | 512-4,096 by model | 1,024 (GPT-5.6+) | 2,048 API / 4,096 open models |
-| Read discount | 0.1x (0.025x on two models) | up to 90% off; 0.1x on GPT-5.6 | 10% of input |
+| Read discount | 0.1x (0.05x or 0.025x on four models) | up to 90% off; 0.1x on GPT-5.6 | 10% of input |
 | Write premium | 1.25x (5m) / 2x (1h) | none stated | storage per hour |
 | Lifetime | 5m default, 1h option | ~30m (GPT-5.6) | not read |
 | Granularity | Block boundaries, 20-block lookback | 128-token rounding pre-5.6; exact after | not exposed |
