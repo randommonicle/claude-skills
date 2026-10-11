@@ -34,6 +34,16 @@ node hooks/check-archives.mjs
 
 It reads each archive's members with a stdlib-only zip reader (no dependencies) and asserts the **set** against the directory in both directions — every bundled file present in the archive, every archive member still on disk — plus each shared file's content, normalising CRLF so a checkout's line endings are never mistaken for drift. It reds naming every stale, missing or orphaned member. Like the index gate it is a whole-tree gate, not a Write/Edit hook, because an archive going stale is a non-edit to a second file the edit never touched. `hooks/check-archives.test.mjs` proves it can go red: ten cases each mutating one thing and pinning its own substring, including one in the shape of entry 9's incident (a script patched on disk but not repacked). When it reds, `node hooks/pack-skill.mjs <skill-dir>` (or `--all`) rebuilds the archive deterministically, so the fix is one command.
 
+## The licence gate
+
+A fork is a skill directory with an `UPSTREAM.md`. The README said each fork's `UPSTREAM.md` records its upstream's terms; nothing checked it, and on 2026-10-11 the three `unslop-*` forks carried no notice at all, in the repo or in their archives (LESSONS_LEARNED 41). `hooks/check-licences.mjs` runs in the `archives` job:
+
+```bash
+node hooks/check-licences.mjs
+```
+
+Per fork it asserts a `## Licence` section in `UPSTREAM.md`; the notice itself, as a fenced block holding a `Copyright` line in that section or a `LICENSE` file holding one; and, for a fork that ships a `.skill` archive, the `LICENSE` file, because `UPSTREAM.md` is never packed and the archive gate then proves the `LICENSE` is in the zip. It exits 2 when it finds no fork at all, so an empty tree cannot pass. `hooks/check-licences.test.mjs` proves each red case, including the 2026-10-11 shape, and that the real library passes.
+
 Domain skill packs do not live here (DECISIONS.md, 2026-09-14). `hooks/install-marketing-pack.mjs <target-repo>` installs a stripped, pinned subset of `coreyhaines31/marketingskills` into a repo's own `.claude/skills/` with an `UPSTREAM.md` listing every cut, and refuses to overwrite a same-named skill it did not install; `hooks/install-marketing-pack.test.mjs` proves each cut and each refusal against a fixture pack.
 
 [LESSONS_LEARNED.md](LESSONS_LEARNED.md) holds field notes from applying these skills on real jobs: what broke, what the skills caught, and what only a human pass caught.

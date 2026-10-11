@@ -10,7 +10,8 @@
 # scanner their own patch log said was fixed). A stale archive has no reader
 # until something installs it, and then it installs the past — invisible to a
 # Write/Edit hook for the same reason a deletion is, so it too is a whole-tree
-# gate rather than a warn.
+# gate rather than a warn. Since 2026-10-11 it also runs the fork-licence gate
+# (LESSONS_LEARNED 41): every */UPSTREAM.md fork carries its upstream's notice.
 #
 # hooks: every hook's own suite. Added because seven of the eight suites were
 # running nowhere. lint-after-edit.test.mjs is the reason it matters: its stubs
@@ -91,6 +92,12 @@ jobs:
         run: node hooks/check-archives.test.mjs
       - name: every .skill archive matches its skill directory
         run: node hooks/check-archives.mjs
+      # The fork-licence gate rides in this job because its third invariant is about
+      # archives: a fork that ships one must hold a LICENSE file, the only place a
+      # notice can reach the archive. Its suite also runs in the hooks job's glob.
+      - name: every fork carries its upstream's licence notice
+        if: always()
+        run: node hooks/check-licences.mjs
 
   hooks:
     runs-on: ubuntu-latest

@@ -1471,3 +1471,25 @@ handover reports uncommitted files by their status letters, not as a count: 175 
 `live-state-first` caught the misreading before anything was committed.
 
 **class:** state that must outlive a session kept where the system may clean it.
+
+## 41. Three forks shipped without their upstream's licence notice, under a README that said they had it
+
+**What happened.** On 2026-10-11 a check of the repo's upstreams read each fork's provenance. The
+four legal forks reproduced their MIT notice in `UPSTREAM.md`. The three `unslop-*` forks, cloned
+on 2026-06-25, carried none: not in `UPSTREAM.md`, not in a `LICENSE` file, and not in their
+`.skill` archives, which never bundle `UPSTREAM.md` anyway. The README said all seven "carry
+their upstream's terms, recorded in their own `UPSTREAM.md`". The same upstream LICENSE excludes
+"the harvested Reddit text in the data files" from its grant, and the forks' reference files
+quoted Reddit posts verbatim, copied from the upstream's own skill text. **verified**: the
+upstream LICENSE read through the GitHub API on 2026-10-11; `check-licences.mjs` run against the
+pre-fix tree printed six failures, two per unslop fork, and none for the legal forks.
+
+**The lesson.** "Each fork records its licence" was a convention stated in prose, so the second
+family of forks to arrive followed the first family's shape for provenance and patches and
+skipped the part nobody looked at. Licence terms belong in the same place as the other
+invariants: a gate that reds. Read the whole upstream LICENSE when forking, including any
+paragraph after the standard text; that is where a carve-out lives.
+
+**skill that should have prevented this:** enforce-invariants-in-build
+
+**class:** a provenance or licence claim stated in prose that no gate asserts.

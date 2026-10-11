@@ -6,6 +6,7 @@ a reader.
 ## Conventions
 
 - A forked/edited skill carries an `UPSTREAM.md` recording its source repo, source commit, and our local patches. **When pulling an upstream update, re-apply the patches listed there** so our fixes are not lost.
+- That `UPSTREAM.md` has a `## Licence` section, and the upstream's notice travels with the fork: in a fenced block there, or in a `LICENSE` file beside `SKILL.md`. A fork that ships a `.skill` archive needs the `LICENSE` file, because `UPSTREAM.md` is never packed. `check-licences.mjs` reds on a fork that has neither (LESSONS_LEARNED 41).
 - Our own original skills don't need an `UPSTREAM.md`.
 - Every leaf description carries a "does not fire on" line; no two leaves share their primary trigger vocabulary; soft cap ~60 words per description.
 - Adding a leaf updates its hub's routing table in the same commit.
@@ -22,13 +23,18 @@ node hooks/check-archives.mjs
 ```
 
 ```bash
+node hooks/check-licences.mjs
+```
+
+```bash
 for t in hooks/*.test.mjs; do node "$t" || echo "FAILED: $t"; done
 ```
 
 The index gate asserts the skill set in both directions, each skill's frontmatter `name` against
 its directory, a non-empty description, the wiring of the two command gates, and the three stated
-skill counts. The archive gate asserts each committed `.skill` zip against its directory. Both run
-in CI on every push and PR.
+skill counts. The archive gate asserts each committed `.skill` zip against its directory. The
+licence gate asserts that every fork carries its upstream's notice. All three run in CI on every
+push and PR, the licence gate inside the `archives` job.
 
 Changes reach main by PR only. Since 2026-10-04 a ruleset requires the four CI jobs (`index`,
 `archives`, `hooks`, `hooks-windows`) to pass before a merge, and refuses a direct push to main
