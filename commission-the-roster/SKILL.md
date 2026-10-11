@@ -250,8 +250,8 @@ interns, zero watchers.
   it under; for that tier, context per agent sets the rate as well as the volume (figures in
   context-economy's `references/provider-mechanics.md`, prices in **claude-api**).
 - **Write the effort into the Model column, and never run a cheap-tier agent that owns a
-  verification step at low effort.** An unstated effort is the harness default, and the defaults
-  differ by model. The evidence for the floor is single-source: an operator's published comparison
+  verification step at low effort.** An unstated effort falls to whatever default applies, and
+  the API defaults differ by model. The evidence for the floor is single-source: an operator's published comparison
   (Reddit, 2026-10) in which the cheap model at low effort skipped verification and explained the
   gap with a build stall that never happened, while at high effort it made 385 requests against
   29 at medium for no gain in quality and spent most of its price advantage. Treat both as a
