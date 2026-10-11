@@ -1,6 +1,6 @@
 # The AI-writing tells: full catalog
 
-Each entry has the data evidence (so you can weight it), a real quote from the threads, the
+Each entry has the data evidence (so you can weight it), a paraphrase of what people said in the threads, the
 literal text the scanner keys on, and the fix. Ordered by priority: the **cited share** from
 the 600-post audited sample, which is the cleanest signal, with the broad keyword-pass share
 next to it. Source: 89,239 posts pulled, 7,984 on-topic, across roughly 50 AI, writing, and
@@ -59,9 +59,9 @@ Part C, cleared by the data (do not over-chase):
 sharpest before-and-after: essentially absent from the on-topic posts before 2024, then 6.7%
 of them in 2025. The arrival of the ChatGPT era in one punctuation mark.
 
-**Quote.** "If you're familiar with ChatGPT, you know it loves an em-dash. If you're familiar
-with the average teenager, then you know they have no clue what an em-dash is." (r/Teachers).
-And: "Em dashes have become the single most reliable tell of AI-generated text." (r/ChatGPT)
+**What people say.** A teacher pointed out that ChatGPT loves the em dash while the average
+teenager has no idea what one is (r/Teachers), and others call the em dash the most reliable
+single tell of AI text (r/ChatGPT).
 
 **Pattern (scanner).** the em dash character itself, anywhere in the file. Unlike the other
 rules, this one is flagged inside quotes too, because the rule is simply not to ship one.
@@ -79,9 +79,9 @@ the line `unslop-ignore`, but know that readers will still read it as a tell.
 **Evidence.** cited 2.8%, matched 1.9%. The most-named *sentence* tell, often paired with the
 em dash in the same complaint.
 
-**Quote.** "even beyond the obvious em dashes and 'not just x, it's y' or 'straight up' or
-'era' or 'honestly? that's growth'." (r/ChatGPT). And: "it's not even the 'That's not x;
-that's y.' ChatGPT has a very recognizable cadence." (r/ChatGPT)
+**What people say.** Posters list the "not just X, it's Y" frame beside slang tics such as
+"straight up" and "honestly? that's growth" (r/ChatGPT), and describe the "that's not X; that's
+Y" pattern as part of a cadence that is easy to recognise (r/ChatGPT).
 
 **Pattern (scanner).** `it's not just X, it's Y`, `not X, but Y`, `isn't just ... it's ...`.
 The negate-then-assert shape.
@@ -96,11 +96,11 @@ negation in front of it.
 
 **Evidence.** formulaic shape cited 2.5%; the "In conclusion" / "in summary" closer cited
 0.2% but matched 1.0% and is a classic giveaway. Several auditors called the shape
-under-counted ("the exact same rigid three-paragraph formula").
+under-counted (several described one fixed three-paragraph template).
 
-**Quote.** "people using ChatGPT or other AI tools to write essays, posts, or even emails, and
-they leave in those super obvious lines like: 'In conclusion, this essay has discussed...',
-'As an AI developed by OpenAI...', 'To summarize the above points...'." (r/ChatGPT)
+**What people say.** Users complain about essays, posts and emails that keep boilerplate such
+as an "In conclusion, this essay has discussed" closer, an "As an AI developed by OpenAI"
+disclaimer or a "To summarize the above points" wrap-up (r/ChatGPT).
 
 **Pattern (scanner).** `in conclusion`, `in summary`, `to summarize`, `to conclude`, `in
 closing`. The shape itself (intro, three even body paragraphs, recap) is structural and needs
@@ -116,9 +116,9 @@ End on a real last point. If the reader needs a summary to follow it, the piece 
 
 **Evidence.** cited 2.0%, matched 1.6%.
 
-**Quote.** from a post written entirely in the register, offered as an example: "I wanted to
-take a moment to delve into something that's been on my mind lately. In today's fast-paced
-digital landscape, it seems like every single post..." (r/ClaudeAI)
+**What people say.** One post written entirely in the register was offered as a specimen: it
+opens by wanting to "take a moment to delve" into something and sets it in "today's fast-paced
+digital landscape" (r/ClaudeAI).
 
 **Pattern (scanner).** `dive in`, `dive into`, `deep dive`, `let's dive`, `diving in`.
 
@@ -131,9 +131,8 @@ just starts.
 
 **Evidence.** cited 1.7%, matched 1.8%. The "5 ways to" / "7 signs" listicle scaffolding.
 
-**Quote.** a teacher compiling giveaways: "STUDENT TALKING TO TEACHERS, HERE ARE SOME
-GIVEAWAYS FOR CHATGPT. I've compiled some sentence structures and phrases Chatgpt seems to
-really enjoy." (r/Teachers)
+**What people say.** A student posted a list of giveaways for teachers, a compilation of the
+sentence structures and phrases ChatGPT favours (r/Teachers).
 
 **Pattern (scanner).** a numbered listicle header such as `5 ways to ...`, `7 signs ...`, `3
 reasons ...`.
@@ -150,9 +149,8 @@ not as the shape of every answer.
 counts are inflated by people copy-pasting "words to avoid" lists, but the words are real
 corpus-wide and instantly recognizable.
 
-**Quote.** "Add this line to every ChatGPT prompt you use ... no telltale signs like em dashes,
-overused words like 'seamless,'." (r/ChatGPT). And a whole genre of posts titled "Exclude
-These 100+ Words From ChatGPT."
+**What people say.** Prompt-tip posts tell people to forbid em dashes and words like "seamless"
+(r/ChatGPT), and a whole genre of posts lists a hundred or more words to exclude.
 
 **Pattern (scanner).** `delve`, `tapestry`, `leverage`, `seamless`, `game-changer`, `unleash`,
 `underscore`, `testament`, `embark`, `meticulous`, `elevate`, `harness`, `showcase`,
@@ -169,8 +167,8 @@ register uses all of them.
 **Evidence.** cited 1.2%. Aging out as people learn to delete it, but the single most
 conclusive tell when it survives.
 
-**Quote.** "they leave in those super obvious lines like ... 'As an AI developed by
-OpenAI...'." (r/ChatGPT)
+**What people say.** The same giveaway posts single out the "As an AI developed by OpenAI" line
+left in by mistake (r/ChatGPT).
 
 **Pattern (scanner).** `as an AI language model`, `as a large language model`, a refusal like
 `I cannot assist`, a `knowledge cutoff` line, `I don't have personal opinions`.
@@ -186,8 +184,8 @@ dates, "I'm just an AI."
 **Evidence.** cited 0.3%, but matched 2.8% (n=220), the third-highest by keyword pass. The
 title-case `**Bold:**` then a clause pattern.
 
-**Quote.** named alongside the other format tells in the giveaway-list posts (r/ChatGPT,
-r/Teachers).
+**What people say.** Named alongside the other format tells in the giveaway-list posts
+(r/ChatGPT, r/Teachers).
 
 **Pattern (scanner).** a line like `**Productivity:** Studies show ...`, a bolded label and
 colon in front of a sentence.
@@ -204,8 +202,8 @@ sentences and paragraphs.
 category (`revolutionary`, `transformative`, "transform your life") cited around 0.3% and named
 repeatedly as a category.
 
-**Quote.** the giveaway-list and "words to avoid" posts single out the hype verbs (r/ChatGPT,
-r/marketing).
+**What people say.** The giveaway-list and words-to-avoid posts single out the hype verbs
+(r/ChatGPT, r/marketing).
 
 **Pattern (scanner).** `unlock the potential`, `unleash the power`, `revolutionary`,
 `transform your business`, `take it to the next level`, `supercharge`, `game-changer`.
@@ -220,8 +218,8 @@ says nothing.
 **Evidence.** cited 0.7%, matched 0.4%. Iconic and low-volume, the empty scene-setting first
 sentence.
 
-**Quote.** from the example post: "In today's fast-paced digital landscape, it seems like
-every single post..." (r/ClaudeAI)
+**What people say.** The specimen post above opens in exactly this way, with today's fast-paced
+digital landscape (r/ClaudeAI).
 
 **Pattern (scanner).** `in today's fast-paced world`, `in today's digital age`, `in the
 modern era`, and the dated-opener family.
@@ -236,8 +234,8 @@ claim, not set a scene.
 
 **Evidence.** cited 0.8%. Decorative emoji standing in for list markers or section headings.
 
-**Quote.** the example slop post opens "Hey everyone! [waving emoji] I wanted to take a moment
-to delve..." (r/ClaudeAI), with the emoji as a greeting flourish.
+**What people say.** The specimen post opens with a cheery greeting to everyone and a waving
+emoji before it gets to the delving (r/ClaudeAI), the emoji used as a flourish.
 
 **Pattern (scanner).** an emoji at the start of a heading or a list item, or wrapped around a
 bold label.
@@ -254,7 +252,8 @@ would actually use one is fine; emoji as structure is not.
 like me to ...", "Let me know if ...", "I hope this helps!", "I hope this email finds you
 well."
 
-**Quote.** named in the giveaway-list posts as a line people forget to delete (r/ChatGPT).
+**What people say.** Named in the giveaway-list posts as a line people forget to delete
+(r/ChatGPT).
 
 **Pattern (scanner).** `would you like me to`, `let me know if you'd like`, `I hope this
 helps`, `hope this email finds you well`, `is there anything else`.
@@ -275,10 +274,10 @@ pass put several of these above most of Part A.
 
 **Evidence.** cited 4.0%, the second-most-cited tell overall, and entirely keyword-invisible.
 
-**Quote.** "ChatGPT has a very recognizable cadence. And as soon as you catch it, it is
-impossible to focus on what's being written, because it's not even someone's actual thoughts."
-(r/ChatGPT). And: "Every YouTube video script I watch has the same cadence, the same verbiage,
-the same fucking chatGPT slop." (r/ChatGPT)
+**What people say.** Posters say ChatGPT's cadence is easy to recognise, and that once you
+notice it you cannot focus on the content, because no actual person's thinking is behind it
+(r/ChatGPT). Another complained that YouTube scripts now share one cadence and one vocabulary
+(r/ChatGPT).
 
 **Why it reads as AI.** the model produces sentences of similar length and shape, evenly
 paced, with no variation. The evenness is the tell. A human ear catches it before any single

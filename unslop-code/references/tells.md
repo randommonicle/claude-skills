@@ -1,6 +1,6 @@
 # The AI-written-code tells: full catalog
 
-Each entry has the data evidence (so you can weight it), a real quote from the threads, the
+Each entry has the data evidence (so you can weight it), a paraphrase of what people said in the threads, the
 code-level signature the scanner keys on, and the fix. Ordered by the **verified share** of
 the comments that name a specific tell, the cleanest signal. Source: 11,906 on-topic posts +
 11,306 comments across 55 AI, coding, and SaaS subreddits, 2020 to 2026, classified by an LLM
@@ -89,10 +89,10 @@ Part C, cleared by the data (do not chase):
 tell: only about half the people who blamed "the comments" were naming this one. A regex
 catches the obvious-restatement and step-by-step subset, not the judgment call.
 
-**Quote.** "2.5 pro legit will add comments like `// include weights` before a line that
-simply adds weights into a json object. Or `// define sort function` before defining a
-function." (r/ChatGPTCoding). And: "if every line has a comment they stop being comments it
-starts becoming a mess."
+**What people say.** Posters describe models narrating trivial lines: a comment announcing that
+weights are being added, right above the line that adds them, or that a sort function is about
+to be defined (r/ChatGPTCoding). Another made the point that once every line carries a comment,
+the comments stop meaning anything.
 
 **Code signature (scanner).** A comment that restates the next line (`# increment i`,
 `// return the result`) or narrates step by step (`# Step 1`, `# Now we...`, `# First,`).
@@ -109,8 +109,9 @@ on nearly every line, saying what the line plainly does, is the tell.
 **Evidence.** Verified 3.9%, precision ~77%, the highest-precision cosmetic tell. When people
 name it, they are almost always right.
 
-**Quote.** "Full of emojis + randomly bolded words = AI slop." (r/aipromptprogramming). And:
-"its just a bunch of neon cards with emojis on a pitch black background in localhost."
+**What people say.** Emoji plus random bold is called an instant giveaway
+(r/aipromptprogramming), as is the localhost demo of neon cards with emoji on a black
+background.
 
 **Code signature (scanner).** Any emoji character in source: in comments, string literals,
 `console.log` / `print` output, or commit messages.
@@ -128,9 +129,9 @@ is wrong, not because it reads as AI.
 
 **Evidence.** Verified 3.1% (try/except or try/catch wrapped around everything).
 
-**Quote.** "they throw their own exception then catch it and convert it into a generic
-'something went wrong' error." And the reviewer's version: "error handling that quietly eats
-the one clue you needed."
+**What people say.** Reviewers describe code that throws its own exception, catches it and
+turns it into a generic "something went wrong", and error handling that discards exactly the
+information you needed to debug.
 
 **Code signature (scanner).** A bare `except:`, an `except Exception: pass`, an empty
 `catch (e) {}`, a catch block that only swallows, and Go's single-line empty `if err != nil
@@ -151,10 +152,9 @@ the failure you needed to see.
 **Evidence.** Verified 1.9%, precision ~100% (solid). Every tagged quote was real, and they
 all cite the same canonical example.
 
-**Quote.** "a function called `process_data()` that somehow does 11 different things."
-(r/AI_Agents). And: "They write `process_data()`
-doing 11 things because from training data, that's what a function named process_data
-typically does in a one-off script."
+**What people say.** The canonical example is a function named `process_data()` that does
+eleven different things (r/AI_Agents), explained as the model copying what such a function
+usually does in a one-off script in its training data.
 
 **Code signature (scanner).** Functions named `process_data`, `handle_data`, `do_stuff`,
 `do_something`, `process_item`, and other domain-free placeholder names.
@@ -172,8 +172,8 @@ do what it claims.
 **Evidence.** Verified 1.6%, precision ~100%. Shows up more in posted screenshots than in
 conversation, but it is unmistakable.
 
-**Quote.** A reply quoting the model: it "either gives you the exact same response or says
-`//// rest of the code goes`." (r/ChatGPT)
+**What people say.** Users report the model returning the same answer again, or leaving a "rest
+of the code goes here" placeholder where the code should be (r/ChatGPT).
 
 **Code signature (scanner).** `// rest of your code`, `# ... your logic here`, `// existing
 code unchanged`, `// implementation goes here`, `# TODO: implement`.
@@ -190,10 +190,9 @@ verbatim. The stub means the file was never actually finished.
 **Evidence.** Verified 1.2%. Aging out as people learn to delete it, but conclusive when it
 survives into a file or a commit.
 
-**Quote.** A pasted assistant reply left in a thread: "Good catch!! Testing is an essential
-part of successful software development. I'll add TDD tests to the application now."
-(r/ChatGPTCoding). And: "All of the em dashes, the markdown format, the same sentence
-structure... no human would actually add."
+**What people say.** Threads show assistant replies pasted in whole, an upbeat "good catch"
+followed by a promise to add tests (r/ChatGPTCoding), and readers point to the em dashes, the
+markdown formatting and the repeated sentence shape as things no person would add.
 
 **Code signature (scanner).** Triple-backtick fences inside a source file, `Here's the
 updated code`, `As an AI`, `Good catch!`, `You're absolutely right`, a trailing `Note:` or
@@ -211,7 +210,8 @@ the closing offer.
 **Evidence.** Verified 0.4%, precision ~16.7% (inflated). People mostly argue *for* descriptive
 names; only the truly robotic, whole-sentence identifier is mocked.
 
-**Quote.** "None of this `inputProcessingAndFormatting()` crap."
+**What people say.** Posters mock long compound names in the style of
+`inputProcessingAndFormatting()`.
 
 **Code signature (scanner).** An identifier that is a whole sentence in camelCase or
 snake_case (`getUserDataFromApiResponseHandler`, `input_processing_and_formatting_helper`).
@@ -234,10 +234,9 @@ it against the real requirement does not.
 **Evidence.** Verified 18.6%, precision ~90% (solid), the top tell by a wide margin and the
 cleanest in the set.
 
-**Quote.** "If you just ask it to make your app and press generate it's normally one page
-placeholder no backend and a bunch of dummy data." (r/ChatGPTCoding). And: "They've
-memorized every design pattern from a textbook but have zero common sense to know when a
-simple if/else will do."
+**What people say.** A one-shot "make my app" prompt is said to produce a single placeholder
+page with no backend and dummy data (r/ChatGPTCoding), and the models are described as knowing
+every textbook pattern while lacking the judgement to see when a plain if/else is enough.
 
 **Why it reads as AI.** The model emits the average of public code: the tutorial, the sample
 app, the textbook pattern, with dummy data and no real backend.
@@ -252,9 +251,9 @@ or resolving the import catches it. A regex never will.
 
 **Evidence.** Verified 11.2%, precision ~62.5%. The tell that bites in production.
 
-**Quote.** "those blocks didn't exist. At all. It just made them up." And: "hallucinated
-library methods that compile but don't exist at runtime, confident-sounding edge case handling
-that was never tested." (r/ExperiencedDevs)
+**What people say.** Developers report code blocks the model simply invented, library methods
+that compile but fail at runtime, and edge-case handling that reads confidently but was never
+tested (r/ExperiencedDevs).
 
 **Why it reads as AI.** The model produces plausible-looking calls to things that do not
 exist, or logic that reads right and is quietly wrong.
@@ -269,9 +268,9 @@ surface for a bug to hide in.
 
 **Evidence.** Verified 7.8%, precision ~60.6%.
 
-**Quote.** "Giant functions, hidden side effects, random abstractions that nobody would
-consciously design." And: "Claude has a natural tendency for over-engineering. You just need
-to write a lot of KISS YAGNI, etc. statements in a md file."
+**What people say.** Reviewers list giant functions, hidden side effects and abstractions
+nobody would design on purpose, and one advised countering Claude's pull towards
+over-engineering with explicit KISS and YAGNI instructions in a markdown file.
 
 **Why it reads as AI.** Needless layers and abstractions for a simple task, because the
 training data is full of enterprise patterns.
@@ -287,8 +286,8 @@ over-correction fences — is the in-house earn-every-line skill.
 **Evidence.** 17.8% of tell-naming comments, the near-as-loud second voice, but it names no
 specific feature.
 
-**Quote.** "You can spot the vibe coders in the comments." And, in full: "We can tell." And
-the evocative one: "small model smell."
+**What people say.** Commenters say AI-assisted code is easy to spot from its comments alone,
+and one likened the overall feel to the output of a small model.
 
 **Why it matters.** Most people are confident they can spot AI code and vague about what they
 saw. The specific tells in this catalog are what that feeling resolves to when you press.
@@ -302,8 +301,9 @@ spine of the fix: correct plus fits the codebase, not correct in a vacuum.
 
 **Evidence.** Verified 3.5%, precision ~64.3%.
 
-**Quote.** "a PR that should be 50 LoC because it follows naturally from the existing codebase
-patterns vs a PR that is 2000 LoC that ignores the codebase conventions." (r/ExperiencedDevs)
+**What people say.** Experienced developers contrast a 50-line PR that follows naturally from
+the existing code with a 2,000-line one that ignores the codebase's conventions
+(r/ExperiencedDevs).
 
 **Why it reads as AI.** The model does not read the rest of the repo, so it invents a new way
 to log, a new decorator approach, a new structure, mid-file.
@@ -317,9 +317,9 @@ repeated fix in the whole dataset: give the model the existing code, not a blank
 
 **Evidence.** Verified 2.3%, precision ~42.9% (genuinely contested).
 
-**Quote.** "I miss when a PR review had so many code smells it took 2 seconds, now all the
-smells are gone, only the bugs remain." (r/ChatGPT). And: "AI generated code often looks
-clean. Passes linting, decent structure."
+**What people say.** A reviewer lamented that the obvious code smells have gone and only the
+bugs are left (r/ChatGPT), and others note that AI code often looks tidy, passes linting and
+has a reasonable structure.
 
 **Why it reads as AI.** Uniform, standard-following, no shortcuts or quirks. The surface is
 clean and the logic can still be wrong. This is the weakest of the Part B tells (plenty of
@@ -333,10 +333,10 @@ careful humans write clean code), so weight it last.
 
 **Evidence.** Verified 1.9%, precision ~50%.
 
-**Quote.** "use programming practices that were outdated 10 years ago or even mix
-practices from the 90s with cutting edge practices from 2025." (r/ChatGPTPro). And the buyer's
-version: "The seller couldn't explain: Why certain dependencies existed, How error handling
-worked, What would break at scale."
+**What people say.** Models are said to use practices a decade out of date, or to mix 1990s
+habits with current ones (r/ChatGPTPro). A buyer of an AI-built product reported that the
+seller could not explain why the dependencies were there, how errors were handled, or what
+would fail under load.
 
 **Why it reads as AI.** Advanced patterns sit next to beginner mistakes, and the author cannot
 explain any of it, because no single developer wrote it.
