@@ -1,22 +1,26 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-09 19:58 BST, a Rimagent session on Ben's brief to merge the three local branches, then his "yes to all"
-topic: the three local branches are on main by PR (#15 to #17); origin and the local clone hold main only
-next: on or after 2026-10-16, read the Occam trial again and decide (DECISIONS 2026-10-09, second week). Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
-branches: main; docs/occam-read-lesson-40 until merged
+updated: 2026-10-11 23:30 BST, an Unslop session on Ben's brief: check a Reddit Haiku 5.5 claim against the roster skill, then check the repo and its upstreams
+topic: the Haiku 5.5 pricing edits (PR #20); the repo and upstream check's findings wait on Ben, listed under In flight
+next: on or after 2026-10-16, read the Occam trial again and decide (DECISIONS 2026-10-09, second week). Before that, Ben's calls on the In flight items from the 2026-10-11 check. Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+branches: main; docs/haiku-5-5-pricing until merged (worktree ~/.claude/skills-wt-haiku-5-5, remove after the merge)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
-- main 765c8ae (PR #14): kill-guard, merged 2026-10-09 19:25 BST after its four required checks passed; the live library and ~/.claude/settings.json point at hooks/kill-guard.mjs
-- main 6d2bdc8 (PR #15, docs/main-ruleset), 01eda99 (PR #16, integrate/sunday), b8e0214 (PR #17, docs/occam-trial, its lesson renumbered 39): each with main merged in first and all four checks green; #15 showed BLOCKED while a check was pending
-- On Ben's yes: the live library at 7e47cd9 (PR #18) via hooks/update-skills.mjs; the three worktrees removed (the Occam one's files had been wiped from Temp, nothing uncommitted); 15 merged branches deleted on origin and 12 locally
-- This branch: the Occam trial read into the review; lesson 40, a worktree emptied in a Temp scratchpad
+- main 6cf6883 (PR #19): the Occam trial read, a second week, lesson 40; the live library updated to it on 2026-10-11
+- This branch: commission-the-roster's two traps (Haiku 5.5's fivefold price step over 100K prompt tokens; effort named in the roster, no low effort on a cheap-tier agent that owns verification); provider-mechanics' Anthropic caching figures re-read for the 5.5 models. Tier policy unchanged
 
 ## In flight
 
 - Nothing running. ASK-0009's item stays on the board until passive income records the decision
+- Found on 2026-10-11, waiting on Ben, none acted on:
+  - unslop-code, unslop-text and unslop-ui ship without the MIT notice their upstream's LICENSE requires, in the repo and in their .skill archives (UPSTREAM.md is not packed), and the README says their UPSTREAM.md records those terms. The same LICENSE excludes "harvested Reddit text" from the grant, and the three tells.md files carry dozens of verbatim, attributed Reddit quotes; the DATA_NOTE.md it points to does not exist upstream
+  - ~/.agents/skills is a second clone of this repo at bea30c9 (2026-08-06), 249 commits behind, with CLAUDE.md rewritten to AGENTS.md in 17 tracked files and newer skills copied in untracked; something outside this repo rewrote its team-loop/SKILL.md on 2026-10-11. Nothing here documents it
+  - rohasnagpal/legal-ai-skills is 38 commits past our pin (head ad5df19): the forked files moved to plugins/legal-ai-skills/, seven of nine are byte-identical, the other two add tool-dependent sections our forks already cover. UPSTREAM.md paths are stale; nothing to adopt
+  - JCarterJohnson/vibecoded-design-tells: identical to our pin
+  - this machine's ~/.claude/agents: the four tl- agents are absent; code-reviewer and property-reg-reviewer lack the effort line
 
 ## Deferred, with grep anchors
 
