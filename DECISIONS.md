@@ -5,6 +5,26 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-10-12 This library's guardrails outrank a vendor skill's examples; the Cloudflare pack reinstalled at c430dd9
+
+Ben, 2026-10-12, "yes to both". **Precedence:** where a vendor skill (today the Cloudflare pack)
+shows or instructs something a library guardrail forbids, the guardrail wins: secrets-in-output,
+confirm-before-push, live-data-surgery, guard-the-spend-paths, constant-time-secret-compare,
+verify-the-effect and price-the-spend among them. A vendor example is a description of the
+product, never permission. **Why:** vendor packs are neither the maintainer's content nor
+committee-ratified (2026-08-10), and the review found examples that echo secrets, deploy or
+delete remote data without an ask, and compare an HMAC with `===`
+(`docs/REVIEW_cloudflare-pack_2026-10-12.md`). This entry does not load into a session on its
+own; until a norm line carries it, it binds whoever reads DECISIONS.
+
+**Reinstall:** the 13 skills in `~/.claude/skills` and `~/.agents/skills` were replaced
+wholesale (deleted, then copied, so files removed upstream went too) from `cloudflare/skills` at
+`c430dd9` (2026-10-10), byte-identical to that commit. The previous copies (`f96bff7`) are in
+`~/.claude/skills-vendor-backup-2026-10-12` and `~/.agents/skills-vendor-backup-2026-10-12`. The
+four skills new upstream (`basin`, `k2`, `nextjs-on-cloudflare`, `workers-profiling`) were not
+installed: adding one means adding it to the VENDOR sets in `hooks/check-index.mjs`,
+`hooks/audit-fires.mjs` and `.gitignore` in the same change, or the index gate reds.
+
 ## 2026-10-12 Fork licences are gated, and the unslop forks carry no verbatim Reddit text
 
 Ben, 2026-10-11 ("agree to all"), on the repo and upstream check. Three parts:

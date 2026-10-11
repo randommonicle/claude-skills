@@ -1,23 +1,25 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-12 00:07 BST, an Unslop session on Ben's "agree to all ... do it all" after the 2026-10-11 repo and upstream check
-topic: fork licences gated, unslop Reddit quotes paraphrased, legal upstream check recorded, ~/.agents/skills refreshed, Cloudflare pack reviewed (PR #21)
-next: on or after 2026-10-16, read the Occam trial again and decide (DECISIONS 2026-10-09, second week). Ben's two open calls on the Cloudflare pack (In flight). Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
-branches: main; fix/fork-licences until merged (worktree ~/.claude/skills-wt-fork-licences, remove after the merge)
+updated: 2026-10-12 00:12 BST, an Unslop session on Ben's "yes to both" (the Cloudflare reinstall and the precedence rule)
+topic: library guardrails outrank vendor-skill examples; the Cloudflare pack reinstalled at c430dd9 (PR #22)
+next: on or after 2026-10-16, read the Occam trial again and decide (DECISIONS 2026-10-09, second week). Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) in that repo's DECISIONS.md, then deletes the item
+branches: main; docs/vendor-precedence until merged (worktree ~/.claude/skills-wt-vendor-precedence, remove after the merge)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
-- main 4f64d66 (PR #20): commission-the-roster's Haiku 5.5 price-step and effort traps; provider-mechanics re-read for the 5.5 models; tier policy unchanged (DECISIONS 2026-10-11)
-- This branch: LICENSE files in the three unslop forks, bundled into their archives; their 36 Reddit quotes paraphrased; hooks/check-licences.mjs with its suite, in the archives job; the legal forks' Last checked lines; DECISIONS (licences, ~/.agents/skills, the Cloudflare source, Haiku 5.5); LESSONS 41; docs/REVIEW_cloudflare-pack_2026-10-12.md
-- Machine, on Ben's word: library agents copied to ~/.claude/agents (all six match); ~/.agents/skills backed up to ~/.agents/skills-backup-2026-10-12 and reset to origin/main with no rewrite (DECISIONS 2026-10-12)
+- main 4f64d66 (PR #20): Haiku 5.5 price-step and effort traps; tier policy unchanged
+- main ecd0200 (PR #21): fork licences gated (hooks/check-licences.mjs), unslop Reddit quotes paraphrased, legal upstream check, LESSONS 41, the Cloudflare review; ~/.claude/skills and ~/.agents/skills fast-forwarded to it
+- This branch: DECISIONS 2026-10-12 (guardrails outrank vendor-skill examples; the reinstall); the review's after-reinstall table
+- Machine, on Ben's word: library agents in ~/.claude/agents; ~/.agents/skills reset clean (backup ~/.agents/skills-backup-2026-10-12); the 13 Cloudflare skills replaced from c430dd9 in both copies (backups *-vendor-backup-2026-10-12 beside each)
 
 ## In flight
 
 - Nothing running. ASK-0009's item stays on the board until passive income records the decision
-- Open with Ben: reinstall the Cloudflare pack at upstream head (210 commits newer); and whether to write down that the library's guardrails outrank a vendor skill's examples (docs/REVIEW_cloudflare-pack_2026-10-12.md)
 - ~/.agents/skills: pull it after each merge until something does it automatically; modified files there mean the Codex app imported again
+- Not installed: the four Cloudflare skills new upstream (basin, k2, nextjs-on-cloudflare, workers-profiling); each needs the three VENDOR sites in the same change
+- The precedence rule lives only in DECISIONS; a NORMS line would carry it into every session (not asked for)
 
 ## Deferred, with grep anchors
 

@@ -74,6 +74,27 @@ library has ratified. Most severe first within each rule.
 ## What follows
 
 Nothing in the pack is edited: it is not this library's content, and a reinstall would overwrite
-any edit. Open with Ben on 2026-10-12: reinstall at upstream head (fresher, and some lines above
-may be gone), and whether to write down that the library's guardrails outrank a vendor skill's
-examples.
+any edit. On Ben's yes (2026-10-12) the library's guardrails outrank a vendor skill's examples,
+and the pack was reinstalled at `c430dd9` (both in DECISIONS.md, 2026-10-12).
+
+## After the reinstall at c430dd9
+
+Each finding above was re-checked by its exact string in the new copy. Upstream pruned the
+`cloudflare` references from 320 files to 185, and most findings went with them:
+
+| Finding | At `c430dd9` |
+|---|---|
+| `echo $WRANGLER_R2_SQL_AUTH_TOKEN` | gone |
+| `curl -v` to the AI Gateway | gone |
+| `secrets-store secret get` | gone |
+| HMAC compared with `=== parts.sig1` | gone |
+| `X-Bypass-Token` and `'secret-token'` compares | gone |
+| `kv bulk delete ... --force` | gone |
+| `queues purge` | gone |
+| Turnstile test secret gated on `NODE_ENV` | gone |
+| `wrangler email sending enable` without an ask | still there (2 files) |
+| `scheduleEvery(30, ...)` with no cost note | still there (1 file) |
+| `migrations apply ... --remote` for production | still there (1 file) |
+
+A string that is gone may have moved into new wording, and the new version was not swept again
+in full; the precedence rule above covers whatever remains.
