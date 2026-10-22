@@ -303,3 +303,9 @@ tiering alone. Then PropOS again, 2026-08-03, where a four-agent wave run to thi
 rules cost 499k for a confirmed three-HIGH review, a strategic ruling and a docs pass, and where
 the two measurements that corrected the skill both came from watching what the agents actually
 spent rather than from what they reported spending.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **A delegated agent writes its deliverable to a file** as well as returning it, so a crash of the parent loses nothing. (RMC guide, 2026-08-19.)
+- **Check the agent can execute what it writes** (an interpreter its sandbox denies means its tests never ran), and run its suite yourself after every build. (RimModManager L-006.)
+- **Grant least privilege at creation.** A routine or agent created through an API may inherit every connector on the account; read its capabilities in the create response and remove what the job does not need before it can run. (AI domain L-091.)

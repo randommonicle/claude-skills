@@ -45,3 +45,7 @@ Integration bugs live only in the seams, and every seam incident in the corpus w
 discovered by a user or a first real invocation — never by the green board. Evidence: PropOS
 LESSONS_LEARNED Sessions 13, 19, 23, 27, 43, 2026-07-05, 2026-07-11; ASH LESSONS_LEARNED
 2026-05-27, 2026-07-11.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **A deploy record names the tree it gated.** Before each deploy, check the tree against the gated range (`git diff --name-only <base> HEAD` prints only that wave's paths); two waves on one base deploy one at a time. (AI domain L-103.)

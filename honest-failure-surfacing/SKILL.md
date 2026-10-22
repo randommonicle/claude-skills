@@ -45,3 +45,8 @@ the evidence cost hours specifically because the surface asserted a cause it had
 established. Evidence: ASH LESSONS_LEARNED 2026-05-28, 2026-06-18, 2026-07-14 (offline), and
 the CLAUDE.md storage-RLS upsert lesson; ICC L-007 (shared evidence with
 guard-the-spend-paths).
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **Bound every await on the path, not the one holding the fetch.** A network wait is bounded end to end: reading or refreshing the credential, each third-party client call, the request and the body (keep the timer running until the body is read). A test hangs each stage and asserts the call ends. (ICC L-103.)
+- **A long silent call looks like a hang.** Keep each tool call or step to a couple of minutes, write output to disk in stages, and say what is still running between them; a session that shows nothing for fourteen minutes cannot be told from a stuck one. (Factorio Mods, 2026-10-18.)

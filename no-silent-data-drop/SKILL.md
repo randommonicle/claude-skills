@@ -46,3 +46,7 @@ Dropped content is the worst failure class in a document pipeline because the ar
 ships: everything looks successful, and only the recipient can notice the hole. Evidence:
 ASH LESSONS_LEARNED 2026-06-04 (all entries) and the CLAUDE.md max_tokens truncation lesson;
 ICC L-008.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **An ignore rule is a filter too.** Before the first commit of new files, compare `git status` with the files written and run `git check-ignore -v` on any that is missing; a broad ignore pattern can hide a file meant to ship. (ICC L-101.)

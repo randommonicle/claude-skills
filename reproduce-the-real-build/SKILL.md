@@ -29,3 +29,8 @@ drifted ahead of it — the first clean reinstall broke everything.
 Build environments drift invisibly toward working, and the drift is per-machine; only a
 manifest-only reconstruction tests what CI and the next machine will actually see. Evidence:
 ASH CLAUDE.md Railway/Docker tsc lesson (2026-05-20); ASH LESSONS_LEARNED 2026-07-19.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **A generator can write a resolved path into a tracked file.** After a generator runs in a checkout whose dependencies are linked from elsewhere, read `git status` and restore any tracked file that now names another checkout. (ICC L-108.)
+- **The nearest package.json sets a file's module type.** A `.js` under a package with `"type": "module"` is an ES module to Node whatever it contains; a file shared between a page and CommonJS callers is `.cjs`, served with an explicit JavaScript content type. (ICC L-115.)
