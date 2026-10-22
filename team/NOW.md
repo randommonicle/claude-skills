@@ -1,40 +1,37 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-10-12 00:15 BST, session end (Unslop session; context 39%, green). Diagnoses in this note are unverified unless marked
-topic: Haiku 5.5 review, fork licences, ~/.agents/skills refresh, Cloudflare pack review and reinstall, vendor precedence rule (PRs #20 to #22)
-next: on or after 2026-10-16, the second Occam read (DECISIONS 2026-10-09). Separately, a passive income session merges team-loop/pilot-setup, records ASK-0009 (a) there, then deletes the item
-branches: main; docs/now-session-end until merged (this note only)
+updated: 2026-10-22 17:22 BST, session end (an ICC session that ran the misses-log sweep; context about 74%, amber). Diagnoses in this note are unverified unless marked
+topic: the misses-log sweep of 22 October 2026, and its first two skills (PRs #24 and #25)
+next: install the byte-layer-warn hook line from hooks/HOOKS.md into ~/.claude/settings.json on Ben's yes; then Tier 1 items 3 to 5 of docs/SKILL_PROPOSALS_2026-10-22.md (fixtures-from-reality, pin-to-what-was-seen, measure-per-route), reading each item's source lessons in full first
+branches: main only
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Landed since the last NOW.md
 
-- main 4f64d66 (PR #20): Haiku 5.5 price-step and effort traps in commission-the-roster; tier policy unchanged. verified: merged, four checks green
-- main ecd0200 (PR #21): hooks/check-licences.mjs, LICENSE files in the unslop forks, their 36 Reddit quotes paraphrased, legal upstream check, LESSONS 41, the Cloudflare review. verified: merged, four checks green; the gate red on the pre-fix tree, green after
-- main 547114e (PR #22): DECISIONS 2026-10-12, library guardrails outrank vendor-skill examples, and the reinstall record. verified: merged, four checks green; ~/.claude/skills and ~/.agents/skills fast-forwarded to it
-- Machine: library agents in ~/.claude/agents (verified, cmp); ~/.agents/skills reset to origin/main, backup ~/.agents/skills-backup-2026-10-12 (verified, diff); 13 Cloudflare skills replaced from c430dd9 in both copies, backups *-vendor-backup-2026-10-12 (verified, diff -rq)
+- main (PR #24): docs/SKILL_PROPOSALS_2026-10-22.md, 80 "none - new candidate" lessons from seven repositories grouped by class: five new skills, fourteen upgrades, the rest project-level or covered. verified: merged, four checks green
+- main baadb3d (PR #25): tool-layer-bytes (skill, and hooks/byte-layer-warn.mjs, warn-only, 17 cases, a red mutation run) and unordered-events (skill). Counts 53, check-index green. verified: merged, four checks green
+- Machine: ~/.claude/skills and ~/.agents/skills fast-forwarded to baadb3d (verified, git log); the two working worktrees removed
 
 ## In flight
 
-- Nothing running. ASK-0009's item stays on the board until passive income records the decision
-- ~/.agents/skills is pulled by hand after each merge; modified files there mean the Codex app imported again
-- Not done, on purpose: the four Cloudflare skills new upstream (basin, k2, nextjs-on-cloudflare, workers-profiling; each needs the three VENDOR sites); a NORMS line for the precedence rule (offered, not taken up)
+- Nothing running. The hook is on disk but not in ~/.claude/settings.json (Ben not yet asked to yes it)
 
 ## Deferred, with grep anchors
 
-- `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md section 9
-- Unpinned agents: debugger, refactorer (this machine's ~/.claude/agents); PropOS backend, frontend, test. Accepted Low: a broad test-class glob in gate.json widens TESTS CHANGED (docs/REVIEW_team-loop-fixes_2026-10-04.md)
+- Tier 1 items 3 to 5 and the fourteen Tier 2 upgrades: docs/SKILL_PROPOSALS_2026-10-22.md, sections "Tier 1" and "Tier 2"
+- The marketing pack pin (5b2c000, 4 September 2026): coreyhaines31/marketingskills is 799 commits ahead; hooks/install-marketing-pack.mjs and ICC's .claude/skills/UPSTREAM.md
+- The second Occam read (DECISIONS 2026-10-09), due on or after 2026-10-16, not taken this session
+- Earlier: `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md section 9; unpinned agents (debugger, refactorer; PropOS backend, frontend, test)
 
 ## Verification outstanding
 
-- A Codex session on the refreshed ~/.agents/skills; a full re-sweep of the reinstalled Cloudflare pack (string re-check only); the board page in Ben's own browser; tl-builder worktree isolation; worktree.baseRef "head" with a remote (design 5.4)
+- byte-layer-warn on a live session once installed (does it fire on a real heredoc with a backslash, and stay quiet on git commit heredocs)
+- The sweep grouped lessons from headings and class lines; each built skill reads its lessons in full
 
 ## Traps
 
-- A direct push to main is refused; write NOW.md's next line so it stays true after the merge
-- Auto-merge did not fire on PR #21 with all four checks green; merged by hand (cause unverified)
-- `git -C <clone> worktree add <relative path>` resolves against the clone; worktrees live at ~/.claude/skills-wt-<name> (LESSONS 40)
-- A failing gate run deletes that package's tested ref, even a probe run under its id: re-gate before merging
-- A scheduled desktop task runs in its creating session's folder and stalls on a write outside it; mobile push is off, so reach Ben by email or the board
-- agy seats: forbid every command, git included. Heredocs and node -e eat backslashes: write regex-bearing files with the Write or Edit tool
+- A direct push to main is refused; the four checks gate every PR. Two PRs that both change the skill count conflict: stack skills on one branch
+- Heredocs and node -e eat backslashes, and Python's default read turns CRLF to LF: write files with the Write or Edit tool (now the tool-layer-bytes skill)
+- `git -C <clone> worktree add <relative path>` resolves against the clone; worktrees live at ~/.claude/skills-wt-<name>
 - Take clock times from PowerShell Get-Date, never an estimate
