@@ -44,3 +44,7 @@ An uncapped spend path is an open tap on the bill, and a fail-open guardrail is 
 none because it is counted as protection. Both failure modes are silent until the invoice or
 the incident. Evidence: ICC LESSONS_LEARNED L-001, L-006, L-007 (L-007 shared evidence with
 honest-failure-surfacing).
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **Review the whole money path.** A money-path review or brief covers every statement from the settle call to the last byte of the response: what each can throw, and what the caller is then told. A defect class spans the path, not the component the brief named. (AI domain L-105.)

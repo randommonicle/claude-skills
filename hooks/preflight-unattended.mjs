@@ -170,4 +170,14 @@ console.log(
   'Each blocker is either a genuinely gated action (expected - decide how the run handles it)\n' +
     'or a false positive like the 2026-09-16 commit-message match (a bug - fix the hook).',
 );
+// What a replayed corpus cannot see, from the misses-log sweep of 2026-10-22: a phone
+// push assumed live that was disabled (ICC L-080), a push gate that asked while the
+// operator was away (ICC L-078), and a dated duty left to a session nobody started
+// (AI domain L-136).
+console.log(
+  '\nAlso before the operator leaves:\n' +
+    '  - the channel the run will use to reach them has been seen to deliver, end to end;\n' +
+    '  - every gate that asks (a push, a merge, a deploy) is approved now or planned for their return;\n' +
+    '  - every dated duty is a scheduled task that fires without a session, never "the next session".',
+);
 process.exit(Math.min(blockers.length, 250));

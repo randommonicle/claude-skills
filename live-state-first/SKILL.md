@@ -47,3 +47,7 @@ produces confident, wrong artifacts that pass review because the reviewer reads 
 stale document. Evidence: PropOS LESSONS_LEARNED Sessions 9, 11, 12, 22, 41, 52, 54,
 2026-07-06, 2026-07-08, 2026-07-09, 2026-07-19, 2026-07-20; ASH LESSONS_LEARNED 2026-05-25,
 2026-07-10.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **A time, date or count written into a record is read from a command, never composed.** Run the clock (`date -u`) or the count in its own call, then write what it printed in the next; a reading in the same command as the write was typed before it existed. A value no command can give is written as unknown. (ICC L-093, seven instances.)

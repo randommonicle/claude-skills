@@ -56,3 +56,7 @@ Agents and reviewers are rewarded for finding things, so their output skews conf
 self-produced analysis carries the same bias with less scrutiny. Every incident in the
 evidence was cheaper to re-derive than to act on wrongly. Evidence: PropOS LESSONS_LEARNED
 Sessions 12, 15, 16, 22, 35, 42, 43, 2026-07-07, 2026-07-20; ASH LESSONS_LEARNED 2026-07-09.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **On a money path, keep every review layer.** The builder's red-proofs, the review seats and the final gate each caught what the others passed; none is redundant because the layer before it was green. (AI domain L-112.)

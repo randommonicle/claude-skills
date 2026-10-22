@@ -71,3 +71,9 @@ Green signals with no assertion behind them are worse than no check: they conver
 into "verified" in every reader's head. Evidence: PropOS LESSONS_LEARNED 2026-07-14 (two
 entries), 2026-07-19 (two entries), 2026-07-15, Sessions 16, 18, 30, 33; ASH LESSONS_LEARNED
 2026-06-09 and 2026-06-04.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **A reference frozen when written alarms on history.** A monitor judges "new" by each item's own timestamp in a rolling window, never against a count captured when it was written. (AI domain L-092.)
+- **A gate never compares against evidence a later step produces.** Check, for each artefact a gate reads, that the run order creates it first. (passive income L-059.)
+- **Restore a mutation by reverse edit or a copy, never by checkout.** `git checkout -- <file>` after a red-proof also discards uncommitted work in that file and may rewrite its line endings. (AI domain L-145.)

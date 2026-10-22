@@ -50,3 +50,8 @@ All four are authority confusions: the server letting the client, the row, the c
 the "trusted" field carry an authority decision the server itself must make. Each was found
 live in a production audit. Evidence: ASH CLAUDE.md independent-audit section (2026-05-22);
 ICC LESSONS_LEARNED L-003 for the output-escaping class.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **A change of permission leaves a record.** Every route that can change who may do what (the admin's control, a script, a change by hand) writes who, when, from and to, through a trigger so no route escapes it. (ICC L-117.)
+- **A security decision does not hand-parse a published grammar.** After a hand-written parser of a spec (Markdown, HTML, a URL) leaks a second time, use the reference implementation, and refuse whatever the real consumer could read differently. (AI domain L-117.)

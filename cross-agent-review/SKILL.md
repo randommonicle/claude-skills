@@ -251,3 +251,8 @@ blind spot by measurement). Several seats at once widen that further, one model'
 first hit. The citation rule stops FUD; the concede-on-evidence rule stops point-scoring; the hub-and-spoke
 rule stops bot loops; the converge-or-two-positions rule means the user gets either an agreed answer or
 the real trade-off with both cases argued, never a false consensus.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **Probe the seat before relying on it.** A one-line prompt from the same working folder before a long round; `--cwd` a git repository on every turn; the long time limit for a broad review, run in the background; a capacity error retried once; an empty reply read as a mechanics failure, never as "nothing to say". (ICC L-095.)
+- **Read what a sandbox flag bounds.** A "read-only" flag may bound only the commands the model runs, not the tool's own memory or cache writes; check the tool's state folders before and after. (passive income L-065.)

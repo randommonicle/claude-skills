@@ -182,3 +182,7 @@ billing problem. Pricing takes one line of arithmetic and converts an invisible 
 liability into a decision somebody actually made. Evidence: PropOS LESSONS_LEARNED 2026-07-28
 (the exhausted Actions allowance and the dead merge queue) and Phase 2, 2026-05-09 (the free
 sender-domain limit that converted into a paid plan).
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **An account-wide usage reading has no single owner.** Before acting on a jump, list every running session and say what is not known; stop work on the reading itself, never on a guess about its cause. (ICC L-075, the second instance.)

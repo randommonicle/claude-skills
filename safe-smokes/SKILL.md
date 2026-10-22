@@ -71,3 +71,8 @@ Shared-database tests run against data other people rely on. One `.delete()` on 
 
 Note on hub routing: prove-it-can-fail routes here for any shared-data test. The route adds
 a path in; it does not narrow this skill's own trigger.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **A test never waits on a person.** Patch every modal or prompt in the test harness to fail with its title, so an unexpected dialog is a failure, not a hang. (RimModManager L-005.)
+- **A live check stays off the user's desktop.** A check that opens windows, takes focus or starts apps on the user's own machine needs their go-ahead and a quiet moment; otherwise hand them the exact steps. (RimModManager L-010.)

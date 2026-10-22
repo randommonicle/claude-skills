@@ -40,3 +40,7 @@ governs what the outside world is told as fact.
 Outward claims outlive their authors: they get quoted, cached, and screenshotted, and an
 indefensible one is a legal exposure that no later correction fully retrieves. Evidence:
 ICC LESSONS_LEARNED L-009 with both addenda; this repo's LESSONS_LEARNED lesson 4.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **A qualified claim is the contradiction restated.** When two passages contradict, remove the claim and find the frame both can share; appending a qualification keeps the contradiction. (RMC guide, 2026-08-11.)

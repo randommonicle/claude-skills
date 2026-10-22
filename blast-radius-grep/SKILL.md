@@ -81,3 +81,7 @@ A named list is a snapshot of someone's memory; the grep is the census. Every un
 the evidence shipped as a partial fix that looked complete. Evidence: PropOS LESSONS_LEARNED
 Sessions 13, 27, 29, 32, 35, 42, 2026-07-14; ASH LESSONS_LEARNED 2026-05-27 (FK embeds,
 shared evidence with db-migration-verification), 2026-06-10; ICC L-009 addenda, L-017.
+
+## Additions from the misses-log sweep (2026-10-22)
+
+- **A fact recorded twice drifts.** When a decision record or doc states a fact another record already holds (an address, a figure, a name), link to the first record instead of restating it, or check in the same change that both agree. (ICC L-088.)
