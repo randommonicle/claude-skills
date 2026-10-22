@@ -16,7 +16,7 @@ test that cannot go red is not a test.
 
 **Four kinds of thing live here.**
 
-- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 53.
+- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 56.
 - **Hooks**: small scripts that run automatically around what Claude does. One stops and asks you
   before Claude uploads any code to GitHub. One checks a file Claude has just edited for mistakes,
   using whatever checker that project already uses. One looks up what has changed in your project
@@ -66,7 +66,7 @@ it in [CONTRIBUTING.md](CONTRIBUTING.md).
 Skills are installed at the **user level**, so they apply to every project on the machine with no
 per-project setup.
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 53 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 56 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
@@ -111,6 +111,9 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **server-side-authority** | leaf | Derive paths/ids server-side; column-scope RLS self-updates; RLS-or-revoke every table; escape admin output. |
 | **reproduce-the-real-build** | leaf (micro) | Run the exact production build locally; prove toolchain fixes from tracked manifests alone. |
 | **unordered-events** | leaf | Webhooks and queues arrive in any order: guard each status write by the states it may move from, test every (event, state) pair, and answer a missing prerequisite retryably. |
+| **pin-to-what-was-seen** | leaf | An action on displayed state sends that state; the server compares-and-sets on it (409 on a change); a 409 or an answer in doubt closes the editor and redraws; two remedies share one predicate. |
+| **fixtures-from-reality** | leaf | Fixtures recorded from the pinned provider version, fakes that carry the service's failures, setups by production's path, real output fed across seams, and each claim's runtime named. |
+| **measure-per-route** | leaf | A measured platform fact holds for the route, build, timing and machine it was measured on; measure again elsewhere, compare whole ranges, subtract the environment, prove a stop by its effect. |
 | **tool-layer-bytes** | leaf (with a hook) | Code with backslashes goes to disk through the Write tool, never a heredoc or `-e`/`-c` string; no `sed -i` on CRLF checkouts; prove the bytes after any scripted edit. |
 | **date-parse-utc-safe** | leaf (micro) | Parse date-only strings as explicit local components; UTC runtimes render the previous day. |
 | **constant-time-secret-compare** | leaf (micro) | Hash then timingSafeEqual for any secret comparison. |
