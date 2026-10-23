@@ -5,7 +5,8 @@
 //   node scripts/run-seat.mjs <review-file> <HANDLE> [options]
 //     --ask <text>     what to put to the seat this round (default: the open round's NEXT)
 //     --seats <path>   seat config (default: seats.jsonc beside the review file)
-//     --cwd <path>     working root for the seat (default: the review file's repo)
+//     --cwd <path>     working root for the seat (default: the nearest folder above the
+//                      review file holding .git, CLAUDE.md or AGENTS.md; else the file's own folder)
 //     --dry-run        compose and print the prompt, invoke nothing
 //
 // Why a script and not the model: the header, round number, terminator and metadata
@@ -17,7 +18,7 @@
 // is so the record has exactly one writer and cannot be half-written by a timeout.
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { tmpdir, homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 const SPOKE_HEADER = /^## \[([A-Z][A-Z0-9_-]*) round (\d+)\]/gm;
@@ -371,6 +372,28 @@ if (cfg.stdinJson !== undefined) {
 }
 const stdinPayload = viaArgv ? undefined : cfg.stdinJson !== undefined ? JSON.stringify(fillPrompt(cfg.stdinJson)) + '\n' : prompt;
 
+// The seat's root decides what an agy seat may read (see run()). The old default, the review
+// file's own folder, is the exchange/ directory, so every read of project source was
+// auto-denied and the turn ended NOT ANSWERED (ICC L-149: hit 28 Sept, 30 Sept and 23 Oct,
+// each time with the "pass --cwd" rule already written down). The default is now the project
+// the file belongs to, and the root is always named on stderr so a wrong one is visible.
+function seatRoot() {
+  if (argv.includes('--cwd')) return { dir: resolve(flag('--cwd')), why: '--cwd' };
+  const own = dirname(resolve(reviewPath));
+  // The walk stops below the home folder: a stray AGENTS.md there (this machine has one)
+  // would otherwise make the whole home folder the seat's root.
+  const home = resolve(homedir()).toLowerCase();
+  for (let d = own; d.toLowerCase() !== home; d = dirname(d)) {
+    const marker = ['.git', 'CLAUDE.md', 'AGENTS.md'].find((m) => existsSync(join(d, m)));
+    if (marker) return { dir: d, why: `nearest folder holding ${marker}` };
+    if (dirname(d) === d) break;
+  }
+  return { dir: own, why: 'no .git, CLAUDE.md or AGENTS.md above the review file, below the home folder; pass --cwd <project root>' };
+}
+const root = seatRoot();
+const cwd = root.dir;
+process.stderr.write(`run-seat: seat root ${cwd} (${root.why})\n`);
+
 if (argv.includes('--dry-run')) {
   process.stdout.write(prompt);
   process.exit(0);
@@ -405,7 +428,6 @@ if (!viaArgv && typeof cfg.stdinBudget === 'number' && Buffer.byteLength(stdinPa
 const template = st.thread ? cfg.continue : cfg.start;
 const tmp = mkdtempSync(join(tmpdir(), 'seat-'));
 const replyFile = join(tmp, 'reply.txt');
-const cwd = flag('--cwd', dirname(resolve(reviewPath)));
 // One pass, one regex, a function on the right. Each placeholder is replaced once from a
 // fixed table and an inserted value is never re-scanned, so a thread id of "{prompt}"
 // read from the exchange file (untrusted material, by the protocol's own framing) stays

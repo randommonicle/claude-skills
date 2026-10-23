@@ -108,8 +108,10 @@ code discussion and citations only; never personal data, credentials, secrets, o
   status.
   Ridden to convergence on 2026-09-15 (GPT via codex and GEMPRO via agy, three rounds, both seats
   resuming their threads; the record is `docs/REVIEW_run-seat-guards_2026-09-15.md`). What that ride
-  fixed in the seat config: pass `--cwd <repo root>` so an agy seat's file reads are inside a
-  workspace and auto-allowed; give exact paths and allow no shell beyond `git` and `rg` (the shipped
+  fixed in the seat config: the seat's root must be the project so an agy seat's file reads are
+  inside a workspace and auto-allowed (since 23 Oct the script finds it: the nearest folder above
+  the review file holding `.git`, `CLAUDE.md` or `AGENTS.md`, stopping below the home folder, and
+  names it on stderr; `--cwd` still overrides); give exact paths and allow no shell beyond `git` and `rg` (the shipped
   `promptSuffix` says so, matching `templates/antigravity-settings.example.json`; anything else is
   denied and ends the turn with nothing at 80k tokens, so an ask never grants more in prose, LESSONS
   37); and treat the exchange file as a **shared
