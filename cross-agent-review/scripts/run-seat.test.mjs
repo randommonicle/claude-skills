@@ -657,6 +657,41 @@ test('the seat is told not to write the file itself', (s) => {
   return true;
 });
 
+// The seat's root (ICC L-149). The old default was the review file's own folder, exchange/,
+// so an agy seat's reads of project source were auto-denied. Each case reads the root from
+// the stderr line run-seat always prints, which is the same value the seat is spawned in.
+const rootLine = (r) => (/run-seat: seat root (.+) \((.+)\)\r?$/m.exec(r.stderr ?? '') ?? [])[1];
+const dry = (s, extra = []) => spawnSync(process.execPath, [RUN, s.review, 'GPT', '--dry-run', ...extra], { encoding: 'utf8' });
+const same = (a, b) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
+
+test('the seat root defaults to the nearest folder holding CLAUDE.md, not exchange/', (s) => {
+  writeFileSync(join(s.root, 'CLAUDE.md'), '# project\n', 'utf8');
+  const got = rootLine(dry(s));
+  return same(got, s.root) || 'root was ' + got + ', expected ' + s.root;
+});
+
+test('a .git folder marks the seat root too', (s) => {
+  mkdirSync(join(s.root, '.git'));
+  const got = rootLine(dry(s));
+  return same(got, s.root) || 'root was ' + got + ', expected ' + s.root;
+});
+
+test('--cwd overrides the found root', (s) => {
+  writeFileSync(join(s.root, 'CLAUDE.md'), '# project\n', 'utf8');
+  const other = join(s.root, 'elsewhere');
+  mkdirSync(other);
+  const got = rootLine(dry(s, ['--cwd', other]));
+  return same(got, other) || 'root was ' + got + ', expected ' + other;
+});
+
+test('with no marker below the home folder the root is the file\'s folder and stderr says pass --cwd', (s) => {
+  const r = dry(s);
+  const got = rootLine(r);
+  if (!same(got, join(s.root, 'exchange'))) return 'root was ' + got + ' (a marker at or above the home folder was taken?)';
+  if (!/pass --cwd <project root>/.test(r.stderr)) return 'no --cwd hint on stderr';
+  return true;
+});
+
 for (const [name, fn] of cases) {
   const s = stage();
   try {
