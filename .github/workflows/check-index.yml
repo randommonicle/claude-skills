@@ -141,6 +141,9 @@ jobs:
       - name: the cross-agent transport suite
         if: always()
         run: node cross-agent-review/scripts/run-seat.test.mjs
+      - name: the DeepSeek seat suite
+        if: always()
+        run: node cross-agent-review/scripts/deepseek-seat.test.mjs
       - name: the Ask board page suite
         if: always()
         run: node team-loop/ask-board.test.mjs
