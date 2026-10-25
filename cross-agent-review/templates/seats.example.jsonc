@@ -124,9 +124,29 @@
 
     "grounding": "repo-read",
     "timeoutMs": 360000
+  },
+
+  // ---------------------------------------------------------------------------
+  // DeepSeek via its own API, through scripts/deepseek-seat.mjs (2026-10-25). Verified
+  // working: answers, resumes its thread, ledgers its spend. It opens no files: the
+  // ARTIFACT_* files the review names in the exchange folder (--cwd) are attached to its
+  // prompt. Replace <skill> with the skill's absolute path. See SKILL.md, "The DeepSeek seat".
+  // ---------------------------------------------------------------------------
+  "DEEPSEEK": {
+    "command": "node",
+    "promptVia": "stdin",
+    "start":    ["<skill>/scripts/deepseek-seat.mjs", "start"],
+    "continue": ["<skill>/scripts/deepseek-seat.mjs", "continue", "{thread}"],
+    "outputFormat":  "envelope",
+    "replyPath":     "response",
+    "threadIdPath":  "conversation_id",
+    "usagePath":     "usage",
+    "grounding": "prompt-only",
+    // DeepSeek's own timeout is 600 s (DEEPSEEK_TIMEOUT_MS); this leaves it room to report.
+    "timeoutMs": 660000
   }
 
-  // THREE THINGS OUTSIDE THIS FILE make the seat work. Without them a tool-using turn
+  // THREE THINGS OUTSIDE THIS FILE make the GEMPRO seat work. Without them a tool-using turn
   // took >5 minutes and returned an empty reply after 195,056 input tokens:
   //  1. ~/.gemini/antigravity-cli/settings.json must exist with a permissions block.
   //     With no file the CLI runs permissions=<nil> toolPermission=request-review and

@@ -258,3 +258,14 @@ the real trade-off with both cases argued, never a false consensus.
 
 - **Probe the seat before relying on it.** A one-line prompt from the same working folder before a long round; `--cwd` a git repository on every turn; the long time limit for a broad review, run in the background; a capacity error retried once; an empty reply read as a mechanics failure, never as "nothing to say". (ICC L-095.)
 - **Read what a sandbox flag bounds.** A "read-only" flag may bound only the commands the model runs, not the tool's own memory or cache writes; check the tool's state folders before and after. (passive income L-065.)
+
+## The DeepSeek seat (2026-10-25)
+
+A third model for the panel, driven by `scripts/deepseek-seat.mjs` over DeepSeek's own API. The DeepSeek MCP servers listed on MCP Market are all unofficial, and any of them would hold the key and see every prompt, so the seat calls `api.deepseek.com` directly with no dependency. Its block is in `templates/seats.example.jsonc` (handle `DEEPSEEK`); `scripts/deepseek-seat.test.mjs` runs it against a fake API in CI.
+
+- **Key:** `~/.deepseek.key` (or `DEEPSEEK_KEY_FILE`). Have the operator save it with a PowerShell line that pauses, checks the clipboard holds an `sk-` key and only then writes the file, so the key never reaches the chat; check the file by shape only.
+- **It reads no files.** It sees the review file run-seat sends, plus every `ARTIFACT_*` file the prompt names that exists in the exchange folder (`--cwd`), attached whole. Write the Context with those exact names, and stage what it must see as artifacts; grounding is recorded as `prompt-only`. Measured on its first review: it repeated another seat's wrong claim about a file the diff did not show, so verify every claim it makes about code outside the artifacts.
+- **Spend is ledgered.** Every answered call appends to `deepseek-spend.jsonl` in the exchange folder with its tokens and its cost at that moment's rate (peak hours cost double); `node <skill>/scripts/deepseek-seat.mjs spend`, run from the exchange folder, prints the total. Tell the operator each round's cost. The rates are a FACT anchor in the script: re-read DeepSeek's pricing page when it renames its models (it did between 2026-09 and 2026-10).
+- **Thinking eats the output budget.** `deepseek-v4-pro` thinks by default and its thinking counts against `max_tokens`: at 32,000 a 19,000-token review ran out mid-thought and returned no text (finish `length`), reported as `EMPTY`, never as an answer. The default is 96,000; a round cost about $0.085 off-peak.
+- **Never `process.exit()` in a seat that used `fetch`.** On Windows it aborted Node with exit 0xC0000409 under run-seat; the script sets `exitCode` and lets the event loop end.
+- **Its terms let DeepSeek keep prompts.** Send it only what the operator is content for it to see.
