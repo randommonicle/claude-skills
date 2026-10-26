@@ -110,3 +110,63 @@ test("a reply cut off mid-thought is EMPTY with its reason, still ledgered; no k
     assert.equal(fake.seen.length, 1, "no call without a key");
   } finally { fake.server.close(); rmSync(dir, { recursive: true, force: true }); }
 });
+
+// A fake that writes a raw body on its own schedule: steps are [delayMs, text] pairs, then it ends.
+function scriptedDeepSeek(contentType, steps) {
+  const server = createServer((req, res) => {
+    req.resume();
+    req.on("end", async () => {
+      res.writeHead(200, { "Content-Type": contentType });
+      for (const [delay, text] of steps) {
+        await new Promise((ok) => setTimeout(ok, delay));
+        if (res.destroyed) return;
+        res.write(text);
+      }
+      res.end();
+    });
+  });
+  return new Promise((ok) => server.listen(0, "127.0.0.1", () => ok({ server, url: `http://127.0.0.1:${server.address().port}/chat/completions` })));
+}
+const sse = (o) => `data: ${JSON.stringify(o)}\n\n`;
+
+test("a streamed reply is assembled, its usage ledgered, and a slow but live stream is not a stall", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "ds-stream-"));
+  writeFileSync(join(dir, "key"), "sk-" + "c".repeat(32));
+  // 6 chunks 300 ms apart: 1.8 s in all, well past the 1 s idle limit, never silent for 1 s.
+  const steps = [
+    [300, sse({ model: "deepseek-v4-pro", choices: [{ delta: { reasoning_content: "thinking" } }] })],
+    [300, sse({ choices: [{ delta: { reasoning_content: " more" } }] })],
+    [300, sse({ choices: [{ delta: { content: "Streamed " } }] })],
+    [300, sse({ choices: [{ delta: { content: "answer." } }] })],
+    [300, sse({ choices: [{ delta: {}, finish_reason: "stop" }] })],
+    [300, sse({ choices: [], usage: { prompt_tokens: 100, prompt_cache_miss_tokens: 100, completion_tokens: 50 } }) + "data: [DONE]\n\n"],
+  ];
+  const fake = await scriptedDeepSeek("text/event-stream", steps);
+  try {
+    const a = await run(["start"], "Review.", { DEEPSEEK_KEY_FILE: join(dir, "key"), DEEPSEEK_API_URL: fake.url, DEEPSEEK_IDLE_MS: "1000" }, dir);
+    assert.equal(a.env.status, "SUCCESS");
+    assert.equal(a.env.response, "Streamed answer.", "reasoning is not part of the answer");
+    assert.equal(a.env.usage.input_tokens, 100);
+    const ledger = readFileSync(join(dir, "deepseek-spend.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+    assert.equal(ledger[0].finish, "stop");
+    assert.equal(ledger[0].served_by, "deepseek-v4-pro");
+  } finally { fake.server.close(); rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("a body still arriving at the time limit is TIMEOUT, silence is STALLED, a broken body is BAD_BODY; never EMPTY", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "ds-timeout-"));
+  writeFileSync(join(dir, "key"), "sk-" + "d".repeat(32));
+  // The 2026-10-26 shape: headers at once, keep-alive lines, the answer after the cap.
+  const late = await scriptedDeepSeek("application/json", [[0, "\n"], [200, "\n"], [200, "\n"], [200, "\n"], [200, "\n"], [3000, JSON.stringify(reply("late"))]]);
+  const silent = await scriptedDeepSeek("text/event-stream", [[0, ": open\n\n"], [3000, sse({ choices: [{ delta: { content: "x" } }] })]]);
+  const broken = await scriptedDeepSeek("application/json", [[0, "{\"choices\": [ not json"]]);
+  try {
+    const env = { DEEPSEEK_KEY_FILE: join(dir, "key") };
+    const t = await run(["start"], "Review.", { ...env, DEEPSEEK_API_URL: late.url, DEEPSEEK_TIMEOUT_MS: "1500", DEEPSEEK_IDLE_MS: "1000" }, dir);
+    assert.equal(t.env.status, "TIMEOUT", t.env.error);
+    const s = await run(["start"], "Review.", { ...env, DEEPSEEK_API_URL: silent.url, DEEPSEEK_IDLE_MS: "800" }, dir);
+    assert.equal(s.env.status, "STALLED", s.env.error);
+    const b = await run(["start"], "Review.", { ...env, DEEPSEEK_API_URL: broken.url }, dir);
+    assert.equal(b.env.status, "BAD_BODY", b.env.error);
+  } finally { for (const f of [late, silent, broken]) f.server.close(); rmSync(dir, { recursive: true, force: true }); }
+});
