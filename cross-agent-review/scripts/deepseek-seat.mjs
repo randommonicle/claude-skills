@@ -14,7 +14,11 @@
 // histories (.deepseek-threads/) and the spend ledger (deepseek-spend.jsonl) are kept there,
 // because DeepSeek's API keeps no conversation. The key is read from DEEPSEEK_KEY_FILE, else
 // ~/.deepseek.key, and never printed. The seat opens no files itself: each ARTIFACT_* file the
-// prompt names that exists in the working folder is attached to the prompt, whole.
+// prompt names is attached to the prompt, whole. A name resolves as written, relative to the
+// working folder (`exchange/ARTIFACT_x.txt`, or a bare `ARTIFACT_x.txt`). A named artifact that is
+// missing, absolute, or outside that folder fails the call (NO_ARTIFACT) instead of being
+// skipped: a skipped one sent the prompt alone, and the seat still answered with citations
+// (2026-10-29, Commonhold L-152).
 //
 // Every answered call is written to the ledger with its tokens and its cost at that moment's
 // rate, so the spend is always known. Never process.exit(): on Windows, exiting while fetch still
@@ -23,7 +27,7 @@
 import { readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
-import { join, basename, resolve } from "node:path";
+import { join, basename, resolve, relative, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const WORK = process.cwd();
@@ -69,10 +73,20 @@ export function costOf(model, u, at) {
   return Math.round((hit * p.hit[i] + miss * p.miss[i] + out * p.out[i]) / 1e6 * 1e6) / 1e6;
 }
 
-/** The ARTIFACT_* files a prompt names that exist in `dir`, by base name, once each. */
+/** The ARTIFACT_* files a prompt names, once each, resolved as written under `dir`:
+ *  found (attach), missing (no such file), refused (absolute, or outside `dir`). */
 export function namedArtifacts(prompt, dir) {
-  const names = [...new Set((prompt.match(/ARTIFACT_[A-Za-z0-9_.-]+/g) || []).map((n) => n.replace(/[.]+$/, "")))];
-  return names.map((n) => join(dir, basename(n))).filter((p) => existsSync(p));
+  const root = resolve(dir);
+  const tokens = prompt.match(/[^\s`'"()<>[\]]*ARTIFACT_[A-Za-z0-9_.-]+/g) || [];
+  const names = [...new Set(tokens.map((n) => n.replace(/[.]+$/, "").replaceAll("\\", "/")))];
+  const out = { found: [], missing: [], refused: [] };
+  for (const n of names) {
+    const p = resolve(root, n);
+    if (isAbsolute(n) || /^[A-Za-z]:/.test(n) || relative(root, p).startsWith("..")) out.refused.push(n);
+    else if (existsSync(p)) out.found.push(p);
+    else out.missing.push(n);
+  }
+  return out;
 }
 
 /** The body as text, calling alive() on every chunk so the idle timer only fires on real silence. */
@@ -130,8 +144,15 @@ async function main() {
 
   const asked = readFileSync(0, "utf8");
   if (!asked.trim()) return fail("BAD_ARGS", "No prompt on stdin.");
+  const named = namedArtifacts(asked, WORK);
+  if (named.missing.length || named.refused.length) {
+    const parts = [];
+    if (named.missing.length) parts.push(`not found under ${WORK}: ${named.missing.join(", ")}`);
+    if (named.refused.length) parts.push(`outside the working folder, so not attached: ${named.refused.join(", ")}`);
+    return fail("NO_ARTIFACT", `Named artifacts ${parts.join("; ")}. Name each as a path relative to the working folder (for example exchange/ARTIFACT_x.txt); nothing was sent.`);
+  }
   let attached = "";
-  for (const p of namedArtifacts(asked, WORK)) attached += `\n\n===== FILE ${basename(p)} =====\n` + readFileSync(p, "utf8");
+  for (const p of named.found) attached += `\n\n===== FILE ${basename(p)} =====\n` + readFileSync(p, "utf8");
   if (attached.length > MAX_ATTACHED) return fail("TOO_BIG", `The named artifacts are over ${MAX_ATTACHED} characters; name fewer.`);
   const prompt = asked + (attached ? "\n\nThe files named above, attached in full (you cannot open files yourself):" + attached : "");
 

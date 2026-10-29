@@ -13,7 +13,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
-import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -40,12 +40,34 @@ test("the cost uses the hit, miss and output rates of the moment, peak double", 
   assert.equal(costOf("some-other-model", u, new Date()), null, "an unknown model is unpriced, never priced at zero");
 });
 
-test("only named ARTIFACT_ files in the working folder are attached", () => {
+test("named artifacts resolve as written under the working folder; missing and outside ones are reported, never dropped", () => {
   const dir = mkdtempSync(join(tmpdir(), "ds-art-"));
+  mkdirSync(join(dir, "exchange"));
   writeFileSync(join(dir, "ARTIFACT_a.diff"), "A");
-  const found = namedArtifacts("see C:/elsewhere/ARTIFACT_a.diff and ../ARTIFACT_missing.diff and /etc/passwd.", dir);
-  assert.deepEqual(found, [join(dir, "ARTIFACT_a.diff")]);
+  writeFileSync(join(dir, "exchange", "ARTIFACT_b.txt"), "B");
+  const got = namedArtifacts("see ARTIFACT_a.diff, `exchange/ARTIFACT_b.txt`, exchange\\ARTIFACT_b.txt. Then C:/elsewhere/ARTIFACT_a.diff, ../ARTIFACT_up.diff, /etc/ARTIFACT_root.diff and ARTIFACT_gone.txt.", dir);
+  assert.deepEqual(got.found, [join(dir, "ARTIFACT_a.diff"), join(dir, "exchange", "ARTIFACT_b.txt")]);
+  assert.deepEqual(got.missing, ["ARTIFACT_gone.txt"]);
+  assert.deepEqual(got.refused, ["C:/elsewhere/ARTIFACT_a.diff", "../ARTIFACT_up.diff", "/etc/ARTIFACT_root.diff"]);
   rmSync(dir, { recursive: true, force: true });
+});
+
+test("a named artifact that is missing is NO_ARTIFACT, and nothing reaches DeepSeek", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "ds-noart-"));
+  mkdirSync(join(dir, "exchange"));
+  writeFileSync(join(dir, "key"), "sk-" + "a".repeat(32));
+  writeFileSync(join(dir, "exchange", "ARTIFACT_x.txt"), "THE DRAFT");
+  const fake = await fakeDeepSeek(() => reply("A confident review of nothing."));
+  const env = { DEEPSEEK_KEY_FILE: join(dir, "key"), DEEPSEEK_API_URL: fake.url };
+  try {
+    const a = await run(["start"], "Review ARTIFACT_x.txt please.", env, dir);
+    assert.equal(a.env.status, "NO_ARTIFACT");
+    assert.match(a.env.error, /ARTIFACT_x\.txt/);
+    assert.equal(fake.seen.length, 0, "no call was made with the prompt alone");
+    const b = await run(["start"], "Review exchange/ARTIFACT_x.txt please.", env, dir);
+    assert.equal(b.env.status, "SUCCESS");
+    assert.match(fake.seen[0].body.messages.at(-1).content, /THE DRAFT/, "the path as written is attached");
+  } finally { fake.server.close(); rmSync(dir, { recursive: true, force: true }); }
 });
 
 function fakeDeepSeek(answer) {

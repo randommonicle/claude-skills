@@ -129,8 +129,8 @@
   // ---------------------------------------------------------------------------
   // DeepSeek via its own API, through scripts/deepseek-seat.mjs (2026-10-25). Verified
   // working: answers, resumes its thread, ledgers its spend. It opens no files: the
-  // ARTIFACT_* files the review names in the exchange folder (--cwd) are attached to its
-  // prompt. Replace <skill> with the skill's absolute path. See SKILL.md, "The DeepSeek seat".
+  // ARTIFACT_* files the review names, as paths relative to --cwd, are attached to its
+  // prompt; a named one it cannot find fails the call (NO_ARTIFACT). Replace <skill> with the skill's absolute path. See SKILL.md, "The DeepSeek seat".
   // ---------------------------------------------------------------------------
   "DEEPSEEK": {
     "command": "node",
