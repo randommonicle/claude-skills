@@ -129,8 +129,8 @@
   // ---------------------------------------------------------------------------
   // DeepSeek via its own API, through scripts/deepseek-seat.mjs (2026-10-25). Verified
   // working: answers, resumes its thread, ledgers its spend. It opens no files: the
-  // ARTIFACT_* files the review names in the exchange folder (--cwd) are attached to its
-  // prompt. Replace <skill> with the skill's absolute path. See SKILL.md, "The DeepSeek seat".
+  // ARTIFACT_* files the review names, as paths relative to --cwd, are attached to its
+  // prompt; a named one it cannot find fails the call (NO_ARTIFACT). Replace <skill> with the skill's absolute path. See SKILL.md, "The DeepSeek seat".
   // ---------------------------------------------------------------------------
   "DEEPSEEK": {
     "command": "node",
@@ -142,8 +142,9 @@
     "threadIdPath":  "conversation_id",
     "usagePath":     "usage",
     "grounding": "prompt-only",
-    // DeepSeek's own timeout is 600 s (DEEPSEEK_TIMEOUT_MS); this leaves it room to report.
-    "timeoutMs": 660000
+    // DeepSeek's own cap is 1,800 s (DEEPSEEK_TIMEOUT_MS), streamed, with a 120 s silence limit
+    // (DEEPSEEK_IDLE_MS); this leaves it room to report.
+    "timeoutMs": 1860000
   }
 
   // THREE THINGS OUTSIDE THIS FILE make the GEMPRO seat work. Without them a tool-using turn
