@@ -1493,3 +1493,24 @@ paragraph after the standard text; that is where a carve-out lives.
 **skill that should have prevented this:** enforce-invariants-in-build
 
 **class:** a provenance or licence claim stated in prose that no gate asserts.
+
+## 42. A GPT seat run outside a git repository exited 1 with no reply
+
+**What happened.** On 2026-10-31 a cross-agent review of the Terran Republic lore bible ran
+from a project folder that is not a git repository. The GPT seat (codex) exited 1 with no reply
+and run-seat recorded a transport failure with no reason. A one-line probe showed the cause:
+codex printed "Not inside a trusted directory and --skip-git-repo-check was not specified."
+Adding `--skip-git-repo-check` to the seat's `start` template fixed it, and the rerun answered.
+The flag was also added to the `continue` template, but a resume through it has not been run.
+**verified**: the probe's output before and after the flag, and the answered rerun recorded in
+`Terran Republic world building/review-2026-10-31/REVIEW_lore-31oct_2026-10-31.md`.
+
+**The lesson.** The shipped `seats.example.jsonc` assumes the seat's root is a git repository,
+because every earlier run was in one. Non-code projects (writing, world building) are not. Probe
+the seat with a one-line prompt from the same folder before a long round, as the 2026-10-22
+addition already says, and either carry the flag in the template or have run-seat surface
+codex's stderr when it exits with no reply, so the reason is not lost.
+
+**skill that should have prevented this:** cross-agent-review (its probe step was skipped).
+
+**class:** a seat transport that assumes the shape of the projects it was first proven on.

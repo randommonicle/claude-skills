@@ -16,13 +16,13 @@
     // ENAMETOOLONG at ~32,700 characters, which is about 8,000 tokens - less than one
     // round of a real exchange. `-` tells codex to read instructions from stdin.
     "promptVia": "stdin",
-    "start":    ["exec", "--json", "-s", "{sandbox}", "-C", "{cwd}", "-o", "{replyFile}", "-"],
+    "start":    ["exec", "--skip-git-repo-check", "--json", "-s", "{sandbox}", "-C", "{cwd}", "-o", "{replyFile}", "-"],
 
     // `exec resume` takes a NARROWER flag set than `exec`: it rejects --sandbox, --cd,
     // --add-dir, --approve-for-me and --profile. A continuation turn therefore inherits
     // the sandbox and working root from the turn that opened the thread. Do not add
     // -s or -C here; it exits 2 with "unexpected argument".
-    "continue": ["exec", "resume", "{thread}", "--json", "-o", "{replyFile}", "-"],
+    "continue": ["exec", "resume", "--skip-git-repo-check", "{thread}", "--json", "-o", "{replyFile}", "-"],
 
     // Output is JSONL events. The reply is taken from the -o file rather than parsed
     // out of the stream: cleaner, and it does not break when the event schema changes.
