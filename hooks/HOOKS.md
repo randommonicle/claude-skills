@@ -23,6 +23,7 @@ on 2026-07-23 (see the proposal doc's mechanics table).
 | `lint-after-edit.mjs` | PostToolUse / Write\|Edit | an edited `.js/.jsx/.ts/.tsx/.mjs/.cjs` file outside `node_modules`/`dist`/`build`/`.git`: walks up to the nearest `package.json`, picks Biome (`biome.json`/`biome.jsonc`) else ESLint (`eslint.config.*`, `.eslintrc*`, or an `eslintConfig` key), resolves the binary strictly from that project's `node_modules/.bin` (never npx, never an install; on Windows that is npm's `.cmd` shim, run through `cmd.exe` with metacharacter paths skipped, since Node will not spawn a `.cmd` bare and the hook was silent on every Windows project until 2026-09-15), lints the single edited file and reports up to 30 lines as `systemMessage` + `additionalContext` (retires the lint-after-edit skill, whose moment is the edit itself and which no prompt names) | fail-open, warn-only, never blocks; silent on no config, no binary, crash or the 15s internal timeout |
 | `audit-fires.mjs` | none: CLI, run by hand (`node hooks/audit-fires.mjs --repo <path>...`) | scores the rating system on this machine's data: fires per skill (count, first and last ts, distinct cwds), never-fired skills each tagged with the layer that explains the zero (norms and hook-backed skills are invisible to the fire log by construction), misses per skill from each repo's `docs/LESSONS_LEARNED.md`, and a loads-vs-misses cross-reference, the promotion and prune signal | fail-open per line, fail-loud per file: a malformed JSONL line is skipped and counted, a missing log prints a notice and the run continues; never registered as a hook, so it cannot affect a session |
 | `update-skills.mjs` | none: CLI, run unattended by the OS scheduler (`node hooks/update-skills.mjs [--repo <path>] [--dry-run]`) | fast-forwards this library so the live install never runs month-old hooks (LESSONS_LEARNED 11 ran a broken fire-log hook for a month; on 2026-09-15 the live clone was 22 commits behind while a working copy was 20). Decides from git state alone and asks no model anything: fetch, then `current` \| `updated` \| `skipped-dirty` \| `skipped-ahead` \| `skipped-diverged` \| `error`, written to `../skills-update.json` beside the repo — never inside it, so there is nothing to gitignore and nothing to commit by accident. Fast-forwards only when clean, behind, and not ahead; re-reads HEAD afterwards rather than trusting `git merge`'s exit code (verify-the-effect). Untracked files do not count as dirty, since this clone always carries machine-local logs. `session-recon.mjs` surfaces the result at the next session start, which is what stops an unattended failure from rotting | fail-loud into the status file, one distinct state per failure mode; exit 0 only on `current`/`updated`. Refuses any repo whose `origin` is not a `claude-skills` remote, so pointing it at a client repo cannot fast-forward it. `realpath` resolves a junction to the one real path, so entering by either name is the same repo. Never registered as a hook |
+| `sync-port.mjs` | none: CLI, and the port step of `update-skills.mjs` (`node hooks/sync-port.mjs <port-dir> [--repo <path>] [--dry-run]`) | refreshes a port, a copy of this library in another agent's plugin layout (today an Antigravity plugin, `.agents/plugins/<name>`), from the committed HEAD, never the working tree: every skill whose `SKILL.md` is tracked (so the gitignored vendor packs drop out), each skill folder made to hold exactly its tracked files; `ports/antigravity/` (plugin.json, hooks.json, the wrapper); only the hooks `hooks.json` wires; `NORMS.md` as `rules/NORMS.md`. A skill the port has and the library does not is left alone. Re-hashes every file it wrote against the blob it came from (verify-the-effect). Built 2026-11-01 after the AI domain port was found two months stale with a push gate that let `git -C <path> push` through | fail-loud, one record: `current` \| `synced` \| `error`. Refuses a folder with no `plugin.json`, a folder inside the library, and a `hooks.json` that wires a hook the library does not have; never registered as a hook |
 | `install-marketing-pack.mjs` | none: CLI, run by hand (`node hooks/install-marketing-pack.mjs <target-repo> [--source <clone>] [--dry-run]`) | installs the stripped 14-skill subset of `coreyhaines31/marketingskills` into a target repo's `.claude/skills/`, pinned to one upstream commit (DECISIONS 2026-09-14, the third door): drops `evals/` and non-markdown, deletes the `## Tool Integrations` section and every `tools/integrations/` or `tools/REGISTRY.md` link (four live in `references/`), drops Related Skills rows naming an uninstalled skill in all three upstream row forms, writes `UPSTREAM.md` (pin, commit date, installed list, every cut by file and upstream line) and `LICENSE.marketingskills`; a re-run removes what its own `UPSTREAM.md` lists and reinstalls, so a changed keep list converges and the output is byte-identical across machines | fail-loud before any write: refuses a `--source` whose HEAD is not the pin, a target that is not a directory, and a same-named skill directory its `UPSTREAM.md` did not install; never registered as a hook |
 
 All three `.jsonl` logs (fire, fire-debug, surgery) are machine-local and gitignored. The `Write|Edit` matcher is an unanchored
@@ -120,6 +121,28 @@ confirming the file reappears with a fresh `at` — a status file left in place 
 nothing, since the task failing to run looks identical. Then confirm the negative path:
 a session opened with that file aged past 36h must report the staleness, which is the
 branch that catches the task dying quietly. `node hooks/session-recon.test.mjs` asserts it.
+
+#### Mirrors: other checkouts and ports on the same machine
+
+The same run keeps the machine's other copies of this library current, if
+`~/.claude/skills-mirrors.json` (beside the repo, never inside it) lists them:
+
+```json
+{
+  "checkouts": ["C:\\Users\\<you>\\.agents\\skills"],
+  "ports": ["C:\\Users\\<you>\\Projects\\<project>\\.agents\\plugins\\ash"]
+}
+```
+
+A checkout is fast-forwarded under exactly the library's rules (same origin guard, same
+refusals). A port is refreshed by `sync-port.mjs`, and only when the library itself read
+`current` or `updated`, so a port never receives a HEAD that differs from origin. Results
+land in the status file's `mirrors` list; session-recon names any mirror that wants a
+human and is silent otherwise. No file, no mirrors: the status file keeps its old shape.
+
+A new port starts as a folder holding a `plugin.json` (the guard refuses anything else);
+the first run fills it. `ports/antigravity/` in this repo is the port's source of truth, so
+change the wrapper or `hooks.json` there, never in a port.
 
 ## Deferred hook rows
 

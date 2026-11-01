@@ -153,6 +153,40 @@ test(
 );
 
 test(
+  'a failed mirror is named while the library itself is current',
+  {
+    state: 'current',
+    at: hoursAgo(2),
+    mirrors: [
+      { kind: 'checkout', path: 'C:/m/ok', state: 'current' },
+      { kind: 'port', path: 'C:/m/ash', state: 'error', reason: 'refusing: no plugin.json in the port' },
+    ],
+  },
+  async (r) => {
+    if (!/skills mirror \(port\) C:\/m\/ash: error - refusing: no plugin\.json/.test(r.context)) return 'mirror failure not surfaced: ' + r.context;
+    if (/C:\/m\/ok/.test(r.context)) return 'a healthy mirror was mentioned';
+    return true;
+  },
+);
+
+test(
+  'healthy and library-skipped mirrors stay silent',
+  {
+    state: 'current',
+    at: hoursAgo(2),
+    mirrors: [
+      { kind: 'checkout', path: 'C:/m/a', state: 'updated' },
+      { kind: 'port', path: 'C:/m/b', state: 'synced' },
+      { kind: 'port', path: 'C:/m/c', state: 'skipped', reason: 'library is skipped-dirty' },
+    ],
+  },
+  async (r) => {
+    if (/skills mirror/i.test(r.out)) return 'noise for healthy mirrors: ' + r.context;
+    return true;
+  },
+);
+
+test(
   'a stale status file is reported even though its state is healthy',
   { state: 'current', at: hoursAgo(48) },
   async (r) => {

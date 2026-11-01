@@ -5,13 +5,20 @@
 // asks a model anything. session-recon.mjs surfaces the result at the next
 // session start, so an unattended failure is visible instead of rotting.
 //
+// Then the mirrors, if ../skills-mirrors.json lists any (machine-local, beside the
+// repo like the status file): each extra checkout of this library is
+// fast-forwarded under the same rules, and each port is refreshed by
+// sync-port.mjs, only when the library itself read current or updated.
+//
 //   node hooks/update-skills.mjs [--repo <path>] [--dry-run]
 //
-// Exit 0: current | updated.   Exit 1: anything a human should look at.
+// Exit 0: current | updated, and every mirror current | updated | synced.
+// Exit 1: anything a human should look at.
 import { spawnSync } from 'node:child_process';
-import { writeFileSync, existsSync, realpathSync } from 'node:fs';
+import { writeFileSync, existsSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { syncPort } from './sync-port.mjs';
 
 // argv form, never a shell string: a repo path is untrusted text and
 // interpolating it into a shell command would make this injectable. Same rule
@@ -29,72 +36,102 @@ const repoArg = argv.includes('--repo') ? argv[argv.indexOf('--repo') + 1] : nul
 // Default to the repo this script lives in, so the file is portable between
 // machines and checkouts. realpath means entering via a junction resolves to
 // the one real path instead of treating it as a second repo.
+const real = (p) => (existsSync(p) ? realpathSync(p) : p);
 const here = dirname(fileURLToPath(import.meta.url));
-let repo = resolve(repoArg ?? join(here, '..'));
-if (existsSync(repo)) repo = realpathSync(repo);
+const repo = real(resolve(repoArg ?? join(here, '..')));
 
-// The status file lives BESIDE the repo, never inside it: nothing to gitignore
-// and nothing that can be committed by accident.
+// The status and mirrors files live BESIDE the repo, never inside it: nothing to
+// gitignore and nothing that can be committed by accident.
 const statusPath = resolve(repo, '..', 'skills-update.json');
+const mirrorsPath = resolve(repo, '..', 'skills-mirrors.json');
 
-function finish(state, detail = {}) {
-  const record = { state, at: new Date().toISOString(), repo, ...detail };
-  if (!dryRun) {
-    try { writeFileSync(statusPath, JSON.stringify(record, null, 2) + '\n', 'utf8'); }
-    catch (e) { console.error(`could not write ${statusPath}: ${e.message}`); }
+const OK = new Set(['current', 'updated', 'synced']);
+
+// One checkout, one record. Returns rather than exits, so the same rules run for
+// the library and for each mirror checkout.
+function updateRepo(repo) {
+  const done = (state, detail = {}) => ({ state, repo, ...detail });
+  if (!existsSync(join(repo, '.git'))) return done('error', { reason: `not a git repository: ${repo}` });
+
+  // Guard: this fast-forwards without asking, so it must never be able to do
+  // that to a client repo if someone points it at one by mistake.
+  const remote = git(repo, ['remote', 'get-url', 'origin']);
+  if (!remote.ok) return done('error', { reason: 'no origin remote' });
+  if (!/claude-skills(\.git)?$/i.test(remote.out.replace(/\/+$/, ''))) {
+    return done('error', { reason: `refusing: origin is not a claude-skills repo (${remote.out})` });
   }
-  console.log(JSON.stringify(record, null, 2));
-  process.exit(state === 'current' || state === 'updated' ? 0 : 1);
+
+  const fetched = git(repo, ['fetch', '--quiet', '--prune', 'origin'], 60000);
+  if (!fetched.ok) return done('error', { reason: `fetch failed: ${fetched.err || 'unknown'}` });
+
+  const upstream = git(repo, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']);
+  if (!upstream.ok) return done('error', { reason: 'no upstream tracking branch' });
+
+  const counts = git(repo, ['rev-list', '--left-right', '--count', `HEAD...${upstream.out}`]);
+  if (!counts.ok) return done('error', { reason: 'could not compare with upstream' });
+  const [ahead, behind] = counts.out.split(/\s+/).map(Number);
+
+  const from = git(repo, ['rev-parse', 'HEAD']).out;
+  const to = git(repo, ['rev-parse', upstream.out]).out;
+  const base = { from, to, ahead, behind, upstream: upstream.out };
+
+  if (ahead > 0 && behind > 0) return done('skipped-diverged', base);
+  if (ahead > 0) return done('skipped-ahead', base);
+  if (behind === 0) return done('current', { from, upstream: upstream.out });
+
+  // Untracked files never block a fast-forward, and this clone always carries
+  // machine-local logs, so only TRACKED changes count as dirty. A genuine
+  // collision still fails loudly below as an error.
+  const dirty = git(repo, ['status', '--porcelain', '--untracked-files=no']);
+  if (!dirty.ok) return done('error', { reason: 'could not read working tree state' });
+  if (dirty.out) return done('skipped-dirty', { ...base, changes: dirty.out.split('\n').slice(0, 10) });
+
+  if (dryRun) return done('updated', { ...base, dryRun: true });
+
+  const merged = git(repo, ['merge', '--ff-only', upstream.out]);
+  if (!merged.ok) return done('error', { ...base, reason: `ff-only merge failed: ${merged.err || merged.out}` });
+
+  // verify-the-effect: the merge's exit code is a proxy. Assert HEAD actually moved.
+  const now = git(repo, ['rev-parse', 'HEAD']).out;
+  if (now !== to) return done('error', { ...base, now, reason: 'merge reported success but HEAD is not at upstream' });
+
+  const changed = git(repo, ['diff', '--name-only', `${from}..${to}`]).out.split('\n').filter(Boolean);
+  return done('updated', {
+    ...base,
+    commits: behind,
+    hooksChanged: changed.some((f) => f.startsWith('hooks/')),
+    skillsChanged: changed.some((f) => f.endsWith('SKILL.md')),
+  });
 }
 
-if (!existsSync(join(repo, '.git'))) finish('error', { reason: `not a git repository: ${repo}` });
-
-// Guard: this script fast-forwards without asking, so it must never be able to
-// do that to a client repo if someone points it at one by mistake.
-const remote = git(repo, ['remote', 'get-url', 'origin']);
-if (!remote.ok) finish('error', { reason: 'no origin remote' });
-if (!/claude-skills(\.git)?$/i.test(remote.out.replace(/\/+$/, ''))) {
-  finish('error', { reason: `refusing: origin is not a claude-skills repo (${remote.out})` });
+function updateMirrors(library) {
+  if (!existsSync(mirrorsPath)) return null;
+  let cfg;
+  try {
+    cfg = JSON.parse(readFileSync(mirrorsPath, 'utf8'));
+  } catch (e) {
+    return [{ kind: 'config', path: mirrorsPath, state: 'error', reason: `unreadable: ${e.message}` }];
+  }
+  const out = [];
+  for (const c of cfg.checkouts ?? []) {
+    const path = real(resolve(c));
+    if (path === repo) continue; // the library itself, entered by another name
+    const { repo: _, ...rec } = updateRepo(path);
+    out.push({ kind: 'checkout', path, ...rec });
+  }
+  // A port copies from HEAD, so only a HEAD known to match origin is copied.
+  for (const p of cfg.ports ?? []) {
+    out.push(OK.has(library.state) ? syncPort(repo, p, { dryRun }) : { kind: 'port', path: p, state: 'skipped', reason: `library is ${library.state}` });
+  }
+  return out;
 }
 
-const fetched = git(repo, ['fetch', '--quiet', '--prune', 'origin'], 60000);
-if (!fetched.ok) finish('error', { reason: `fetch failed: ${fetched.err || 'unknown'}` });
-
-const upstream = git(repo, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']);
-if (!upstream.ok) finish('error', { reason: 'no upstream tracking branch' });
-
-const counts = git(repo, ['rev-list', '--left-right', '--count', `HEAD...${upstream.out}`]);
-if (!counts.ok) finish('error', { reason: 'could not compare with upstream' });
-const [ahead, behind] = counts.out.split(/\s+/).map(Number);
-
-const from = git(repo, ['rev-parse', 'HEAD']).out;
-const to = git(repo, ['rev-parse', upstream.out]).out;
-const base = { from, to, ahead, behind, upstream: upstream.out };
-
-if (ahead > 0 && behind > 0) finish('skipped-diverged', base);
-if (ahead > 0) finish('skipped-ahead', base);
-if (behind === 0) finish('current', { from, upstream: upstream.out });
-
-// Untracked files never block a fast-forward, and this clone always carries
-// machine-local logs, so only TRACKED changes count as dirty. A genuine
-// collision still fails loudly below as an error.
-const dirty = git(repo, ['status', '--porcelain', '--untracked-files=no']);
-if (!dirty.ok) finish('error', { reason: 'could not read working tree state' });
-if (dirty.out) finish('skipped-dirty', { ...base, changes: dirty.out.split('\n').slice(0, 10) });
-
-if (dryRun) finish('updated', { ...base, dryRun: true });
-
-const merged = git(repo, ['merge', '--ff-only', upstream.out]);
-if (!merged.ok) finish('error', { ...base, reason: `ff-only merge failed: ${merged.err || merged.out}` });
-
-// verify-the-effect: the merge's exit code is a proxy. Assert HEAD actually moved.
-const now = git(repo, ['rev-parse', 'HEAD']).out;
-if (now !== to) finish('error', { ...base, now, reason: 'merge reported success but HEAD is not at upstream' });
-
-const changed = git(repo, ['diff', '--name-only', `${from}..${to}`]).out.split('\n').filter(Boolean);
-finish('updated', {
-  ...base,
-  commits: behind,
-  hooksChanged: changed.some((f) => f.startsWith('hooks/')),
-  skillsChanged: changed.some((f) => f.endsWith('SKILL.md')),
-});
+const library = updateRepo(repo);
+const mirrors = updateMirrors(library);
+const record = { ...library, at: new Date().toISOString(), ...(mirrors ? { mirrors } : {}) };
+if (!dryRun) {
+  try { writeFileSync(statusPath, JSON.stringify(record, null, 2) + '\n', 'utf8'); }
+  catch (e) { console.error(`could not write ${statusPath}: ${e.message}`); }
+}
+console.log(JSON.stringify(record, null, 2));
+process.exitCode = OK.has(library.state) && (mirrors ?? []).every((m) => OK.has(m.state)) ? 0 : 1;

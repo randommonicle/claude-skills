@@ -1,0 +1,8 @@
+{
+    "name":  "ash",
+    "description":  "ASH engineering skills: the guardrail skills of the claude-skills library in a four-layer architecture (hooks, norms, hubs, leaves), distilled from cross-repo lessons learned and committee-ratified. Includes the Layer 0 hooks (push gate, destructive-SQL warn, session recon, schedule-cost warn, migration and test-write warns, lint after edit) and the always-on norms. Kept current from the library by hooks/sync-port.mjs: edit the library, not this copy.",
+    "author":  {
+                   "name":  "Ben Graham"
+               },
+    "repository":  "https://github.com/randommonicle/claude-skills"
+}
