@@ -5,6 +5,37 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-11-01 The Cloudflare pack reinstalled at 1a33048, with cf-cli added
+
+Ben, 2026-11-01, "Yes, add cf-cli too". **Reinstall:** the 13 skills in `~/.claude/skills` and
+`~/.agents/skills` were replaced wholesale (deleted, then copied) from `cloudflare/skills` at
+`1a33048` (2026-10-31), byte-identical to that commit. The previous copies (`c430dd9`, checked
+identical to that commit first) are in `~/.claude/skills-vendor-backup-2026-11-01` and
+`~/.agents/skills-vendor-backup-2026-11-01`. **cf-cli added:** upstream's `wrangler` now applies
+only where a Wrangler configuration file exists and hands every other project to `cf-cli`, so
+`cf-cli` joins the VENDOR sets in `hooks/check-index.mjs`, `hooks/audit-fires.mjs` and
+`.gitignore` in this change. It is copied into both roots once this change is on main, so no
+checkout ever holds it unlisted. `gateway-workers`, `basin`, `k2`, `nextjs-on-cloudflare` and
+`workers-profiling` stay uninstalled. **What changed upstream:** about 8,350 lines of
+references that copied Cloudflare's docs were deleted in favour of links; the examples the
+2026-10-12 review flagged are gone except `wrangler email sending enable` and `scheduleEvery`;
+every skill gained `references/skill-feedback.md`, which files a public issue on
+cloudflare/skills after a shown-text yes. The 2026-10-12 precedence entry still governs: a
+feedback issue is an outward post under confirm-before-push, and `cf-cli`'s
+`npm install --global cf` is the vendor's description, never a step taken unasked.
+
+## 2026-11-01 The marketing pack reinstalled at 88c79f6
+
+Ben, 2026-11-01, same answer. `hooks/install-marketing-pack.mjs` pins
+`coreyhaines31/marketingskills` at `88c79f6` (2026-10-30), and the installer was rerun into
+ICC (`icc-site`), 1f916 (`society`) and PropOS, each recording the pin in its
+`.claude/skills/UPSTREAM.md`. Same 14 skills, same strip rules, 79 lines cut. Two vendor texts
+are overruled, not edited: `copywriting/references/ai-tells.md` allows one or two em dashes per
+page of long copy, where Ben's global rule allows none; and
+`ai-seo/references/agent-readiness.md` suggests running `npx` audit packages, which is product
+description, never a step to run. Known gap, unchanged: Related Skills rows are stripped from
+`SKILL.md` only, so `cro/references/form.md` still names three skills that are not installed.
+
 ## 2026-11-01 Outside skills are mined for ideas, never text; what is rejected is written down
 
 Ben, 2026-11-01 ("yes to all"). When another skill covers ground a library skill already holds

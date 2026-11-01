@@ -3,7 +3,7 @@
 template: team-loop NOW v1
 updated: 2026-10-22 18:42 BST, session end (an ICC session that finished the misses-log sweep; context about 45%). Diagnoses in this note are unverified unless marked
 topic: the misses-log sweep of 22 October 2026, finished (PRs #24, #25, #27, #28)
-next: the marketing pack's pin (coreyhaines31/marketingskills is 799 commits past 5b2c000), then the library's second Occam read (DECISIONS 2026-10-09); two ICC lesson candidates of 22 October (below) may become upgrades once Ben rules on them
+next: the library's second Occam read (DECISIONS 2026-10-09); two ICC lesson candidates of 22 October (below) may become upgrades once Ben rules on them
 branches: main only
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
@@ -20,7 +20,6 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH
 
 ## Deferred, with grep anchors
 
-- The marketing pack pin (5b2c000, 4 September 2026): hooks/install-marketing-pack.mjs and ICC's .claude/skills/UPSTREAM.md
 - The second Occam read (DECISIONS 2026-10-09), due on or after 2026-10-16
 - Candidates from ICC's 22 October checkpoint 13, awaiting Ben's word: a safety trigger that also blocks a test's own clean-up (the database keeps its last active owner); and the honest-failure-surfacing micro-skill option the sweep left open was taken as an upgrade instead
 - Earlier: `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md section 9; unpinned agents (debugger, refactorer; PropOS backend, frontend, test)

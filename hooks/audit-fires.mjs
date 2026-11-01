@@ -30,7 +30,7 @@ const BUILTINS = new Set(['docx', 'pdf', 'pptx', 'xlsx', 'morning', 'skill-creat
 // stranger. Canonical statement and rationale in check-index.mjs (DECISIONS.md,
 // 2026-08-10); check-index.test.mjs asserts the two sets stay identical.
 const VENDOR = new Set([
-  'agents-sdk', 'cloudflare', 'cloudflare-email-service', 'cloudflare-one',
+  'agents-sdk', 'cf-cli', 'cloudflare', 'cloudflare-email-service', 'cloudflare-one',
   'cloudflare-one-migrations', 'durable-objects', 'sandbox-migrate-to-next',
   'sandbox-next', 'sandbox-stable', 'turnstile-spin', 'web-perf',
   'workers-best-practices', 'wrangler',
