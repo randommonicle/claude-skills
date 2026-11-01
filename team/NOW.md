@@ -1,10 +1,10 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-11-01 23:50 GMT, session end (the Unslop session; context 48%, read with get_usage). Diagnoses in this note are unverified unless marked
+updated: 2026-11-01 23:52 GMT, session end (the Unslop session; context 48%, read with get_usage). Diagnoses in this note are unverified unless marked
 topic: unslop-text took humanizer and antislop ideas; the library's other copies are kept current by update-skills (PRs #34, #35, #39)
 next: read PR #38 (docs/SKILL_PROPOSALS_2026-11-01.md, the third misses-log sweep), then Ben merges it and picks the first proposal to build
-branches: main; docs/skill-proposals-2026-11-01 (~/.claude/skills-wt-proposals-1101, PR #38, owned by its sweep session); docs/now-2026-11-01 (this note)
+branches: main; docs/skill-proposals-2026-11-01 (~/.claude/skills-wt-proposals-1101, PR #38, its sweep session kept for auto-fix); docs/now-2026-11-01 (this note, PR #40, no worktree)
 ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH (ASK-0010 Occam overdue, ASK-0011 the port-only skills)
 
 ## Landed since the last NOW.md
@@ -18,7 +18,8 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH (ASK-0010 Occam overdue, 
 
 ## In flight
 
-- PR #38 open, auto-fix on in its own session; nothing else running from this session
+- PRs #38 and #40 open, unmerged. Legal and vendor sessions archived; merged worktrees and branches removed (verified: git worktree list)
+- PropOS, not this session's: branch docs/lesson-commit-email still on origin (merged in #435; deletion left to Ben); local main 279 behind origin; three other sessions' worktrees untouched
 
 ## Deferred, with grep anchors
 
