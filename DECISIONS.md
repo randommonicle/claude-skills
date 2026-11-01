@@ -35,6 +35,7 @@ page of long copy, where Ben's global rule allows none; and
 `ai-seo/references/agent-readiness.md` suggests running `npx` audit packages, which is product
 description, never a step to run. Known gap, unchanged: Related Skills rows are stripped from
 `SKILL.md` only, so `cro/references/form.md` still names three skills that are not installed.
+
 ## 2026-11-01 The updater keeps a machine's other copies current; ports have a source in the repo
 
 Ben, 2026-11-01 ("yes, build it"). The scheduled `update-skills.mjs` run now also keeps the
