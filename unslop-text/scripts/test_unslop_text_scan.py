@@ -178,6 +178,12 @@ class Behaviour(unittest.TestCase):
         self.assertEqual(rules("The phrase `at its core` is a cliche.\n"), set())
         self.assertEqual(rules("> Experts agree that it works.\n"), set())
 
+    def test_lazy_quote_continuation_is_still_quoted(self):
+        lazy = "> The report says experts agree.\nAt its core, the issue is water ingress.\n"
+        self.assertEqual(rules(lazy), set())
+        ended = "> A quoted line.\n\nAt its core, the issue is water ingress.\n"
+        self.assertEqual(rules(ended), {"deep-saying"})
+
     def test_unslop_ignore_still_wins(self):
         self.assertEqual(rules("This letter serves as notice. unslop-ignore\n"), set())
 

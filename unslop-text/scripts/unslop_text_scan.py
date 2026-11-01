@@ -304,6 +304,7 @@ def scan(path, min_sev):
                     fm_end = j + 1
                     break
         in_fence = in_code = in_quote = False
+        in_bq = False                                 # inside a > block quote, lazy lines too
         para = None                                   # first line of the current paragraph
         after_heading = False
         for i, raw in enumerate(raw_lines, 1):
@@ -313,12 +314,12 @@ def scan(path, min_sev):
             raw = raw.replace("’", "'")
             stripped = raw.strip()
             if not stripped:                          # blank line ends any open span
-                in_code = in_quote = False
+                in_code = in_quote = in_bq = False
                 para = None
                 continue
             if stripped.startswith("```") or stripped.startswith("~~~"):
                 in_fence = not in_fence
-                in_code = in_quote = False
+                in_code = in_quote = in_bq = False
                 para = None
                 continue
             if in_fence:
@@ -326,14 +327,18 @@ def scan(path, min_sev):
             # a heading or a list item is a block of its own, as a blank line would make it
             # (ATX, ATX inside a list item, or the underline of a setext heading)
             is_heading = re.match(r"\s{0,3}(([-*+]|\d+[.)])\s+)?#{1,6}\s", raw) is not None
-            if para is None or after_heading or is_heading or re.match(r"\s*([-*+]|\d+[.)])\s", raw):
+            is_item = re.match(r"\s*([-*+]|\d+[.)])\s", raw) is not None
+            if para is None or after_heading or is_heading or is_item:
                 para = i
             after_heading = is_heading or re.match(r"\s{0,3}(=+|-+)\s*$", raw) is not None
+            # Markdown's lazy continuation: a plain line straight after a > line is still
+            # inside the quote, until a blank line, a heading or a list item ends it
+            in_bq = stripped.startswith(">") or (in_bq and not is_heading and not is_item)
             total_words += len(stripped.split())      # denominator for density
             if "unslop-ignore" in raw.lower():        # respect intentional choices
                 _, in_code, in_quote = strip_noise(raw, in_code, in_quote)
                 continue
-            is_quote = stripped.startswith(">")
+            is_quote = in_bq
             prose, in_code, in_quote = strip_noise(raw, in_code, in_quote)
             for r in rules:
                 # the em dash (raw=True) is flagged everywhere; prose rules skip quotes
