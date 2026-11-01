@@ -158,11 +158,10 @@ RULES = [
     # Only the shapes that come WITH a guess: a plain statement of what the evidence does
     # not show ("based on the available information, the surveyor cannot confirm ...") is
     # correct in a report and is not matched.
-    {"id": "knowledge-gap", "label": "Knowledge gap filled with a guess (\"while details are limited\", \"likely grew up\")", "sev": "low",
+    {"id": "knowledge-gap", "label": "Knowledge gap filled with a guess (\"keeps a low profile\", \"likely grew up\")", "sev": "low",
      "share": "no data share; tells.md entry 30",
      "fix": "Say what the sources do not show, or cut the sentence. Never keep the guess.",
-     "pats": [r"\bwhile (specific )?(details|information) (is|are) (limited|scarce)\b",
-              r"\b(maintains?|keeps?) a low profile\b",
+     "pats": [r"\b(maintains?|keeps?) a low profile\b",
               r"\b(likely|probably) (grew up|was born|studied|began (his|her|their) career)\b"]},
 
     # ---------- LOW: real but minor; fix if cheap ----------
@@ -202,7 +201,7 @@ RULES = [
      # "reflecting" and "emphasising" also state a cause ("rose to 45,000, reflecting the
      # lift tender"), which is a fact, so they match only before an abstract noun.
      "pats": [r",\s+(highlighting|underscoring|symboli[sz]ing|showcasing|cementing|solidifying|signall?ing)\s+(its|their|the|a|an|his|her|how|our)\b",
-              r",\s+(reflecting|emphasi[sz]ing)\s+(its|their|his|her|our|the|a|an)\s+([\w-]+'s\s+)?(commitment|dedication|importance|broader|growing|deep|deeper|enduring|ongoing|unwavering)\b"]},
+              r",\s+(reflecting|emphasi[sz]ing)\s+(its|their|his|her|our|the|a|an)\s+([\w-]+'s\s+)?([\w-]+\s+)?(commitment|dedication|importance|significance|values|vision|spirit)\b"]},
     {"id": "copula-avoidance", "label": "Avoiding is / has (\"serves as a\", \"stands as a\", \"boasts\")", "sev": "low",
      "share": "no data share; tells.md entry 28",
      "fix": "Use 'is', 'are' or 'has'. A legal term of art ('serves as notice') is not matched; leave it.",
@@ -325,10 +324,11 @@ def scan(path, min_sev):
             if in_fence:
                 continue
             # a heading or a list item is a block of its own, as a blank line would make it
-            is_heading = re.match(r"\s{0,3}#{1,6}\s", raw) is not None
+            # (ATX, ATX inside a list item, or the underline of a setext heading)
+            is_heading = re.match(r"\s{0,3}(([-*+]|\d+[.)])\s+)?#{1,6}\s", raw) is not None
             if para is None or after_heading or is_heading or re.match(r"\s*([-*+]|\d+[.)])\s", raw):
                 para = i
-            after_heading = is_heading
+            after_heading = is_heading or re.match(r"\s{0,3}(=+|-+)\s*$", raw) is not None
             total_words += len(stripped.split())      # denominator for density
             if "unslop-ignore" in raw.lower():        # respect intentional choices
                 _, in_code, in_quote = strip_noise(raw, in_code, in_quote)

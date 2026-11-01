@@ -71,10 +71,11 @@ CASES = {
         ["The new boiler was fitted on 3 March and cost 4,200 pounds.",
          "The reserve fund plays a key role in meeting the landlord's repairing obligations."]),
     "knowledge-gap": (
-        ["While specific details are limited, the firm was founded in the 1990s.",
-         "The landlord keeps a low profile.",
+        ["The landlord keeps a low profile.",
          "He likely grew up in the area."],
         ["The founding date is not in the land registry title.",
+         "While specific details are limited, the surveyor recommends obtaining a copy of the asbestos register.",
+         "While specific details are limited in the handover pack, no asbestos register was provided.",
          "Based on the available information, the surveyor cannot confirm that the roof is watertight.",
          "The asbestos register is not publicly available."]),
     "deep-saying": (
@@ -97,7 +98,9 @@ CASES = {
         ["The block was re-roofed in 2019, reflecting the board's commitment to maintenance.",
          "The fund grew by ten per cent, highlighting the importance of planning."],
         ["The block was re-roofed in 2019 after the surveyor's report.",
-         "The reserve fund contribution rose to 45,000 pounds, reflecting the lift tender."]),
+         "The reserve fund contribution rose to 45,000 pounds, reflecting the lift tender.",
+         "The budget includes a 15,000 pound provision, reflecting the ongoing tribunal proceedings.",
+         "Collections fell, reflecting the growing arrears."]),
     "copula-avoidance": (
         ["The courtyard serves as a meeting point.",
          "The building boasts three lifts."],
@@ -202,6 +205,10 @@ class Behaviour(unittest.TestCase):
         self.assertEqual(scan.clusters(run(heading)), [])
         items = "- Experts agree the roof matters.\n- At its core, it is about water.\n"
         self.assertEqual(scan.clusters(run(items)), [])
+        in_item = "- ## Experts agree that the roof matters.\n  At its core, the issue is water ingress.\n"
+        self.assertEqual(scan.clusters(run(in_item)), [])
+        setext = "Experts agree the roof matters\n==============================\nAt its core, it is about water.\n"
+        self.assertEqual(scan.clusters(run(setext)), [])
 
     def test_cluster_spans_lines_but_not_blank_lines(self):
         text = "Experts agree the roof matters.\nAt its core, it is about water.\n"

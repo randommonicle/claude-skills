@@ -425,8 +425,9 @@ poster's own normal prose, not a giveaway.
   sentence-opener it reads as machine-smoothed, but one of them is just a connective.
 
 Flag what the data supports, at the weight it supports. For exactly this reason the scanner
-does not scan "however", "when it comes to" or "navigate" at all, and weights the rest low,
-apart from `nuanced`, which sits in the medium diction list of entry 6. Over-flagging trains writers to ignore the tool.
+does not scan "however", "thus", "hence", "when it comes to", "crucial" or "navigate" at all.
+It weights "comprehensive", "robust", "utilize" and the stacked connectives low, and puts
+`nuanced` in the medium diction list of entry 6. Over-flagging trains writers to ignore the tool.
 
 **Seen in other skills on 2026-11-01 and not adopted.** Recorded so a later cross-check does
 not argue them again.
@@ -534,7 +535,9 @@ was re-roofed in 2019, reflecting the board's commitment to long-term maintenanc
 
 **Pattern (scanner).** `ing-rider`, low: a comma, then `highlighting`, `underscoring`,
 `showcasing`, `symbolising`, `cementing` and similar, then a determiner; `reflecting` and
-`emphasising` only before an abstract noun such as "commitment" or "importance".
+`emphasising` only before one of a few value nouns ("commitment", "dedication", "importance",
+"significance", "values", "vision", "spirit"), so "reflecting the ongoing tribunal
+proceedings" is not matched.
 
 **Fix.** cut the rider and keep the fact. Keep it only when a source supports the claim it
 makes, and then make it a sentence of its own. A rider that states a cause is a fact, not a
@@ -571,9 +574,10 @@ source to fix the sentence.
 specific details are limited, the firm was likely founded in the 1990s." "Information about
 his early life is not publicly available, suggesting he keeps a low profile."
 
-**Pattern (scanner).** `knowledge-gap`, low, on the shapes that come with a guess: "while
-details are limited", "keeps a low profile", "likely grew up". Entry 7 already catches the
-explicit cutoff line.
+**Pattern (scanner).** `knowledge-gap`, low, on the guess itself: "keeps a low profile",
+"likely grew up". The opening admission ("while details are limited") is not matched, because
+in a report it is often followed by a correct statement of what is missing. Entry 7 already
+catches the explicit cutoff line.
 
 **Fix.** say plainly what the sources do not show, or cut the sentence. Never keep the guess.
 A plain statement of an evidential limit is the fix, not the tell: "based on the available

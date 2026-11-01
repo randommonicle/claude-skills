@@ -223,16 +223,18 @@ client, a reply to a complaint.
   residue. Text written before ChatGPT's release (30 November 2022) was not written by it. If
   the text is in an AI voice on purpose (a parody, a quoted output), ask before editing.
 - **Return what was asked for.** For a pasted rewrite, the final text, then one line naming
-  anything you could not keep or need to ask about. For a file, write the file and summarise
-  in a sentence. When another task uses this skill (a commit message, a PR description), return
-  only the final text. A full audit report is for audits.
+  any opinion you added and anything you could not keep or need to ask about. For a file,
+  write the file and summarise in a sentence, naming any added opinion. When another task uses
+  this skill (a commit message, a PR description), return only the final text, and add no
+  opinion in that mode, since nobody will see the note. A full audit report is for audits.
 
 ## What this deliberately does not flag
 
 Grounded in the data, not vibes. The audited sample showed that the generic diction words
 (`however`, `comprehensive`, `crucial`, `when it comes to`, `utilize`) light up a keyword pass
 but are almost never what a reader actually *cites* as the giveaway. They are mostly the
-poster's own ordinary prose. So the scanner weights them low and you should not over-rotate on
+poster's own ordinary prose. So the scanner leaves `however`, `crucial` and `when it comes to`
+out entirely, weights `comprehensive` and `utilize` low, and you should not over-rotate on
 a single `however`. A formal register itself is fine; only the unchosen default register is
 the tell. Over-flagging trains people to ignore the tool, so the scanner stays narrow and
 ranks by what real readers name.
