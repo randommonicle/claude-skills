@@ -62,7 +62,8 @@ RULES = [
      "fix": "State the thing plainly. The negate-then-assert rhythm is the clearest 'AI accent'.",
      "pats": [r"\b(it'?s|its|it is|that'?s|this is|they'?re)\s+not\s+(just|only|merely|simply)\b[^.?!\n]{0,60}\bit'?s\b",
               r"\bnot\s+(just|only|merely|simply)\s+(a |an |the )?[\w-]+,?\s+but\b",
-              r"\bisn'?t\s+(just|only|merely)\b[^.?!\n]{0,60}\bit'?s\b"]},
+              r"\bisn'?t\s+(just|only|merely)\b[^.?!\n]{0,60}\bit'?s\b",
+              r"\b(this|that|it)\s+(does not|doesn'?t)\s+mean\b[^.?!\n]{0,80}[.?!]\s+(it|this|that)\s+means\b"]},
     {"id": "assistant-boilerplate", "label": "Leftover assistant boilerplate (\"as an AI language model\", a knowledge-cutoff line, a refusal)", "sev": "high",
      "share": "cited 1.2%, the ultimate proof when present",
      "fix": "Delete every trace of the assistant voice before publishing: disclaimers, refusals, cutoff dates.",
@@ -127,6 +128,37 @@ RULES = [
      "fix": "End on a real last point, not a signposted recap. If the reader needs a summary, the piece is too long.",
      "pats": [r"\bin (conclusion|summary)\b", r"\bto (summari[sz]e|conclude|wrap (this |it )?up)\b",
               r"\bin closing\b"]},
+    # The Part D rules (tells.md entries 22 to 33) carry no Reddit share: they were adapted
+    # from two other skills on 2026-11-01, so their weight is a judgement, not a measurement.
+    {"id": "staged-runup", "label": "Staged run-up before the point (\"Here's what you need to know\", \"Let's break this down\")", "sev": "medium",
+     "share": "no data share; tells.md entry 23",
+     "fix": "Delete the announcement and start with the first sentence that carries information.",
+     "pats": [r"\bhere'?s (what you need to know|the (thing|deal|kicker))\b",
+              r"\blet'?s (break (this|it) down|unpack (this|that)|explore)\b",
+              r"\bwithout further ado\b", r"\bnow,? let'?s (look at|turn to)\b",
+              r"(^|[.!?]\s+)(real talk|the thing is)\s*[,:.?!]", r"(^|[.!?]\s+)honestly\?(\s|$)"]},
+    {"id": "closer-line", "label": "Dramatic closer (\"Let that sink in.\", \"That's the real win.\")", "sev": "medium",
+     "share": "no data share; tells.md entry 22",
+     "fix": "Cut a closer that repeats the point. Keep a short line only when it adds a new fact.",
+     "pats": [r"\blet that sink in\b", r"\bread that again\b",
+              r"\bthat(?:'s| is) the real (win|magic|story|lesson)\b",
+              r"\bthat distinction matters\b", r"\bthe message (was|is) clear\b"]},
+    {"id": "inflated-significance", "label": "Inflated significance (\"marking a pivotal moment\", \"the future looks bright\")", "sev": "medium",
+     "share": "no data share; tells.md entry 26",
+     "fix": "Keep the fact, drop the significance. End on the last concrete fact.",
+     "pats": [r"\bmark(s|ed|ing)? an? (pivotal|significant|major|crucial|defining) (moment|milestone|shift|turning point)\b",
+              r"\ba (pivotal|defining|watershed) moment\b", r"\bset(s|ting)? the stage for\b",
+              r"\bpav(e|es|ed|ing) the way for\b", r"\b(leaves?|left|leaving) an indelible mark\b",
+              r"\b(enduring|lasting) legacy\b", r"\bplay(s|ed|ing)? an? (key|crucial|pivotal|vital) role\b",
+              r"\bdespite (these|its|the|their) challenges\b", r"\bcontinues to thrive\b",
+              r"\bthe future (looks|is) bright\b", r"\bexciting times (lie )?ahead\b",
+              r"\breflect(s|ing)? a broader (trend|shift|movement)\b"]},
+    {"id": "knowledge-gap", "label": "Knowledge gap filled with a guess (\"while details are limited\", \"keeps a low profile\")", "sev": "medium",
+     "share": "no data share; tells.md entry 30",
+     "fix": "Say what the sources do not show, or cut the sentence. Never keep the guess.",
+     "pats": [r"\bwhile (specific )?(details|information) (is|are) (limited|scarce)\b",
+              r"\bnot (extensively|widely) documented\b", r"\bbased on (the )?available information\b",
+              r"\b(maintains?|keeps?) a low profile\b", r"\bin the (provided|available) sources\b"]},
 
     # ---------- LOW: real but minor; fix if cheap ----------
     {"id": "transition-stack", "label": "Stacked formal connectives (Moreover, Furthermore, Additionally, ...)", "sev": "low",
@@ -141,12 +173,45 @@ RULES = [
               r"\bfacilitat(e|es|ing|ed)\b", r"\bstreamlin(e|es|ing|ed)\b", r"\bempower(s|ing|ed|ment)?\b",
               r"\bmyriad\b", r"\bplethora\b", r"\bparamount\b", r"\bpivotal\b", r"\bholistic\b",
               r"\bsynerg(y|ies|istic)\b", r"\bmultifaceted\b", r"\bintricac(y|ies)\b"]},
-    {"id": "hype-marketing", "label": "Marketing hype (revolutionary, transformative, take it to the next level)", "sev": "low",
+    {"id": "hype-marketing", "label": "Marketing hype (revolutionary, transformative, nestled, breathtaking)", "sev": "low",
      "share": "cited 0.3% (broader marketing-language category)",
      "fix": "Strip the promotional adjectives and state plain facts about what it does.",
      "pats": [r"\brevolution(ary|i[sz]e)\b", r"\btransform(ative|s your| ative)\b", r"\btransform your (life|business|workflow)\b",
               r"\bto the next level\b", r"\bsupercharge\b", r"\bsay goodbye to\b", r"\blook no further\b",
-              r"\bbuckle up\b", r"\bgame[- ]?changer\b", r"\bwithout further ado\b"]},
+              r"\bbuckle up\b", r"\bgame[- ]?changer\b",
+              r"\bnestled\b", r"\bin the heart of\b", r"\bbreathtaking\b", r"\bmust[- ]visit\b", r"\bstunning\b"]},
+    {"id": "deep-saying", "label": "Saying that sounds deep (\"the real question is\", \"at its core\")", "sev": "low",
+     "share": "no data share; tells.md entry 25",
+     "fix": "Replace the saying with the specific claim it points at.",
+     "pats": [r"\bthe real question (is|here)\b", r"\bat (its|their) core\b", r"\bthe heart of the matter\b",
+              r"\bwhat (really|truly) matters (is|here)\b", r"\bthe deeper (issue|question|truth)\b"]},
+    {"id": "strawman-defence", "label": "Arguing with no one (\"To be clear,\", \"Don't get me wrong\")", "sev": "low",
+     "share": "no data share; tells.md entry 24",
+     "fix": "Delete a defence against an objection nobody raised; state any real claim it holds.",
+     "pats": [r"(^|[.!?]\s+)to be clear,", r"\bdon'?t get me wrong\b", r"\bi'?m not saying\b",
+              r"\bthis is not to say\b", r"\ba tempting (approach|option|move) would be\b",
+              r"\bone might be tempted to\b", r"\byou might (think|be thinking)\b"]},
+    {"id": "ing-rider", "label": "Shallow -ing rider (\", reflecting its commitment to ...\")", "sev": "low",
+     "share": "no data share; tells.md entry 27",
+     "fix": "Cut the participle clause and keep the fact. Make a supported claim its own sentence.",
+     "pats": [r",\s+(highlighting|underscoring|emphasi[sz]ing|reflecting|symboli[sz]ing|showcasing|cementing|solidifying|signall?ing)\s+(its|their|the|a|an|his|her|how|our)\b"]},
+    {"id": "copula-avoidance", "label": "Avoiding is / has (\"serves as a\", \"stands as a\", \"boasts\")", "sev": "low",
+     "share": "no data share; tells.md entry 28",
+     "fix": "Use 'is', 'are' or 'has'. A legal term of art ('serves as notice') is fine: mark it unslop-ignore.",
+     "pats": [r"\b(serves?|served|serving|stands) as (a|an|the)\b", r"\bboast(s|ing)\b"]},
+    {"id": "borrowed-authority", "label": "Borrowed authority (\"experts agree\", \"studies show that\")", "sev": "low",
+     "share": "no data share; tells.md entry 29",
+     "fix": "Name the source and what it said, or cut the claim. Never invent a source.",
+     "pats": [r"\bexperts (say|believe|agree|argue|suggest|warn|note)\b",
+              r"\bindustry (reports|experts|observers) (suggest|say|indicate|show)\b",
+              r"\bobservers (have )?(noted|argued|said|pointed out)\b",
+              r"\b(some|many) critics (have )?(noted|argued|said|pointed out)\b",
+              r"\bstudies (have )?(show|shown|suggest) that\b"]},
+    {"id": "title-case-heading", "label": "Title Case Heading (a joining word such as And / Of capitalised mid-heading)", "sev": "low",
+     "share": "no data share; tells.md entry 33",
+     "fix": "Use sentence case unless a house style says otherwise.",
+     "cs": True,
+     "pats": [r"^\s{0,3}#{1,6}\s+(?:[A-Z][\w'-]*\s+)+(And|Of|The|For|With|To|In|On)\s+[A-Z]"]},
     {"id": "hedge-cliche", "label": "Hedging / both-sides cliche (\"it depends\", \"on one hand ... on the other\")", "sev": "low",
      "share": "cited 0.3% (the regex sees the phrase, not the hedging)",
      "fix": "Take a position. Listing every option instead of committing is a tell.",
@@ -176,7 +241,8 @@ def compile_rules(min_sev):
         if order.index(r["sev"]) > floor:
             continue
         r = dict(r)
-        r["rx"] = [re.compile(p, re.IGNORECASE) for p in r["pats"]]
+        flags = 0 if r.get("cs") else re.IGNORECASE   # cs: the pattern is about capitals
+        r["rx"] = [re.compile(p, flags) for p in r["pats"]]
         out.append(r)
     return out
 
@@ -231,19 +297,26 @@ def scan(path, min_sev):
                     fm_end = j + 1
                     break
         in_fence = in_code = in_quote = False
+        para = None                                   # first line of the current paragraph
         for i, raw in enumerate(raw_lines, 1):
             if i <= fm_end:
                 continue
+            # Word, Docs and phones type a curly apostrophe; the patterns spell it straight
+            raw = raw.replace("’", "'")
             stripped = raw.strip()
             if not stripped:                          # blank line ends any open span
                 in_code = in_quote = False
+                para = None
                 continue
             if stripped.startswith("```") or stripped.startswith("~~~"):
                 in_fence = not in_fence
                 in_code = in_quote = False
+                para = None
                 continue
             if in_fence:
                 continue
+            if para is None:
+                para = i
             total_words += len(stripped.split())      # denominator for density
             if "unslop-ignore" in raw.lower():        # respect intentional choices
                 _, in_code, in_quote = strip_noise(raw, in_code, in_quote)
@@ -260,10 +333,21 @@ def scan(path, min_sev):
                     if m:
                         findings.append({"rule": r["id"], "label": r["label"], "sev": r["sev"],
                                          "share": r["share"], "fix": r["fix"], "file": fp, "line": i,
+                                         "para": para,
                                          "match": m.group(0).strip()[:60],
                                          "snippet": stripped[:160]})
                         break
     return findings, total_words
+
+def clusters(findings):
+    """Paragraphs where two or more DIFFERENT rules fire. One tell alone is usually the
+    writer; several kinds together rarely are, so this is where a rewrite should start.
+    Repeats of one rule do not count: six em dashes are one rule, already reported."""
+    by_para = {}
+    for f in findings:
+        by_para.setdefault((f["file"], f["para"]), set()).add(f["rule"])
+    return [{"file": fp, "line": line, "rules": sorted(rules)}
+            for (fp, line), rules in sorted(by_para.items()) if len(rules) >= 2]
 
 def density(weighted, words):
     """Weighted slop score per 1,000 words. Concentration is the real signal: the same
@@ -321,6 +405,7 @@ def main():
                           "words": total_words, "counts": by_sev, "slop_score": weighted,
                           "density_per_1k_words": dens,
                           "verdict": verdict(by_sev, weighted, total_words),
+                          "clusters": clusters(findings),
                           "findings": findings}, indent=2))
         sys.exit(by_sev.get("high", 0))
 
@@ -346,6 +431,14 @@ def main():
             print(f"        {it['file']}:{it['line']}  ({it['match']})  {it['snippet']}")
         if len(items) > args.max:
             print(f"        ... +{len(items) - args.max} more")
+        print()
+    cl = clusters(findings)
+    if cl:
+        print(f"  Paragraphs where two or more different tells meet ({len(cl)}), start the rewrite here:")
+        for c in cl[:args.max]:
+            print(f"        {c['file']}:{c['line']}  {', '.join(c['rules'])}")
+        if len(cl) > args.max:
+            print(f"        ... +{len(cl) - args.max} more")
         print()
     top = [by_rule[rid][0]['label'] for rid in rule_ids[:3]]
     print("  Top things to change: " + "; ".join(top))

@@ -17,13 +17,16 @@ plus an `unslop-ignore` escape hatch for choices you made on purpose.
 
 - `SKILL.md` - the skill itself (build mode + audit mode).
 - `references/tells.md` - the full ranked catalog: data evidence (cited share and keyword
-  share), a real quote from the threads, the literal text the scanner keys on, and the fix for
-  each tell, including a Part B for the structural tells a regex cannot see.
+  share), a paraphrase of what people said in the threads, the literal text the scanner keys
+  on, and the fix for each tell, including a Part B for the structural tells a regex cannot
+  see and a Part D of tells adapted from two other skills (see `UPSTREAM.md`).
 - `references/writing-with-intent.md` - the core mechanism: pin one of four registers (casual,
   conversational-professional, expository, formal), then a speaker inside it. This is the text
   analog of the UI skill's reference-site anchor, written as a process rather than a
   prescription (because any prescription becomes the next default).
 - `scripts/unslop_text_scan.py` - a standalone scanner (Python standard library only).
+- `scripts/test_unslop_text_scan.py` - its tests: `python scripts/test_unslop_text_scan.py`.
+  Not run in this library's CI, which has no Python step; run it after any rule change.
 - `unslop-text.skill` - the packaged file for importing into Claude.
 
 ## Install the skill
@@ -49,7 +52,8 @@ python3 scripts/unslop_text_scan.py ./draft.md --json            # machine-reada
 
 It scans .md .markdown .mdx .txt .rst .html and prints each finding with the file, the line,
 the matched text, the data share it carries, and the fix, plus a slop score and a density
-(slop weight per 1,000 words). The verdict is concentration-aware: a lone `comprehensive` or
+(slop weight per 1,000 words), and a list of paragraphs where two or more different rules
+fire. The verdict is concentration-aware: a lone `comprehensive` or
 one `delve` reads as "mostly clean," while the em dash and leftover assistant boilerplate are
 absolute, flagged on a single instance anywhere. Be honest about what it is, though: for prose
 this is a thin lexical filter. The highest-value tells (uniform rhythm, sycophancy, the rule of
