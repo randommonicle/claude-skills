@@ -1,15 +1,20 @@
 # Provenance: contract-review
 
 - **Forked from:** https://github.com/rohasnagpal/legal-ai-skills
-- **Upstream path:** `plugins/rohas-legal-ai/skills/contract-reviewer/` (`SKILL.md` and
+- **Upstream path:** `plugins/legal-ai-skills/skills/contract-reviewer/` (`SKILL.md` and
   `references/{leases,licensing-agreements,loan-and-facility-agreements}.md`)
-- **Upstream commit:** `a5c00ec629146101831ba0404a64109402d77077` (2026-09-02, "Make release
-  checksums cross-platform"; cloned 2026-10-03)
+- **Upstream commit:** `ad5df1934e981f9aa1c2c163da02590d8ae0504c` (2026-10-10, "Clarify that
+  Codex on the web and claude.ai chat cannot install the plugin"; pin moved 2026-11-01). Forked
+  at `a5c00ec629146101831ba0404a64109402d77077` (2026-09-02, "Make release checksums
+  cross-platform"; cloned 2026-10-03).
 - **Plan:** `docs/HANDOVER_legal-fork_2026-09-11.md`
 - **Last checked:** 2026-10-11 against upstream head `ad5df19` (just after its release 4.1.1,
-  38 commits past the pin). The files moved to
+  38 commits past the original pin). The files moved to
   `plugins/legal-ai-skills/skills/contract-reviewer/`; `SKILL.md` and all three references are
   byte-identical to the pin. Nothing to adopt.
+- **Re-checked:** 2026-11-01 by blob SHA of each source file at both commits (the compare API
+  stops at 300 files). No upstream commits since `ad5df19`; the forked sources are byte-identical
+  to the original pin, so the pin moved with no forked text re-synced.
 
 `SKILL.md` is heavily rewritten into a house-style guardrail; it is not a verbatim copy. The three
 files under `references/` are verbatim copies.

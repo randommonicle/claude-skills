@@ -69,7 +69,9 @@ rather than vanishing.
    document references. No invented fact, legal basis, clause or statute. If no legal basis was
    given, draft on the facts and say no basis is named.
 3. **Money is shown with its arithmetic.** Principal, each charge, any interest with its rate and
-   the clause or provision it rests on, and the sum.
+   the clause or provision it rests on, and the sum. A figure you worked by hand, with no
+   calculation run this session to check it, carries the word "unverified" beside it, so the
+   client recomputes it before the notice goes out.
 4. **Formal requirements are a verification list, not an assertion.** Prescribed form, required
    content, method of service, minimum periods: cite what you read this session, or list it as
    open. Never state that a notice satisfies a statutory requirement you did not read. Open rows
