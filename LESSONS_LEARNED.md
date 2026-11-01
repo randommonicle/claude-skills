@@ -1514,3 +1514,54 @@ codex's stderr when it exits with no reply, so the reason is not lost.
 **skill that should have prevented this:** cross-agent-review (its probe step was skipped).
 
 **class:** a seat transport that assumes the shape of the projects it was first proven on.
+
+## 43. The anti-em-dash skill shipped an em dash in its own rule about em dashes
+
+**What happened.** On 2026-07-23 (`aab768e`) a local patch appended a "Banned-character gate
+scope" section to `unslop-text/SKILL.md`. Its first sentence carried an em dash, and the
+section ended "'Write carefully' failed three times where a grep would not have; run the
+grep." The skill's own scanner flags an em dash on a single instance anywhere in a file. Nobody
+ran it on the skill, and the dash sat in the archive and the installed copies for three months.
+It was found on 2026-11-01 because the first scan of the edited skill, run to check new work,
+reported it at line 212. **verified**: `git log -S` on the sentence, and the scanner's report
+before and after the fix.
+
+**The lesson.** A skill that ships a checker is a deliverable the checker applies to, and the
+author is the reader least likely to run it, because the author knows what the rule says. The
+patch stated the exact remedy (run the grep) in the sentence that needed it.
+
+**How to apply.** When a skill ships a scanner, run the scanner over the skill's own text in
+the same commit as any edit to it. For unslop-text that is
+`python unslop-text/scripts/unslop_text_scan.py unslop-text/SKILL.md` (clean on
+2026-11-01, as is README.md; the folder as a whole still reports UPSTREAM.md's metadata labels
+and one catalogue paraphrase, both deliberate). The library has no Python step in CI, so this
+stays a habit until it does.
+
+**skill that should have prevented this:** unslop-text (its own banned-character section) /
+enforce-invariants-in-build (the rule existed only as prose).
+
+**class:** a rule's own text exempt from the check it prescribes. Entry 3's audit report
+failing its own scanner was the same shape in a deliverable, so this is recurrence.
+
+## 44. "Break a pattern and the test goes red" was proved on one alternative of many
+
+**What happened.** On 2026-11-01 ten scanner rules were added to unslop-text with a test file
+whose header said that commenting out a rule's pattern turns its test red. That was shown by
+breaking one alternative (`let that sink in`) and seeing the closer-line case fail. The
+cross-agent review's GPT seat then showed that removing `now, let's look at` from staged-runup,
+or `read that again` from closer-line, left every test green: the cases exercised only some of
+each rule's alternatives. **verified**: the pattern lists read against the cases, and the
+structural test added in the fix going red before its missing cases were written.
+
+**The lesson.** A rule is a list of patterns, and a can-fail proof on one member says nothing
+about the others. The header generalised from one red run to every pattern.
+
+**How to apply.** Make the test walk the structure: for each pattern of each rule under test,
+assert that some must-flag line matches that pattern. A pattern with no case is then a red
+test, not an unnoticed gap.
+
+**skill that should have prevented this:** prove-it-can-fail (asked of each alternative rather
+than of the rule, the answer was "nothing goes red").
+
+**class:** a can-fail proof on one member of a set generalised to the whole set. Sibling of
+entry 15, a probe carried to a question it did not ask.

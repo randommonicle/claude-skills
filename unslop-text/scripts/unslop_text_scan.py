@@ -129,36 +129,41 @@ RULES = [
      "pats": [r"\bin (conclusion|summary)\b", r"\bto (summari[sz]e|conclude|wrap (this |it )?up)\b",
               r"\bin closing\b"]},
     # The Part D rules (tells.md entries 22 to 33) carry no Reddit share: they were adapted
-    # from two other skills on 2026-11-01, so their weight is a judgement, not a measurement.
-    {"id": "staged-runup", "label": "Staged run-up before the point (\"Here's what you need to know\", \"Let's break this down\")", "sev": "medium",
+    # from two other skills on 2026-11-01. All are LOW, so alone they never move the verdict;
+    # the cluster report is where they count. `without further ado` moved here from
+    # hype-marketing the same day, so it now reports as staged-runup.
+    {"id": "staged-runup", "label": "Staged run-up before the point (\"Here's what you need to know\", \"Let's break this down\")", "sev": "low",
      "share": "no data share; tells.md entry 23",
      "fix": "Delete the announcement and start with the first sentence that carries information.",
      "pats": [r"\bhere'?s (what you need to know|the (thing|deal|kicker))\b",
               r"\blet'?s (break (this|it) down|unpack (this|that)|explore)\b",
               r"\bwithout further ado\b", r"\bnow,? let'?s (look at|turn to)\b",
               r"(^|[.!?]\s+)(real talk|the thing is)\s*[,:.?!]", r"(^|[.!?]\s+)honestly\?(\s|$)"]},
-    {"id": "closer-line", "label": "Dramatic closer (\"Let that sink in.\", \"That's the real win.\")", "sev": "medium",
+    {"id": "closer-line", "label": "Dramatic closer (\"Let that sink in.\", \"That's the real win.\")", "sev": "low",
      "share": "no data share; tells.md entry 22",
      "fix": "Cut a closer that repeats the point. Keep a short line only when it adds a new fact.",
      "pats": [r"\blet that sink in\b", r"\bread that again\b",
               r"\bthat(?:'s| is) the real (win|magic|story|lesson)\b",
               r"\bthat distinction matters\b", r"\bthe message (was|is) clear\b"]},
-    {"id": "inflated-significance", "label": "Inflated significance (\"marking a pivotal moment\", \"the future looks bright\")", "sev": "medium",
+    {"id": "inflated-significance", "label": "Inflated significance (\"marking a pivotal moment\", \"the future looks bright\")", "sev": "low",
      "share": "no data share; tells.md entry 26",
      "fix": "Keep the fact, drop the significance. End on the last concrete fact.",
-     "pats": [r"\bmark(s|ed|ing)? an? (pivotal|significant|major|crucial|defining) (moment|milestone|shift|turning point)\b",
+     "pats": [r"\bmark(s|ed|ing)? an? (pivotal|defining|watershed) (moment|milestone|shift|turning point)\b",
               r"\ba (pivotal|defining|watershed) moment\b", r"\bset(s|ting)? the stage for\b",
               r"\bpav(e|es|ed|ing) the way for\b", r"\b(leaves?|left|leaving) an indelible mark\b",
-              r"\b(enduring|lasting) legacy\b", r"\bplay(s|ed|ing)? an? (key|crucial|pivotal|vital) role\b",
+              r"\b(enduring|lasting) legacy\b",
               r"\bdespite (these|its|the|their) challenges\b", r"\bcontinues to thrive\b",
               r"\bthe future (looks|is) bright\b", r"\bexciting times (lie )?ahead\b",
               r"\breflect(s|ing)? a broader (trend|shift|movement)\b"]},
-    {"id": "knowledge-gap", "label": "Knowledge gap filled with a guess (\"while details are limited\", \"keeps a low profile\")", "sev": "medium",
+    # Only the shapes that come WITH a guess: a plain statement of what the evidence does
+    # not show ("based on the available information, the surveyor cannot confirm ...") is
+    # correct in a report and is not matched.
+    {"id": "knowledge-gap", "label": "Knowledge gap filled with a guess (\"while details are limited\", \"likely grew up\")", "sev": "low",
      "share": "no data share; tells.md entry 30",
      "fix": "Say what the sources do not show, or cut the sentence. Never keep the guess.",
      "pats": [r"\bwhile (specific )?(details|information) (is|are) (limited|scarce)\b",
-              r"\bnot (extensively|widely) documented\b", r"\bbased on (the )?available information\b",
-              r"\b(maintains?|keeps?) a low profile\b", r"\bin the (provided|available) sources\b"]},
+              r"\b(maintains?|keeps?) a low profile\b",
+              r"\b(likely|probably) (grew up|was born|studied|began (his|her|their) career)\b"]},
 
     # ---------- LOW: real but minor; fix if cheap ----------
     {"id": "transition-stack", "label": "Stacked formal connectives (Moreover, Furthermore, Additionally, ...)", "sev": "low",
@@ -166,7 +171,7 @@ RULES = [
      "fix": "Let ideas connect without scaffolding. As a sentence opener these read as machine-smoothed.",
      "pats": [r"(^|\.\s+|\n)\s*(moreover|furthermore|additionally|consequently)\b",
               r"\b(firstly|secondly|thirdly|lastly)\b"]},
-    {"id": "generic-diction", "label": "Inflated generic diction (utilize, comprehensive, robust, crucial, navigate, ...)", "sev": "low",
+    {"id": "generic-diction", "label": "Inflated generic diction (utilize, comprehensive, robust, facilitate, myriad, ...)", "sev": "low",
      "share": "matched 1 to 2% each, but mostly the poster's own prose",
      "fix": "Prefer the plain word: 'utilize' is 'use', 'comprehensive' is 'full', 'navigate' is 'handle'.",
      "pats": [r"\butili[sz](e|es|ing|ed|ation)\b", r"\bcomprehensive\b", r"\brobust\b",
@@ -194,10 +199,13 @@ RULES = [
     {"id": "ing-rider", "label": "Shallow -ing rider (\", reflecting its commitment to ...\")", "sev": "low",
      "share": "no data share; tells.md entry 27",
      "fix": "Cut the participle clause and keep the fact. Make a supported claim its own sentence.",
-     "pats": [r",\s+(highlighting|underscoring|emphasi[sz]ing|reflecting|symboli[sz]ing|showcasing|cementing|solidifying|signall?ing)\s+(its|their|the|a|an|his|her|how|our)\b"]},
+     # "reflecting" and "emphasising" also state a cause ("rose to 45,000, reflecting the
+     # lift tender"), which is a fact, so they match only before an abstract noun.
+     "pats": [r",\s+(highlighting|underscoring|symboli[sz]ing|showcasing|cementing|solidifying|signall?ing)\s+(its|their|the|a|an|his|her|how|our)\b",
+              r",\s+(reflecting|emphasi[sz]ing)\s+(its|their|his|her|our|the|a|an)\s+([\w-]+'s\s+)?(commitment|dedication|importance|broader|growing|deep|deeper|enduring|ongoing|unwavering)\b"]},
     {"id": "copula-avoidance", "label": "Avoiding is / has (\"serves as a\", \"stands as a\", \"boasts\")", "sev": "low",
      "share": "no data share; tells.md entry 28",
-     "fix": "Use 'is', 'are' or 'has'. A legal term of art ('serves as notice') is fine: mark it unslop-ignore.",
+     "fix": "Use 'is', 'are' or 'has'. A legal term of art ('serves as notice') is not matched; leave it.",
      "pats": [r"\b(serves?|served|serving|stands) as (a|an|the)\b", r"\bboast(s|ing)\b"]},
     {"id": "borrowed-authority", "label": "Borrowed authority (\"experts agree\", \"studies show that\")", "sev": "low",
      "share": "no data share; tells.md entry 29",
@@ -211,7 +219,7 @@ RULES = [
      "share": "no data share; tells.md entry 33",
      "fix": "Use sentence case unless a house style says otherwise.",
      "cs": True,
-     "pats": [r"^\s{0,3}#{1,6}\s+(?:[A-Z][\w'-]*\s+)+(And|Of|The|For|With|To|In|On)\s+[A-Z]"]},
+     "pats": [r"^\s{0,3}#{1,6}\s+(?:[A-Z0-9][\w'-]*:?\s+)*[A-Z][\w'-]*:?\s+(And|Of|The|For|With|To|In|On)\s+[A-Z]"]},
     {"id": "hedge-cliche", "label": "Hedging / both-sides cliche (\"it depends\", \"on one hand ... on the other\")", "sev": "low",
      "share": "cited 0.3% (the regex sees the phrase, not the hedging)",
      "fix": "Take a position. Listing every option instead of committing is a tell.",
@@ -298,6 +306,7 @@ def scan(path, min_sev):
                     break
         in_fence = in_code = in_quote = False
         para = None                                   # first line of the current paragraph
+        after_heading = False
         for i, raw in enumerate(raw_lines, 1):
             if i <= fm_end:
                 continue
@@ -315,8 +324,11 @@ def scan(path, min_sev):
                 continue
             if in_fence:
                 continue
-            if para is None:
+            # a heading or a list item is a block of its own, as a blank line would make it
+            is_heading = re.match(r"\s{0,3}#{1,6}\s", raw) is not None
+            if para is None or after_heading or is_heading or re.match(r"\s*([-*+]|\d+[.)])\s", raw):
                 para = i
+            after_heading = is_heading
             total_words += len(stripped.split())      # denominator for density
             if "unslop-ignore" in raw.lower():        # respect intentional choices
                 _, in_code, in_quote = strip_noise(raw, in_code, in_quote)

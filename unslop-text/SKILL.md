@@ -196,17 +196,22 @@ client, a reply to a complaint.
 - **Keep every fact.** Do not add a fact, name, number, date, quote, citation or ranking that is
   not in the source or given by the user. Do not drop a claim unless a tell calls for cutting
   it. If a better sentence needs a detail you do not have, ask for it or write a plainer
-  sentence without it. An opinion is allowed where the voice calls for one; a new fact is not.
+  sentence without it. An opinion may be added only where the register and the user's voice
+  call for one (Registers A to C, never D), and the check below lists it as an addition so
+  the user sees it; a new fact is never added.
 - **Keep the register.** Formal stays formal, casual stays casual. A legal or regulatory
   document stays in Register D; the rewrite removes the tells, not the formality.
 - **Keep the scope.** "Just remove the dashes" means only that. Do not expand the job.
 - **Work in four passes.** Mark every tell, strongest first, looking at paragraph shape as well
   as sentences. Draft the rewrite. Check the draft: read it aloud, then compare it with the
-  source and list anything added or lost (facts, numbers, names, dates, claims), treating an
-  addition as an error and a loss as an error unless a tell justified the cut. Then search
+  source and list anything added or lost (facts, numbers, names, dates, claims, opinions),
+  treating an added fact as an error, an added opinion as something the user must see, and a
+  loss as an error unless a tell justified the cut. Then search
   again for the tells that most often survive a rewrite: the antithesis (entry 2), the closer
   (entry 22), the triad (entry 18), the dash (entry 1), the bold label (entry 8). Only then write
-  the final version, restating each point plainly rather than patching phrases one at a time.
+  the final version. Where a tell has a mechanical fix, make that fix and nothing more. Restate
+  a whole point only where the patched sentence stays awkward, and in Register D never
+  paraphrase a defined term, a statutory phrase or a term of art.
 - **In a file, change prose only.** Leave code blocks, inline code, commands, paths, YAML
   frontmatter, tables of data and link targets exactly as they were.
 - **Keep what carries the voice.** A specific odd detail, a mixed feeling left unresolved, a

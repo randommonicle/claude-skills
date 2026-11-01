@@ -424,8 +424,9 @@ poster's own normal prose, not a giveaway.
 - "moreover / furthermore / additionally": matched 1.7%, over-counted. As a stacked
   sentence-opener it reads as machine-smoothed, but one of them is just a connective.
 
-Flag what the data supports, at the weight it supports. The scanner weights all of these low
-for exactly this reason. Over-flagging trains writers to ignore the tool.
+Flag what the data supports, at the weight it supports. For exactly this reason the scanner
+does not scan "however", "when it comes to" or "navigate" at all, and weights the rest low,
+apart from `nuanced`, which sits in the medium diction list of entry 6. Over-flagging trains writers to ignore the tool.
 
 **Seen in other skills on 2026-11-01 and not adopted.** Recorded so a later cross-check does
 not argue them again.
@@ -441,8 +442,9 @@ not argue them again.
   data name it on sight.
 - **Separate vocabulary and allow-list override files.** `unslop-ignore` on the line already
   marks a deliberate choice; a second mechanism would have no user.
-- **Words such as `key`, `valuable`, `enhance`, `additionally` on a stock-word list.** The data
-  clears generic diction (above). `quietly`, as in "is quietly reshaping", is worth watching by
+- **Adding `key`, `valuable`, `enhance` to a stock-word list.** The data clears generic diction
+  (above). `additionally` stays where it was, a low-weight sentence opener in the
+  `transition-stack` rule, and nothing was added to it. `quietly`, as in "is quietly reshaping", is worth watching by
   ear as a new cliche, but there is no evidence yet to scan for it.
 
 
@@ -450,7 +452,8 @@ not argue them again.
 
 These come from cross-checking the humanizer and antislop skills (UPSTREAM.md has the commits
 and why no text was copied). None has a Reddit share. Several overlap Part A or B; where they
-do, the entry says so and adds only what was missing. Each says whether the scanner sees it.
+do, the entry says so and adds only what was missing. Each says whether the scanner sees it,
+and every scanner rule here is low severity, so alone none moves the verdict.
 They are weaker alone than Part A: act on one when it clusters with others in the same
 paragraph, which is what the scanner's cluster report shows.
 
@@ -513,11 +516,13 @@ are done on time" says what the aphorism did not.
 ### 26. Inflated significance and the stock send-off
 
 **What it looks like.** A plain fact made to mark a turning point or prove a legacy ("marking a
-pivotal moment", "setting the stage for", "plays a crucial role in", "leaves an indelible
-mark"), the stock "Despite these challenges, the town continues to thrive" paragraph, and the
-send-off ("The future looks bright", "Exciting times lie ahead").
+pivotal moment", "setting the stage for", "leaves an indelible mark"), the stock "Despite
+these challenges, the town continues to thrive" paragraph, and the send-off ("The future looks
+bright", "Exciting times lie ahead").
 
-**Pattern (scanner).** `inflated-significance`, medium.
+**Pattern (scanner).** `inflated-significance`, low. "Plays a key role" is not matched: in a
+report it is often a plain statement of function ("the reserve fund plays a key role in meeting
+the repairing obligations").
 
 **Fix.** keep the fact and drop the significance. End on the last concrete fact. If the source
 states real plans, give those instead of the forecast.
@@ -528,10 +533,13 @@ states real plans, give those instead of the forecast.
 was re-roofed in 2019, reflecting the board's commitment to long-term maintenance."
 
 **Pattern (scanner).** `ing-rider`, low: a comma, then `highlighting`, `underscoring`,
-`reflecting`, `showcasing`, `symbolising`, `cementing` and similar, then a determiner.
+`showcasing`, `symbolising`, `cementing` and similar, then a determiner; `reflecting` and
+`emphasising` only before an abstract noun such as "commitment" or "importance".
 
 **Fix.** cut the rider and keep the fact. Keep it only when a source supports the claim it
-makes, and then make it a sentence of its own.
+makes, and then make it a sentence of its own. A rider that states a cause is a fact, not a
+tell: "the reserve contribution rose to 45,000 pounds, reflecting the lift tender" explains the
+figure, and a budget or an accounts note needs it.
 
 ### 28. Avoiding "is" and "has" (`serves as`, `stands as`, `boasts`)
 
@@ -541,7 +549,9 @@ lifts." The plain verb was available and the sentence reached past it.
 **Pattern (scanner).** `copula-avoidance`, low.
 
 **Fix.** use "is", "are" and "has". Leave a fixed legal phrase alone: "this letter serves as
-notice under section 20" is a term of art in Register D, so mark it `unslop-ignore`.
+notice under section 20" is a term of art in Register D. The scanner matches only "serves as
+a", "an" or "the", so it does not flag that phrase; never put `unslop-ignore` into a document
+that goes to a client.
 
 ### 29. Borrowed authority
 
@@ -561,10 +571,14 @@ source to fix the sentence.
 specific details are limited, the firm was likely founded in the 1990s." "Information about
 his early life is not publicly available, suggesting he keeps a low profile."
 
-**Pattern (scanner).** `knowledge-gap`, medium. Entry 7 already catches the explicit cutoff
-line.
+**Pattern (scanner).** `knowledge-gap`, low, on the shapes that come with a guess: "while
+details are limited", "keeps a low profile", "likely grew up". Entry 7 already catches the
+explicit cutoff line.
 
 **Fix.** say plainly what the sources do not show, or cut the sentence. Never keep the guess.
+A plain statement of an evidential limit is the fix, not the tell: "based on the available
+information, the surveyor cannot confirm the roof is watertight" stays, and the scanner does
+not match it.
 
 ### 31. Elegant variation (a new synonym every sentence)
 
@@ -593,7 +607,9 @@ arrow or emoji in each heading; a first sentence that repeats the heading above 
 content starts.
 
 **Pattern (scanner).** `title-case-heading`, low: a markdown heading with a short joining word
-(And, Of, The, For, With, To, In, On) capitalised in the middle. Entries 8 and 11 cover the
+(And, Of, The, For, With, To, In, On) capitalised in the middle, after a capitalised word. It
+will also flag a proper name written that way; a name keeps the form its owner or the
+statute gives it. Entries 8 and 11 cover the
 bold label and the emoji. The echoed heading needs an eye.
 
 **Fix.** sentence case, unless a house style says otherwise. Bold only what the reader must not
@@ -609,7 +625,10 @@ replace the previous approach", "Anything we could not confirm is flagged".
 
 **Fix.** cut what the reader can already see. Keep a source credit the reader can follow, and a
 caveat that changes what they should do. History belongs in a change log, not in the text that
-replaced it. `unslop-code` applies the same rule to code comments.
+replaced it. In Register D this entry mostly does not apply: signposting in a notice of
+estimates or a tender report ("the table below compares the three quotes") and a statement of
+what could not be verified in a survey or a safety report are expected, and may carry legal
+weight. Cut them only in informal writing. `unslop-code` applies the same rule to code comments.
 
 ### 35. The reply that buries the decision
 
