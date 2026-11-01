@@ -2,18 +2,24 @@
 
 - **Forked from:** https://github.com/rohasnagpal/legal-ai-skills
 - **Upstream paths** (three skills consolidated into one):
-  - `plugins/rohas-legal-ai/skills/demand-notice-drafter/SKILL.md`
-  - `plugins/rohas-legal-ai/skills/notice-reply-drafter/SKILL.md`
-  - `plugins/rohas-legal-ai/skills/legal-notice-analyser/SKILL.md`
-- **Upstream commit:** `a5c00ec629146101831ba0404a64109402d77077` (2026-09-02, "Make release
-  checksums cross-platform"; cloned 2026-10-03)
+  - `plugins/legal-ai-skills/skills/demand-notice-drafter/SKILL.md`
+  - `plugins/legal-ai-skills/skills/notice-reply-drafter/SKILL.md`
+  - `plugins/legal-ai-skills/skills/legal-notice-analyser/SKILL.md`
+- **Upstream commit:** `ad5df1934e981f9aa1c2c163da02590d8ae0504c` (2026-10-10, "Clarify that
+  Codex on the web and claude.ai chat cannot install the plugin"; pin moved 2026-11-01). Forked
+  at `a5c00ec629146101831ba0404a64109402d77077` (2026-09-02, "Make release checksums
+  cross-platform"; cloned 2026-10-03).
 - **Plan:** `docs/HANDOVER_legal-fork_2026-09-11.md`
 - **Last checked:** 2026-10-11 against upstream head `ad5df19` (just after its release 4.1.1,
-  38 commits past the pin). The files moved to `plugins/legal-ai-skills/skills/`. The reply and
-  analyser bodies are byte-identical to the pin; the demand drafter adds one "Calculations"
-  section that sends interest figures to the upstream's bundled calculator tool. Not adopted:
-  this library ships no such tool, and rule 3 here ("Money is shown with its arithmetic")
-  already requires every interest figure with its rate.
+  38 commits past the original pin). The files moved to `plugins/legal-ai-skills/skills/`. The
+  reply and analyser bodies are byte-identical to the pin; the demand drafter adds one
+  "Calculations" section that sends interest figures to the upstream's bundled calculator tool.
+  The tool route is not adopted: this library ships no such tool, and rule 3 here ("Money is
+  shown with its arithmetic") already requires every interest figure with its rate.
+- **Re-checked:** 2026-11-01 by blob SHA of each source file at both commits (the compare API
+  stops at 300 files). No upstream commits since `ad5df19`; the forked sources are unchanged
+  apart from the addition recorded above. The pin moved with no forked text re-synced. One idea
+  from that "Calculations" section was adopted in this library's own words (local change 7).
 
 Heavily rewritten into a house-style guardrail; not a verbatim copy. All three upstream bodies
 were read in full on 2026-10-03 before distilling (the plan had them as spot-checked only).
@@ -32,6 +38,9 @@ were read in full on 2026-10-03 before distilling (the plan had them as spot-che
    Sch.11 para 4, LTA 1987 ss.46-48, LTA 1985 ss.20B and 21B, HA 1996 s.81), each read on
    legislation.gov.uk on 2026-10-03 and cited with its URL.
 6. Description rewritten for this library's trigger lanes; routes point only at skills on disk.
+7. Rule 3 marks a figure worked by hand as unverified (2026-11-01). The idea comes from the
+   upstream drafter's "Calculations" section; the wording is this library's. Showing the
+   arithmetic lets a reader check a figure; the marker tells them they must.
 
 ## Licence
 

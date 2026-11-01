@@ -1,15 +1,20 @@
 # Provenance: statute-to-obligations-register
 
 - **Forked from:** https://github.com/rohasnagpal/legal-ai-skills
-- **Upstream path:** `plugins/rohas-legal-ai/skills/compliance-obligations-mapper/SKILL.md`
-- **Upstream commit:** `a5c00ec629146101831ba0404a64109402d77077` (2026-09-02, "Make release
-  checksums cross-platform"; cloned 2026-10-03)
+- **Upstream path:** `plugins/legal-ai-skills/skills/compliance-obligations-mapper/SKILL.md`
+- **Upstream commit:** `ad5df1934e981f9aa1c2c163da02590d8ae0504c` (2026-10-10, "Clarify that
+  Codex on the web and claude.ai chat cannot install the plugin"; pin moved 2026-11-01). Forked
+  at `a5c00ec629146101831ba0404a64109402d77077` (2026-09-02, "Make release checksums
+  cross-platform"; cloned 2026-10-03).
 - **Plan:** `docs/HANDOVER_legal-fork_2026-09-11.md`
 - **Last checked:** 2026-10-11 against upstream head `ad5df19` (just after its release 4.1.1,
-  38 commits past the pin). The file moved to
+  38 commits past the original pin). The file moved to
   `plugins/legal-ai-skills/skills/compliance-obligations-mapper/SKILL.md`; the only change is a
   "Federal regulations" section pointing to the upstream's bundled US eCFR lookup tools. Not
   adopted: this fork reads UK legislation on legislation.gov.uk and ships no such tools.
+- **Re-checked:** 2026-11-01 by blob SHA of each source file at both commits (the compare API
+  stops at 300 files). No upstream commits since `ad5df19`; the forked sources are unchanged
+  apart from the additions recorded above, so the pin moved with no forked text re-synced.
 
 Heavily rewritten into a house-style guardrail; not a verbatim copy. The upstream body was read
 in full on 2026-10-03 before distilling (the plan had it as spot-checked only).
