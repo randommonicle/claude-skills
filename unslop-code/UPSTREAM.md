@@ -3,7 +3,7 @@
 - **Forked from:** https://github.com/JCarterJohnson/vibecoded-design-tells
 - **Upstream path:** `unslop-ai-code/skill/`
 - **Upstream commit:** `f7c4aefc2c79` (cloned 2026-06-25)
-- **Last checked:** 2026-10-11, upstream head identical to the pin
+- **Last checked:** 2026-11-01, upstream head identical to the pin
 
 ## Local patches (not in upstream)
 
@@ -18,6 +18,12 @@
    `**What people say.**` paraphrase with its subreddit kept, and the opening line says so. See
    Licence below for why. Re-apply after any upstream refresh of the catalog: an upstream
    copy brings the verbatim quotes back.
+
+`SKILL.md`:
+
+4. **History comments and the prose hand-off (2026-11-01).** Three sentences appended to the
+   Cosmetics bullet, from the unslop-text cross-check against humanizer (tells.md entry 34
+   there). Re-apply after an upstream refresh, then repack.
 
 When updating from upstream, re-apply.
 

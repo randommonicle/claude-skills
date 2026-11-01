@@ -48,7 +48,26 @@ Part B, the cited tells a regex cannot see (human pass required):
 20. The over-corrected "anti-AI" register (the 2026 tell)
 
 Part C, cleared by the data (do not over-chase):
-21. The over-counted generic diction (`however`, `comprehensive`, "when it comes to", `utilize`)
+21. The over-counted generic diction (`however`, `comprehensive`, "when it comes to", `utilize`),
+    plus what was seen in other skills and not adopted
+
+Part D, added 2026-11-01 from two other skills (pattern ideas only, examples written fresh;
+see UPSTREAM.md). No Reddit share: these are not in the study's data, so weight them by the
+severity the scanner gives them and by clustering, never on one sighting:
+22. One-line closers and rows of fragments
+23. The staged run-up before the point
+24. Arguing with no one
+25. Sayings that sound deep
+26. Inflated significance and the stock send-off
+27. Shallow `-ing` riders
+28. Avoiding "is" and "has" (`serves as`, `stands as`, `boasts`)
+29. Borrowed authority
+30. A knowledge gap filled with a guess
+31. Elegant variation (a new synonym every sentence)
+32. Repeated sentence openings
+33. Formatting by rule: title-case headings, decorative bold, the heading echoed
+34. Writing about the document instead of its subject
+35. The reply that buries the decision
 
 
 ## Part A: the tells the scanner catches
@@ -84,7 +103,11 @@ em dash in the same complaint.
 Y" pattern as part of a cadence that is easy to recognise (r/ChatGPT).
 
 **Pattern (scanner).** `it's not just X, it's Y`, `not X, but Y`, `isn't just ... it's ...`.
-The negate-then-assert shape.
+The negate-then-assert shape. Since 2026-11-01 also the version split over two sentences,
+`this doesn't mean X. It means Y.`, when both sit on one line. Two shapes it cannot see: the
+split across a line break, and the clipped negative tail ("the totals come from the ledger, no
+guesswork"). Check both by eye. Keep a contrast when the reader really does hold the belief
+being corrected, or when both halves carry a fact.
 
 **Why it reads as AI.** the construction manufactures profundity for free. It is the clearest
 single piece of the "AI accent," a rhythm the model falls into to sound insightful.
@@ -206,7 +229,10 @@ repeatedly as a category.
 (r/ChatGPT, r/marketing).
 
 **Pattern (scanner).** `unlock the potential`, `unleash the power`, `revolutionary`,
-`transform your business`, `take it to the next level`, `supercharge`, `game-changer`.
+`transform your business`, `take it to the next level`, `supercharge`, `game-changer`. Since
+2026-11-01 also the travel-brochure family: `nestled`, `in the heart of`, `breathtaking`,
+`must-visit`, `stunning`. Estate-agent copy uses these by long habit; they are still empty, and
+the fix is the same: say where the thing is and what it has.
 
 **Why it reads as AI.** it is the voice of a landing page no person wrote. It promises and
 says nothing.
@@ -330,6 +356,11 @@ trained to avoid being wrong. The reader wanted a position.
 
 **Fix.** take a position. List the trade-off if it matters, but say what you would do.
 
+A related shape is the stacked qualifier, "could potentially", "might arguably", "it may
+perhaps be the case", where each round of editing added one more softener. Keep one qualifier
+when the doubt is real. Keep scope statements, legal and safety caveats, and corrections; a
+single "perhaps" or "tends to" is ordinary human prose.
+
 ### 18. The rule of three
 
 **Evidence.** cited 1.2% and named spontaneously across several threads ("uses three-part
@@ -393,5 +424,224 @@ poster's own normal prose, not a giveaway.
 - "moreover / furthermore / additionally": matched 1.7%, over-counted. As a stacked
   sentence-opener it reads as machine-smoothed, but one of them is just a connective.
 
-Flag what the data supports, at the weight it supports. The scanner weights all of these low
-for exactly this reason. Over-flagging trains writers to ignore the tool.
+Flag what the data supports, at the weight it supports. For exactly this reason the scanner
+does not scan "however", "thus", "hence", "when it comes to", "crucial" or "navigate" at all.
+It weights "comprehensive", "robust", "utilize" and the stacked connectives low, and puts
+`nuanced` in the medium diction list of entry 6. Over-flagging trains writers to ignore the tool.
+
+**Seen in other skills on 2026-11-01 and not adopted.** Recorded so a later cross-check does
+not argue them again.
+
+- **Curly quotation marks as a tell.** Curly quotes are standard UK typography and most
+  editors insert them. Not a tell.
+- **Passive voice as a tell.** Correct and often required in formal, legal and regulatory
+  drafting (Register D). Prefer the active voice when it names who acts, but never flag it.
+- **Dropping the hyphen after the noun** ("the plan is long term"). Weak, noisy, and a style
+  rule rather than a tell.
+- **An allowed number of em dashes per paragraph.** One upstream treats one dash in a
+  paragraph as normal. This skill keeps the dash absolute (entry 1), because the readers in the
+  data name it on sight.
+- **Separate vocabulary and allow-list override files.** `unslop-ignore` on the line already
+  marks a deliberate choice; a second mechanism would have no user.
+- **Adding `key`, `valuable`, `enhance` to a stock-word list.** The data clears generic diction
+  (above). `additionally` stays where it was, a low-weight sentence opener in the
+  `transition-stack` rule, and nothing was added to it. `quietly`, as in "is quietly reshaping", is worth watching by
+  ear as a new cliche, but there is no evidence yet to scan for it.
+
+
+## Part D: added 2026-11-01 (ideas from two other skills, examples written fresh)
+
+These come from cross-checking the humanizer and antislop skills (UPSTREAM.md has the commits
+and why no text was copied). None has a Reddit share. Several overlap Part A or B; where they
+do, the entry says so and adds only what was missing. Each says whether the scanner sees it,
+and every scanner rule here is low severity, so alone none moves the verdict.
+They are weaker alone than Part A: act on one when it clusters with others in the same
+paragraph, which is what the scanner's cluster report shows.
+
+### 22. One-line closers and rows of fragments
+
+**What it looks like.** A one-sentence paragraph that repeats the paragraph above it ("That is
+the whole point."), an instruction to the reader to pause ("Let that sink in."), the same
+closer after every section, a line naming what an example has just shown, and a row of
+fragments standing in for a claim ("No forms. No waiting. No surprises.").
+
+**Pattern (scanner).** `closer-line` catches the fixed phrases: `let that sink in`, `read that
+again`, `that's the real win`, `that distinction matters`, `the message was clear`. The row of
+fragments and the repeated closer need an eye.
+
+**Why it reads as AI.** the line asks for emphasis instead of adding anything, and it is the
+same move whatever the subject.
+
+**Fix.** cut a closer that repeats. Keep a short sentence that adds a new fact or consequence.
+Merge a row of fragments into one sentence that says what is actually true. Overlaps entry 20:
+the fragment row is also the over-corrected register.
+
+### 23. The staged run-up before the point
+
+**What it looks like.** An announcement that the point is coming, in place of the point:
+"Here's what you need to know", "Let's break this down", "Without further ado", "Here's the
+thing", "Real talk", a standalone "Honestly?" before a routine claim.
+
+**Pattern (scanner).** `staged-runup`. Entry 4 (`dive in`) and entry 19 (`Honestly,`) cover two
+members of the family already.
+
+**Why it reads as AI.** a person with a point makes it. Staged candour is a performance of a
+voice.
+
+**Fix.** delete the run-up and start with the first sentence that carries information. A
+casual "honestly" inside a sentence is ordinary speech; the tell is the opener.
+
+### 24. Arguing with no one
+
+**What it looks like.** A defence against an objection nobody raised: "To be clear, this isn't
+about cost", "Don't get me wrong", "I'm not saying the old process was bad", "A tempting
+approach would be to rebuild the whole table, but". Often a leftover from an earlier draft.
+
+**Pattern (scanner).** `strawman-defence`, low, since people say these too.
+
+**Fix.** delete the defence. If it carries a real claim, state the claim. Keep an objection the
+reader really would raise, and keep an alternative they would really weigh. In formal
+correspondence "to be clear" can be a deliberate clarification of a disputed point; leave it.
+
+### 25. Sayings that sound deep
+
+**What it looks like.** An ordinary point dressed as a hidden truth: "The real question is",
+"At its core", "The heart of the matter", "What really matters is", "Trust is the currency of
+property management".
+
+**Pattern (scanner).** `deep-saying`, low. The "X is the Y of Z" aphorism needs an eye.
+
+**Fix.** replace the saying with the specific claim it gestures at. "Clients renew when repairs
+are done on time" says what the aphorism did not.
+
+### 26. Inflated significance and the stock send-off
+
+**What it looks like.** A plain fact made to mark a turning point or prove a legacy ("marking a
+pivotal moment", "setting the stage for", "leaves an indelible mark"), the stock "Despite
+these challenges, the town continues to thrive" paragraph, and the send-off ("The future looks
+bright", "Exciting times lie ahead").
+
+**Pattern (scanner).** `inflated-significance`, low. "Plays a key role" is not matched: in a
+report it is often a plain statement of function ("the reserve fund plays a key role in meeting
+the repairing obligations").
+
+**Fix.** keep the fact and drop the significance. End on the last concrete fact. If the source
+states real plans, give those instead of the forecast.
+
+### 27. Shallow `-ing` riders
+
+**What it looks like.** A participle clause bolted onto a fact to imply analysis: "The block
+was re-roofed in 2019, reflecting the board's commitment to long-term maintenance."
+
+**Pattern (scanner).** `ing-rider`, low: a comma, then `highlighting`, `underscoring`,
+`showcasing`, `symbolising`, `cementing` and similar, then a determiner; `reflecting` and
+`emphasising` only before one of a few value nouns ("commitment", "dedication", "importance",
+"significance", "values", "vision", "spirit"), so "reflecting the ongoing tribunal
+proceedings" is not matched.
+
+**Fix.** cut the rider and keep the fact. Keep it only when a source supports the claim it
+makes, and then make it a sentence of its own. A rider that states a cause is a fact, not a
+tell: "the reserve contribution rose to 45,000 pounds, reflecting the lift tender" explains the
+figure, and a budget or an accounts note needs it.
+
+### 28. Avoiding "is" and "has" (`serves as`, `stands as`, `boasts`)
+
+**What it looks like.** "The courtyard serves as a meeting point." "The building boasts three
+lifts." The plain verb was available and the sentence reached past it.
+
+**Pattern (scanner).** `copula-avoidance`, low.
+
+**Fix.** use "is", "are" and "has". Leave a fixed legal phrase alone: "this letter serves as
+notice under section 20" is a term of art in Register D. The scanner matches only "serves as
+a", "an" or "the", so it does not flag that phrase; never put `unslop-ignore` into a document
+that goes to a client.
+
+### 29. Borrowed authority
+
+**What it looks like.** Unnamed experts or reports propping up a claim ("Experts agree",
+"Industry reports suggest", "Observers have noted"), or a list of outlets standing in for what
+was said.
+
+**Pattern (scanner).** `borrowed-authority`, low.
+
+**Fix.** name the source and what it said, or cut the claim. A sentence with no citation is not
+a tell; most writing is unsourced. Overlaps entry 19's hallucinated citations: never invent the
+source to fix the sentence.
+
+### 30. A knowledge gap filled with a guess
+
+**What it looks like.** The text admits it has no source and then fills the gap: "While
+specific details are limited, the firm was likely founded in the 1990s." "Information about
+his early life is not publicly available, suggesting he keeps a low profile."
+
+**Pattern (scanner).** `knowledge-gap`, low, on the guess itself: "keeps a low profile",
+"likely grew up". The opening admission ("while details are limited") is not matched, because
+in a report it is often followed by a correct statement of what is missing. Entry 7 already
+catches the explicit cutoff line.
+
+**Fix.** say plainly what the sources do not show, or cut the sentence. Never keep the guess.
+A plain statement of an evidential limit is the fix, not the tell: "based on the available
+information, the surveyor cannot confirm the roof is watertight" stays, and the scanner does
+not match it.
+
+### 31. Elegant variation (a new synonym every sentence)
+
+**What it looks like.** The same thing renamed in each sentence to avoid repeating a word: the
+lease, then the agreement, then the instrument, then the document. In a contract or a notice
+this is worse than style, because a reader may take each new word for a different thing.
+
+**Pattern (scanner).** none; it is about meaning.
+
+**Fix.** repeat the noun, or use a pronoun. Vary only when the things really differ.
+
+### 32. Repeated sentence openings
+
+**What it looks like.** Four sentences in a row that start "She", or "The system", or "This".
+
+**Pattern (scanner).** none.
+
+**Fix.** merge two of them, or start one with the action. Do not ban the word; a deliberate
+repetition for rhythm is a choice.
+
+### 33. Formatting by rule: title-case headings, decorative bold, the heading echoed
+
+**What it looks like.** Every heading in title case in a document that otherwise uses sentence
+case ("## Service Charge And Reserve Fund Overview"); bold on terms that need no emphasis; an
+arrow or emoji in each heading; a first sentence that repeats the heading above it before the
+content starts.
+
+**Pattern (scanner).** `title-case-heading`, low: a markdown heading with a short joining word
+(And, Of, The, For, With, To, In, On) capitalised in the middle, after a capitalised word. It
+will also flag a proper name written that way; a name keeps the form its owner or the
+statute gives it. Entries 8 and 11 cover the
+bold label and the emoji. The echoed heading needs an eye.
+
+**Fix.** sentence case, unless a house style says otherwise. Bold only what the reader must not
+miss. Delete the sentence that repeats the heading.
+
+### 34. Writing about the document instead of its subject
+
+**What it looks like.** Narration of how the text was made or arranged: "This section is
+organised by building", "The table below compares the three quotes", "This was added to
+replace the previous approach", "Anything we could not confirm is flagged".
+
+**Pattern (scanner).** none.
+
+**Fix.** cut what the reader can already see. Keep a source credit the reader can follow, and a
+caveat that changes what they should do. History belongs in a change log, not in the text that
+replaced it. In Register D this entry mostly does not apply: signposting in a notice of
+estimates or a tender report ("the table below compares the three quotes") and a statement of
+what could not be verified in a survey or a safety report are expected, and may carry legal
+weight. Cut them only in informal writing. `unslop-code` applies the same rule to code comments.
+
+### 35. The reply that buries the decision
+
+**What it looks like.** A reply in a thread that restates the problem, walks through the
+diagnosis and shows the proof before it reaches the answer, which sits in the last line. Each
+sentence reads well, so a sentence-level pass leaves it untouched.
+
+**Pattern (scanner).** none. Act only when you can see the conversation, or the text plainly is
+a reply.
+
+**Fix.** lead with the decision. Keep the one fact the reader lacks and any link they need to
+act. The diagnosis goes in the ticket or the document that follows.

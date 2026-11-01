@@ -5,6 +5,21 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-11-01 Outside skills are mined for ideas, never text; what is rejected is written down
+
+Ben, 2026-11-01 ("yes to all"). When another skill covers ground a library skill already holds
+(today blader/humanizer and SalZaki/antislop against unslop-text), the library takes the pattern
+ideas and writes every entry and example itself. Nothing is synced from such a source, so it is
+recorded in UPSTREAM.md under "Pattern sources" with its commit, not as a fork base, and its
+copyright line is appended to the skill's LICENSE as credit. **Why:** an MIT notice covers only
+what its author owns. humanizer's examples are rewrites of Wikipedia text (CC BY-SA), the same
+trap as the harvested Reddit quotes of 2026-10-11 (entry below); writing fresh removes the
+question instead of arguing it. **Rejections are part of the record.** What was seen and not
+adopted is listed in the receiving skill (unslop-text: Part C of references/tells.md, "Seen in
+other skills on 2026-11-01 and not adopted"), with the reason, so the next cross-check reads the
+list instead of re-arguing it. For unslop-text that list holds curly quotes and passive voice,
+both correct in UK formal and regulated drafting.
+
 ## 2026-10-12 This library's guardrails outrank a vendor skill's examples; the Cloudflare pack reinstalled at c430dd9
 
 Ben, 2026-10-12, "yes to both". **Precedence:** where a vendor skill (today the Cloudflare pack)

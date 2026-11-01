@@ -25,3 +25,25 @@ SOFTWARE.
 
 The MIT license above applies to the CODE in this repository. It does not
 apply to the harvested Reddit text in the data files. See DATA_NOTE.md.
+
+------------------------------------------------------------------------------
+
+Part D of references/tells.md, the rewrite rules in SKILL.md and some scanner
+rules adapt pattern ideas from two further MIT-licensed skills. Their text was
+not copied: every entry and example was written fresh for this fork. Their
+notices are reproduced here so the credit travels with the archive.
+
+https://github.com/blader/humanizer (commit 0ef9fe5)
+
+MIT License
+
+Copyright (c) 2025 Siqi Chen
+
+https://github.com/SalZaki/antislop (commit b9c5b74)
+
+MIT License
+
+Copyright (c) 2026 Sal Zaki
+
+Both are granted on the same terms as the permission notice and disclaimer
+reproduced in full above.
