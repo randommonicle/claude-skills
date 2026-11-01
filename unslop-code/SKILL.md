@@ -46,7 +46,10 @@ machine-made?
   fix any bug, whether or not anyone ever suspected AI.
 - **Cosmetics.** Emoji, leftover chat artifacts, narrating comments, generic and over-verbose
   names. These are the model's chat voice leaking into the file. Worth removing because they
-  read as AI, but nothing breaks if one survives. This is the lighter class.
+  read as AI, but nothing breaks if one survives. This is the lighter class. A comment that
+  records what the code replaced ("added to replace the old loop") is one of them: say what
+  the code does and why, and put the history in the commit message. Commit messages, PR
+  descriptions and docs are prose; `unslop-text` covers them.
 
 The scanner reports both, tagged with the class; the catalog tags every tell the same way. The
 point of the split: do not spend an audit polishing cosmetics while a swallowed error or a

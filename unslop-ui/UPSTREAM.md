@@ -3,7 +3,7 @@
 - **Forked from:** https://github.com/JCarterJohnson/vibecoded-design-tells
 - **Upstream path:** `skill/`
 - **Upstream commit:** `f7c4aefc2c79` (cloned 2026-06-25)
-- **Last checked:** 2026-10-11, upstream head identical to the pin
+- **Last checked:** 2026-11-01, upstream head identical to the pin
 
 ## Local patches (not in upstream)
 
