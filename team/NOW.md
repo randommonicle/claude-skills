@@ -36,6 +36,5 @@ ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH (ASK-0010 Occam overdue, 
 ## Traps
 
 - A direct push to main is refused; two PRs adding DECISIONS entries at the top conflict, so union them and check the blank line
-- A compare's file list counts renames as changes: read status and additions (LESSONS 45)
-- An absence test passes when the code never ran: assert the run first (LESSONS 20 recurrence)
+- A compare's file list counts renames as changes (LESSONS 45); an absence test passes when the code never ran (LESSONS 20)
 - Ports and ~/.agents/skills take committed HEAD only; edit the library, never a port. UK clocks are GMT since 25 October
