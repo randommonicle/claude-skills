@@ -156,6 +156,92 @@ test('writes the status file beside the repo, not inside it', (f) => {
   return true;
 });
 
+// Mirrors: <root>/skills-mirrors.json sits beside the repo, as the status file does.
+const mirrors = (f, cfg) => writeFileSync(join(f.root, 'skills-mirrors.json'), JSON.stringify(cfg));
+const secondClone = (f) => {
+  const lib2 = join(f.root, 'lib2');
+  git(f.root, ['clone', '--quiet', f.origin, lib2]);
+  return lib2;
+};
+
+test('without a mirrors file the status carries no mirrors key', (f) => {
+  advanceOrigin(f);
+  const r = runUpdater(f.lib);
+  if (r.json?.state !== 'updated') return 'state=' + r.json?.state;
+  if ('mirrors' in r.json) return 'mirrors key present with no mirrors file';
+  return true;
+});
+
+test('a mirror checkout that is behind is fast-forwarded too', (f) => {
+  const lib2 = secondClone(f);
+  const target = advanceOrigin(f);
+  mirrors(f, { checkouts: [lib2] });
+  const r = runUpdater(f.lib);
+  if (r.json?.state !== 'updated') return 'library state=' + r.json?.state;
+  if (r.json?.mirrors?.[0]?.state !== 'updated') return 'mirror state=' + r.json?.mirrors?.[0]?.state;
+  if (head(lib2) !== target) return 'mirror HEAD is ' + head(lib2);
+  if (r.code !== 0) return 'exit ' + r.code;
+  return true;
+});
+
+test('a mirror whose origin is not this library is refused; the library still updates', (f) => {
+  const lib2 = secondClone(f);
+  const target = advanceOrigin(f);
+  git(lib2, ['remote', 'set-url', 'origin', join(f.root, 'origin', 'some-client-repo.git')]);
+  const before = head(lib2);
+  mirrors(f, { checkouts: [lib2] });
+  const r = runUpdater(f.lib);
+  if (head(f.lib) !== target) return 'library did not update';
+  const m = r.json?.mirrors?.[0];
+  if (m?.state !== 'error' || !/refusing/i.test(m?.reason ?? '')) return 'mirror state=' + m?.state + ' reason=' + m?.reason;
+  if (head(lib2) !== before) return 'the refused mirror moved';
+  if (r.code !== 1) return 'exit ' + r.code + ', expected 1';
+  return true;
+});
+
+test('a port is synced when the library updates', (f) => {
+  for (const [rel, text] of [
+    ['s1/SKILL.md', 's1\n'],
+    ['ports/antigravity/plugin.json', '{}\n'],
+    ['ports/antigravity/hooks.json', '{}\n'],
+  ]) {
+    mkdirSync(dirname(join(f.work, rel)), { recursive: true });
+    writeFileSync(join(f.work, rel), text);
+  }
+  advanceOrigin(f);
+  const port = join(f.root, 'port');
+  mkdirSync(port);
+  writeFileSync(join(port, 'plugin.json'), '{}\n');
+  mirrors(f, { ports: [port] });
+  const r = runUpdater(f.lib);
+  const m = r.json?.mirrors?.[0];
+  if (m?.state !== 'synced') return 'port state=' + m?.state + ' reason=' + m?.reason;
+  if (!existsSync(join(port, 'skills', 's1', 'SKILL.md'))) return 'skill not in the port';
+  return true;
+});
+
+test('a port is skipped, untouched, while the library is dirty', (f) => {
+  advanceOrigin(f);
+  appendFileSync(join(f.lib, 'hooks', 'a.mjs'), '// local edit\n');
+  const port = join(f.root, 'port');
+  mkdirSync(port);
+  writeFileSync(join(port, 'plugin.json'), '{}\n');
+  mirrors(f, { ports: [port] });
+  const r = runUpdater(f.lib);
+  if (r.json?.state !== 'skipped-dirty') return 'library state=' + r.json?.state;
+  if (r.json?.mirrors?.[0]?.state !== 'skipped') return 'port state=' + r.json?.mirrors?.[0]?.state;
+  if (existsSync(join(port, 'skills'))) return 'the port was written to';
+  return true;
+});
+
+test('an unreadable mirrors file is reported, not ignored', (f) => {
+  writeFileSync(join(f.root, 'skills-mirrors.json'), '{ not json');
+  const r = runUpdater(f.lib);
+  if (r.json?.mirrors?.[0]?.state !== 'error') return 'mirrors=' + JSON.stringify(r.json?.mirrors);
+  if (r.code !== 1) return 'exit ' + r.code;
+  return true;
+});
+
 for (const [name, fn] of cases) {
   const f = fixture();
   try {

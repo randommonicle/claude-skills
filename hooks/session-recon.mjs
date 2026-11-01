@@ -165,6 +165,26 @@ function skillsUpdateLine() {
   }
 }
 
+// The mirrors the same run kept (skills-mirrors.json beside the repo): one line per
+// mirror that wants a human, silent while they are current. A port skipped because
+// the library itself is not current says nothing here; the library line above is
+// the one to act on.
+const MIRROR_OK = new Set(['current', 'updated', 'synced', 'skipped']);
+
+function mirrorsLine() {
+  try {
+    const statusPath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'skills-update.json');
+    if (!existsSync(statusPath)) return null;
+    const s = JSON.parse(readFileSync(statusPath, 'utf8'));
+    const lines = (s.mirrors ?? [])
+      .filter((m) => !MIRROR_OK.has(m.state))
+      .map((m) => 'skills mirror (' + m.kind + ') ' + m.path + ': ' + m.state + (m.reason ? ' - ' + m.reason : '') + '.');
+    return lines.length ? lines.join('\n') : null;
+  } catch {
+    return null;
+  }
+}
+
 // team/NOW.md is the team-loop resume board (team-loop/SKILL.md): described state, so a
 // session that resumes from it must check it against git first (live-state-first). This
 // does the mechanical half: whether NOW.md is committed, whether the working copy differs
@@ -300,6 +320,8 @@ process.stdin.on('end', () => {
     const toPerson = [norms, agents, shadow].filter(Boolean).join('\n');
     const update = skillsUpdateLine();
     if (update) parts.push(update);
+    const mirrored = mirrorsLine();
+    if (mirrored) parts.push(mirrored);
 
     if (existsSync(join(cwd, '.git'))) {
       const fetched = run('git', ['-C', cwd, 'fetch', '--quiet'], 8000) !== null;

@@ -36,6 +36,25 @@ page of long copy, where Ben's global rule allows none; and
 description, never a step to run. Known gap, unchanged: Related Skills rows are stripped from
 `SKILL.md` only, so `cro/references/form.md` still names three skills that are not installed.
 
+## 2026-11-01 The updater keeps a machine's other copies current; ports have a source in the repo
+
+Ben, 2026-11-01 ("yes, build it"). The scheduled `update-skills.mjs` run now also keeps the
+copies a machine-local `skills-mirrors.json` lists. Extra checkouts, such as
+`~/.agents/skills`, are fast-forwarded under the library's own rules. Ports, such as an
+Antigravity plugin, are refreshed by `hooks/sync-port.mjs` from the committed HEAD. This
+amends the 2026-10-12 entry below, which said nothing compared `~/.agents/skills`.
+
+The port's own files (`plugin.json`, `hooks.json`, `agy-wrapper.mjs`) live in
+`ports/antigravity/` and are changed there, never in a port. **Why:** the Antigravity port in
+the AI domain project was a hand copy with no update path. It was found on 2026-11-01 two
+months stale, with a push gate that let `git -C <path> push` through. The DECISIONS entry
+of 2026-10-12 had already named the same gap for `~/.agents/skills`.
+
+**Rejected:** a directory junction from the port's `skills` folder onto a checkout. It would
+leave the hooks stale, because the wrapper was not in the repo. It would expose the vendor
+packs and the repo's non-skill folders. And LESSONS 21 records a junction that made one
+checkout look like two.
+
 ## 2026-11-01 Outside skills are mined for ideas, never text; what is rejected is written down
 
 Ben, 2026-11-01 ("yes to all"). When another skill covers ground a library skill already holds
