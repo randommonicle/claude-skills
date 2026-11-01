@@ -10,6 +10,7 @@ audit-output.txt
 # hooks/check-index.mjs and hooks/audit-fires.mjs; check-index.test.mjs
 # asserts all three sites agree.
 agents-sdk/
+cf-cli/
 cloudflare/
 cloudflare-email-service/
 cloudflare-one/

@@ -42,7 +42,7 @@ import { basename, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const UPSTREAM_URL = 'https://github.com/coreyhaines31/marketingskills';
-export const PIN = '5b2c0007766c6a1cf1d53fd8fc73e979e0821022'; // 2026-09-04, "feat: ai-seo 2.5.0"
+export const PIN = '88c79f6528a9347420e57ceb1fff9a60de651768'; // 2026-10-30, "chore: sync skills with marketplace.json, plugin.json, and README"
 export const KEEP = [
   'product-marketing',
   'copywriting',

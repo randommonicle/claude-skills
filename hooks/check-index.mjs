@@ -37,7 +37,7 @@ const BUILTINS = new Set(['docx', 'pdf', 'pptx', 'xlsx', 'morning', 'skill-creat
 // 2026-08-10). Kept in step with the same set in audit-fires.mjs and with the
 // vendor block in .gitignore; check-index.test.mjs asserts all three agree.
 const VENDOR = new Set([
-  'agents-sdk', 'cloudflare', 'cloudflare-email-service', 'cloudflare-one',
+  'agents-sdk', 'cf-cli', 'cloudflare', 'cloudflare-email-service', 'cloudflare-one',
   'cloudflare-one-migrations', 'durable-objects', 'sandbox-migrate-to-next',
   'sandbox-next', 'sandbox-stable', 'turnstile-spin', 'web-perf',
   'workers-best-practices', 'wrangler',
