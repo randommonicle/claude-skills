@@ -929,6 +929,13 @@ both trivially true of a launcher that exited before doing anything, so the gree
 cases read as evidence the guards worked. A count alone is not the signal. That is now
 `prove-it-can-fail` rule 10, and the suite asserts its own premise.
 
+**Recurrence, 2026-11-01.** `hooks/sync-port.test.mjs` was written test-first. Run before
+`sync-port.mjs` existed, it went red in 8 cases and green in 3: "the vendor skill is not
+copied", "the port's own skill is left alone" and "an unwired hook is not copied" are all
+true of a script that never ran. The red-first run is what showed it. Each absence case now
+first requires a real sync (`synced(f)`). Rule 10 was in the library and was not applied at
+writing time; the run, not the rule, caught it.
+
 **skill that should have prevented this:** `prove-it-can-fail` — its question is
 already the right one and was simply not asked of the harness, only of the
 watchdogs. It gained rule 10 from the recurrence above. `reproduce-the-real-build` is the secondary: the suites were proved on
@@ -1565,3 +1572,32 @@ than of the rule, the answer was "nothing goes red").
 
 **class:** a can-fail proof on one member of a set generalised to the whole set. Sibling of
 entry 15, a probe carried to a question it did not ask.
+
+## 45. A compare's file list was read as a list of changes, and a session was briefed on it
+
+**What happened.** On 2026-11-01 a session checked every fork's upstream pin. For the legal
+forks it ran GitHub's compare API (`a5c00ec...ad5df19`, 38 commits, 300 files) and listed the
+file names that matched our four forks. It then briefed a separate session that upstream had
+"changed `contract-reviewer` (including `references/leases.md`), `citation-integrity-checker`
+and `compliance-obligations-mapper`". The briefed session read the diff and found those files
+were moves into `plugins/legal-ai-skills/skills/` with identical content. Only the pins and
+paths were stale, so the work shrank to a pins-only PR (#36). **verified**: the compare API
+reports those three files as `status: renamed` with 0 additions and 0 deletions.
+
+**The lesson.** A compare lists every path that differs between two trees, and a move puts a
+path in that list without changing a byte. The count of files and the count of changes are
+different numbers, and the brief reported the first as the second. The cost was small only
+because the briefed session read the diff itself rather than trusting the brief.
+
+**How to apply.** When a compare or diff decides what work exists, read each file's `status`
+and its additions and deletions, not its name: `gh api repos/<o>/<r>/compare/<a>...<b> -q
+'.files[] | {filename,status,additions,deletions}'`. Report renames as renames. A brief to
+another session states which of its facts were checked and which are file-list inferences.
+
+**skill that should have prevented this:** findings-are-evidence (the brief was the hub's own
+first-hand analysis, written into a durable artifact without re-derivation) /
+commission-the-roster (brief with pre-verified facts).
+
+**class:** a list or count read as evidence of change without checking what kind of change.
+Sibling of entry 15 (a probe's number carried to another question) and entry 44 (one member's
+proof generalised to the set).
