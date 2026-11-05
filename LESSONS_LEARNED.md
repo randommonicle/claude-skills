@@ -1601,3 +1601,50 @@ commission-the-roster (brief with pre-verified facts).
 **class:** a list or count read as evidence of change without checking what kind of change.
 Sibling of entry 15 (a probe's number carried to another question) and entry 44 (one member's
 proof generalised to the set).
+
+## 46. The updater reported "current" for four days while its new half was switched off
+
+**What happened.** On 2026-11-01 `update-skills.mjs` gained the ability to keep the
+machine's other copies current, reading them from a machine-local
+`~/.claude/skills-mirrors.json` (DECISIONS 2026-11-01, Ben: "yes, build it"). The config was
+never created on this machine. `updateMirrors` returned `null` when the file was absent, the
+record then omitted the `mirrors` key entirely, and the exit expression
+`(mirrors ?? []).every(...)` was vacuously true. Every scheduled run from 1 to 5 November
+wrote `"state": "current"` and exited 0.
+
+Underneath, `~/.agents/skills` sat at `d094444` from **17 August**, 295 commits behind, and
+had been maintained by hand instead: six tracked docs deleted, nineteen tracked files edited
+(three rewriting `claude-api` to `Codex-api`, dated 25 August), and twenty-two newer skills
+copied in as untracked directories. Its tracked skills were missing the 22 October sweep
+upgrades and `prove-it-can-fail` rule 10. **verified** — `git rev-list --count`, and both
+upgrades grepped for in the mirror and absent.
+
+- **The feature was not broken, it was absent, and absence had no representation.** A
+  missing config is a normal state for a machine with no mirrors. The defect was that it
+  looked identical in the record to a mirror list that ran and was fine. Nothing in the
+  status file, the exit code or the session-start line could tell the two apart.
+- **A green test pinned the bug.** `update-skills.test.mjs` carried a case literally named
+  "without a mirrors file the status carries no mirrors key", asserting the omission as
+  correct. Every other case in that file also ran with no config and none noticed. This is
+  `prove-it-can-fail` rule 9, found only because the fix turned that case red.
+- **The hand-maintenance was invisible for the same reason.** Because the updater never
+  reported on the mirror, three months of divergence produced no signal anywhere. The hand
+  edits are also why it could never have been fast-forwarded even with the config present:
+  the updater refuses on tracked modifications, by design and correctly.
+
+**The lesson.** A feature that can be switched off needs a representation for "off" that is
+distinguishable from "ran and was fine". `null` is not that representation, and neither is an
+absent key: both collapse into the success path at the first `??`. The cheap form is to make
+the disabled state a value the record carries and a test asserts — here, a `config` entry with
+state `none` and a reason, which keeps the exit code 0 because an unconfigured machine is not
+a failure, while making the absence legible at every run.
+
+**skill that should have prevented this:** none - new candidate, and the candidate is already
+written: `instrument-reports-itself`, Tier 1 item 4 of `docs/SKILL_PROPOSALS_2026-11-01.md`
+("an instrument's failure is a value distinct from every reading"). This is a sixth instance
+for it, found four days after the sweep proposed it and in the library's own tooling.
+`prove-it-can-fail` rule 9 owns the green-test-pins-the-bug half and was right.
+
+**class:** a capability whose disabled, unconfigured or skipped state is encoded as the
+absence of data rather than as data, so it reaches the success path through a default and
+cannot be distinguished from the capability having run.

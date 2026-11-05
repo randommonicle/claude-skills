@@ -79,6 +79,22 @@ test('already at origin tip reports current and exits 0', (f) => {
   return true;
 });
 
+// Every other case in this file also runs with no mirrors config, and none of them noticed
+// that the key was simply missing from the record. That is how the feature stayed switched
+// off on the maintainer's machine from 2026-11-01 to 2026-11-05 while each run said
+// "current": absence has to be an assertion of its own, or it is indistinguishable from
+// a mirror list that ran and was fine.
+test('no mirrors config: the record SAYS so rather than omitting the key', (f) => {
+  const r = runUpdater(f.lib);
+  if (!Array.isArray(r.json?.mirrors)) return 'the record has no mirrors key at all';
+  const cfg = r.json.mirrors.find((m) => m.kind === 'config');
+  if (!cfg) return 'no config entry in mirrors: ' + JSON.stringify(r.json.mirrors);
+  if (cfg.state !== 'none') return 'state=' + cfg.state;
+  if (!/no mirrors configured/i.test(cfg.reason ?? '')) return 'reason does not say why: ' + cfg.reason;
+  if (r.code !== 0) return 'exit ' + r.code + ', but an unconfigured machine is not a failure';
+  return true;
+});
+
 test('clean and behind fast-forwards, HEAD lands on the upstream SHA', (f) => {
   const target = advanceOrigin(f);
   const r = runUpdater(f.lib);
@@ -164,11 +180,17 @@ const secondClone = (f) => {
   return lib2;
 };
 
-test('without a mirrors file the status carries no mirrors key', (f) => {
+// Was: "without a mirrors file the status carries no mirrors key", asserting the omission
+// as correct. That is prove-it-can-fail rule 9 -- a green test pinning the bug. The omission
+// is what let the feature sit switched off for four days while every run reported success,
+// so the assertion is inverted here rather than deleted: the no-config case still has to be
+// exercised on the `updated` path, and it still has to be legible in the record.
+test('a mirrors-less machine still records the absence when the library updates', (f) => {
   advanceOrigin(f);
   const r = runUpdater(f.lib);
   if (r.json?.state !== 'updated') return 'state=' + r.json?.state;
-  if ('mirrors' in r.json) return 'mirrors key present with no mirrors file';
+  if (!Array.isArray(r.json.mirrors)) return 'mirrors key missing from an updated record';
+  if (r.json.mirrors.some((m) => m.state !== 'none')) return 'unexpected mirror entries: ' + JSON.stringify(r.json.mirrors);
   return true;
 });
 

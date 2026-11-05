@@ -1,40 +1,41 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-11-01 23:52 GMT, session end (the Unslop session; context 48%, read with get_usage). Diagnoses in this note are unverified unless marked
-topic: unslop-text took humanizer and antislop ideas; the library's other copies are kept current by update-skills (PRs #34, #35, #39)
-next: read PR #38 (docs/SKILL_PROPOSALS_2026-11-01.md, the third misses-log sweep), then Ben merges it and picks the first proposal to build
-branches: main; docs/skill-proposals-2026-11-01 (~/.claude/skills-wt-proposals-1101, PR #38, its sweep session kept for auto-fix); docs/now-2026-11-01 (this note, PR #40, no worktree)
-ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH (ASK-0010 Occam overdue, ASK-0011 the port-only skills)
+updated: 2026-11-05 15:12 GMT, session end (the maintenance session: git hygiene, the mirror, spawn-from-declared-state). Diagnoses in this note are unverified unless marked
+topic: PR #40 merged and the branch list cleared; the mirror feature was found switched off and is now on; Tier 1 item 3 built
+next: Ben picks the next Tier 1 proposal (prove-it-can-pass, enumerate-the-set, instrument-reports-itself); the Ask board could not be read this session and needs a working link
+branches: main; feat/spawn-from-declared-state (this session's PR, no worktree)
+ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH — **could not be read on 2026-11-05** ("artifact not found"). ASK-0010 and ASK-0011 are named in the 2026-11-01 note but their content and any answers were not visible to this session
 
 ## Landed since the last NOW.md
 
-- #34 fc42fe3 Ben's lesson-42 codex flag; resume path proven in the review's round 2 (same thread, file_turns 2). verified: merged, four checks
-- #35 99a4a78 unslop-text: Part D entries 22 to 35, rewrite rules, ten low scanner rules, cluster report, 15 Python tests (not in CI); GPT and Gemini review, three rounds, converged. verified: merged, tests and mutations run
-- #36 e0a9b14 legal forks pinned to ad5df19, pins only (upstream renamed files, LESSONS 45). verified: merged
-- #37 cf0a834 vendor packs: Cloudflare 1a33048 with cf-cli, marketing 88c79f6 (its session also merged PropOS #435). verified: merged
-- #39 b524018 update-skills keeps ~/.agents/skills and ports current via ~/.claude/skills-mirrors.json; sync-port.mjs; ports/antigravity/. verified: the scheduled task, run by hand at 23:33 GMT, updated ~/.agents/skills and read the AI domain port current
-- Machine: the AI domain Antigravity port refreshed (backup ~/.claude/backups/ash-plugin-2026-11-01); its push gate now asks on `git -C <path> push`. verified: wrapper ride, before and after
+- PR #40 merged (`ee6554a`): the 2026-11-01 note and LESSONS 45, open four days, green the whole time. verified: `gh pr view 40` MERGED, `git ls-remote`
+- 13 merged remote branches deleted; only `origin/main` remains and no PRs are open. verified: `git branch -r`, `gh pr list`
+- Upstream forks checked: `rohasnagpal/legal-ai-skills` at `ad5df1934e98` and `JCarterJohnson/vibecoded-design-tells` at `f7c4aefc2c79`, both **identical to their pins**. No updates to adopt. All seven `UPSTREAM.md` files record the 2026-11-05 check. verified: `gh api .../commits/HEAD`, bytes re-grepped after the scripted edit
+- This session's PR: `spawn-from-declared-state` (Tier 1 item 3), the updater's absent-config fix with two tests, LESSONS 46, counts to 57
 
 ## In flight
 
-- PRs #38 and #40 open, unmerged. Legal and vendor sessions archived; merged worktrees and branches removed (verified: git worktree list)
-- PropOS, not this session's: branch docs/lesson-commit-email still on origin (merged in #435; deletion left to Ben); local main 279 behind origin; three other sessions' worktrees untouched
+- This session's PR only. Nothing else running
 
 ## Deferred, with grep anchors
 
-- The second Occam read (DECISIONS 2026-10-09, due 2026-10-16): overdue, still installed; now ASK-0010
-- session-recon prints nothing inside a port (true before the refresh too); see "Known gap" in PR #39's body. unverified cause
-- Candidates from ICC's 22 October checkpoint 13; unverified whether PR #38 covers them
-- Earlier: `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md:512; unpinned agents (debugger, refactorer; PropOS backend, frontend, test)
+- Three Tier 1 proposals unbuilt: `prove-it-can-pass`, `enumerate-the-set`, `instrument-reports-itself` (`docs/SKILL_PROPOSALS_2026-11-01.md`). The 1 November Tier 2 upgrades are also unbuilt
+- The second Occam read (DECISIONS 2026-10-09): still overdue, was ASK-0010
+- `session-recon` prints nothing inside a port; unverified cause
+- Earlier: `FORWARD:` naming `team/INBOX/` in `docs/DESIGN_team-loop_2026-10-02.md:512`; unpinned agents
 
 ## Verification outstanding
 
-- The first unattended 06:30 run on the new updater (status file `mirrors` list fresh, no mirror line at session start)
-- unslop-text's scanner tests run only by hand: `python unslop-text/scripts/test_unslop_text_scan.py`
+- **The Antigravity port could not be located.** `~/.claude/backups/ash-plugin-2026-11-01` does not exist and no `plugin.json` was found under `~/Projects` or `~/.claude` outside the library. Two roots searched, not the whole disk. `skills-mirrors.json` therefore lists `ports: []`, so `sync-port.mjs` runs against nothing
+- **The Cloudflare vendor packs are absent from both roots.** DECISIONS 2026-11-01 records them installed into `~/.claude/skills` and `~/.agents/skills` at `1a33048`; neither root holds `cloudflare/`, `wrangler/` or `cf-cli/` today. verified by `ls`. Cause unknown — not investigated this session
+- `relay-cli-takeover.test.mjs` was not run locally (the 2026-09-21 Avast moratorium, never formally lifted). CI covers it
 
 ## Traps
 
-- A direct push to main is refused; two PRs adding DECISIONS entries at the top conflict, so union them and check the blank line
-- A compare's file list counts renames as changes (LESSONS 45); an absence test passes when the code never ran (LESSONS 20)
-- Ports and ~/.agents/skills take committed HEAD only; edit the library, never a port. UK clocks are GMT since 25 October
+- A direct push to main is refused; two PRs that both change the skill count conflict, so stack skills on one branch
+- Run hook suites as `node <file>`, never `node --test` (hangs past two minutes locally)
+- **`~/.agents/skills` was three months stale behind a silently-disabled feature.** It is now at `ee6554a`, clean, and listed in `~/.claude/skills-mirrors.json`. Its pre-reset state, including nineteen hand edits and three `claude-api`-to-`Codex-api` rewrites, is at `~/.claude/agents-skills-backup-2026-11-05` with the diff as `tracked-modifications.patch`. If a Codex port is wanted, port it into `ports/` — do not re-edit the mirror
+- Heredocs into an interpreter still eat one backslash level: write files with the Write or Edit tool (tool-layer-bytes). A `perl -0pi` substitution silently matched nothing this session and the only tell was a count that did not change
+- Ports and `~/.agents/skills` take committed HEAD only; edit the library, never a port. UK clocks are GMT since 25 October
+- Take clock times from PowerShell `Get-Date`, never an estimate

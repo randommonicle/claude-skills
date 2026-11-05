@@ -12,7 +12,7 @@
   38 commits past the original pin). The files moved to
   `plugins/legal-ai-skills/skills/contract-reviewer/`; `SKILL.md` and all three references are
   byte-identical to the pin. Nothing to adopt.
-- **Re-checked:** 2026-11-01 by blob SHA of each source file at both commits (the compare API
+- **Re-checked:** 2026-11-01, and again 2026-11-05 against upstream head `ad5df1934e98` (unchanged), by blob SHA of each source file at both commits (the compare API
   stops at 300 files). No upstream commits since `ad5df19`; the forked sources are byte-identical
   to the original pin, so the pin moved with no forked text re-synced.
 

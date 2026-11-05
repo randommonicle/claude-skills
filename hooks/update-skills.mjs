@@ -45,7 +45,10 @@ const repo = real(resolve(repoArg ?? join(here, '..')));
 const statusPath = resolve(repo, '..', 'skills-update.json');
 const mirrorsPath = resolve(repo, '..', 'skills-mirrors.json');
 
-const OK = new Set(['current', 'updated', 'synced']);
+// 'none' is an OK state, not a failure: a machine with no mirrors configured is a normal
+// machine. It is in the record rather than omitted from it so the absence is visible --
+// see updateMirrors.
+const OK = new Set(['current', 'updated', 'synced', 'none']);
 
 // One checkout, one record. Returns rather than exits, so the same rules run for
 // the library and for each mirror checkout.
@@ -105,7 +108,16 @@ function updateRepo(repo) {
 }
 
 function updateMirrors(library) {
-  if (!existsSync(mirrorsPath)) return null;
+  // An absent config SAYS so. It used to return null, which omitted the `mirrors` key from
+  // the status file entirely and left `(mirrors ?? []).every(...)` vacuously true, so the
+  // run reported "current" and exited 0 while keeping nothing beyond the library current.
+  // On 2026-11-05 that had been the state since the feature shipped on 2026-11-01: the
+  // config was never created on this machine, ~/.agents/skills was 295 commits behind, and
+  // every scheduled run reported success. A feature that is switched off must be legible as
+  // off, not indistinguishable from a feature that ran.
+  if (!existsSync(mirrorsPath)) {
+    return [{ kind: 'config', path: mirrorsPath, state: 'none', reason: 'no mirrors configured on this machine; only the library itself is kept current' }];
+  }
   let cfg;
   try {
     cfg = JSON.parse(readFileSync(mirrorsPath, 'utf8'));
@@ -128,10 +140,10 @@ function updateMirrors(library) {
 
 const library = updateRepo(repo);
 const mirrors = updateMirrors(library);
-const record = { ...library, at: new Date().toISOString(), ...(mirrors ? { mirrors } : {}) };
+const record = { ...library, at: new Date().toISOString(), mirrors };
 if (!dryRun) {
   try { writeFileSync(statusPath, JSON.stringify(record, null, 2) + '\n', 'utf8'); }
   catch (e) { console.error(`could not write ${statusPath}: ${e.message}`); }
 }
 console.log(JSON.stringify(record, null, 2));
-process.exitCode = OK.has(library.state) && (mirrors ?? []).every((m) => OK.has(m.state)) ? 0 : 1;
+process.exitCode = OK.has(library.state) && mirrors.every((m) => OK.has(m.state)) ? 0 : 1;
