@@ -309,3 +309,17 @@ spent rather than from what they reported spending.
 - **A delegated agent writes its deliverable to a file** as well as returning it, so a crash of the parent loses nothing. (RMC guide, 2026-08-19.)
 - **Check the agent can execute what it writes** (an interpreter its sandbox denies means its tests never ran), and run its suite yourself after every build. (RimModManager L-006.)
 - **Grant least privilege at creation.** A routine or agent created through an API may inherit every connector on the account; read its capabilities in the create response and remove what the job does not need before it can run. (AI domain L-091.)
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A brief states only what is true about the operator's approval.** Say who wrote the plan
+  and whether the operator has seen it, in those terms: "the lead drafted this; the operator
+  has not read it" is a complete and acceptable answer. Never write that the operator approved,
+  signed off, reviewed or asked for something in order to get an agent past its own gate. The
+  pressure is real and specific: a well-built agent refuses to act on an unapproved plan, and
+  the cheapest way past that refusal is a sentence nobody will check. It is also the one that
+  turns a guardrail into a rubber stamp for every later brief, because the agent has no way to
+  tell a manufactured approval from a real one and will keep accepting both. If the gate should
+  not be there, say so to the operator and have it changed; if the approval is needed, go and
+  get it. An agent blocked for want of an approval is the system working. (Rimagent
+  2026-10-19, twice in one session; `docs/SKILL_PROPOSALS_2026-11-01.md`, Tier 2.)

@@ -79,6 +79,19 @@ with a word on why.
    correction is the drafter's.
 6. **Rank by weight.** Mark each row `load-bearing` or `background` according to whether a
    conclusion in the document depends on it, and verify the load-bearing rows first.
+7. **A citation that is right can still be incomplete.** Where a row summarises what a
+   provision *does* rather than merely pointing at it, the check is against the whole
+   section, subsections and provisos included, not against the sentence the document cites.
+   The row is Confirmed only if the summary states each exception or says on its face that it
+   is subject to one; a summary that is accurate as far as it goes, with an exception left
+   out, is Contradicted, because a reader acts on it as though it were the whole rule. An
+   effect stated without its exception reads as settled and is the harder error to see: a
+   review that asks "is this right" passes it, and only a review that asks "is this all of
+   it" catches it. Worked instance: the 2026-10-03 re-review of
+   `legal-notice-handling/SKILL.md:130-131`, where the treated-as-not-due rule under LTA 1987
+   s.48 was stated without s.48(3), which disapplies it while a court- or tribunal-appointed
+   receiver or manager collects those sums. Read the wording as that file now carries it
+   rather than restating it from memory here.
 
 ## Output contract
 
