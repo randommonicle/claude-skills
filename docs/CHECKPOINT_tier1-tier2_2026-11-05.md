@@ -47,6 +47,13 @@ plant a wrong one; a new case asserting exit 2 on a member whose content is curr
 CRC is not. Proved by restoring the `>>> 1`, re-packing, and watching the gate exit 2, then
 restoring and re-verifying with `zipfile.testzip()` returning `None` for all five. LESSONS 47.
 
+The re-pack also rewrote the archives' stored line endings to LF. That was checked before it
+was called safe rather than after: `check-archives.mjs:77` normalises both sides deliberately,
+`pack-skill.mjs`'s own header already declares "CRLF normalised to LF" as its contract, so the
+committed CRLF content was a drift from the packer's documented behaviour rather than
+something this change broke, and nothing in the repository hashes, sizes or byte-compares an
+archive. `check-licences.mjs:68` is the only other consumer and tests existence alone.
+
 ## Closing walk
 
 - [x] Every Tier 1 item built, indexed, counted in all three places, and loading (each new

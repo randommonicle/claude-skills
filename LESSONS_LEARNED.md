@@ -1695,3 +1695,16 @@ other half: the checker's reading was wrong while the checker looked well.
 **class:** a writer and its checker built as a pair, where the checker verifies only the
 properties the writer thinks about, so a field both ignore can be wrong indefinitely and no
 test in the repository can go red.
+
+**A smaller instance the same hour, recorded because it is the other direction.** The loop
+written to run the hook suites judged each one by grepping its last line for
+`all cases passed` or a trailing `passed`, and reported "suites that did not report a pass
+line: 13". Every suite had in fact passed; thirteen of them print `ALL PASS`, which the
+pattern did not know about. The pass-line formats were guessed rather than read from the
+suites, so the check reported thirteen failures that did not exist, and the only thing that
+stopped it being believed was that its own output sat directly above it. That is
+`prove-it-can-pass` rule 1, an invented corpus, producing a false positive within an hour of
+the rule being written, in a check built by the author of the rule. The gate and the throwaway
+loop fail the same way in opposite directions: one passed what it should have refused because
+it never read the field, the other refused what it should have passed because it never read
+the output.
