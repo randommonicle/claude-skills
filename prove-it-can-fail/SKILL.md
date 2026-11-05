@@ -59,6 +59,10 @@ re-run into a pass after the source is edited — close/reopen refreshes the pay
 
 - Test, smoke, or seed touches a shared or live database → load **safe-smokes** before writing it.
 - A suite has gone broadly red and you are tempted to debug → load **mass-red-triage** first.
+- You are arming a deny-list, pattern gate, scanner or filter → load **prove-it-can-pass** as
+  well. This skill proves the gate can refuse a violation; that one proves it lets real
+  innocent input through and catches the violating forms nobody pictured. Six instances here
+  were gates with green, hand-written suites.
 
 ## What this skill does not do
 
