@@ -16,7 +16,7 @@
   "Calculations" section that sends interest figures to the upstream's bundled calculator tool.
   The tool route is not adopted: this library ships no such tool, and rule 3 here ("Money is
   shown with its arithmetic") already requires every interest figure with its rate.
-- **Re-checked:** 2026-11-01 by blob SHA of each source file at both commits (the compare API
+- **Re-checked:** 2026-11-01, and again 2026-11-05 against upstream head `ad5df1934e98` (unchanged), by blob SHA of each source file at both commits (the compare API
   stops at 300 files). No upstream commits since `ad5df19`; the forked sources are unchanged
   apart from the addition recorded above. The pin moved with no forked text re-synced. One idea
   from that "Calculations" section was adopted in this library's own words (local change 7).

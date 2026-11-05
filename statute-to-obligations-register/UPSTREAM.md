@@ -12,7 +12,7 @@
   `plugins/legal-ai-skills/skills/compliance-obligations-mapper/SKILL.md`; the only change is a
   "Federal regulations" section pointing to the upstream's bundled US eCFR lookup tools. Not
   adopted: this fork reads UK legislation on legislation.gov.uk and ships no such tools.
-- **Re-checked:** 2026-11-01 by blob SHA of each source file at both commits (the compare API
+- **Re-checked:** 2026-11-01, and again 2026-11-05 against upstream head `ad5df1934e98` (unchanged), by blob SHA of each source file at both commits (the compare API
   stops at 300 files). No upstream commits since `ad5df19`; the forked sources are unchanged
   apart from the additions recorded above, so the pin moved with no forked text re-synced.
 
