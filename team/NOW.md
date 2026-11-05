@@ -40,6 +40,7 @@ snapshot (`parallel-work-recon`).
 ## Traps
 
 - **Nothing on this branch is pushed.** A direct push to main is refused; two PRs that both change the skill count conflict, so stack skills on one branch
+- **The scheduled updater will report `error: no upstream tracking branch` until this branch is pushed or the checkout returns to main.** That is correct, not a fault: this clone is the live install and is sitting on a local-only branch, so there is no upstream to fast-forward from. It was left this way deliberately so the three new skills stay live on this machine while Ben is away. `~/.agents/skills` is still kept current in the same run, independently. verified by `node hooks/update-skills.mjs --dry-run` on 2026-11-05, which also gave the mirror half its first live confirmation: it found `~/.agents/skills` two behind and would fast-forward it to `1381f69`
 - **This is the work machine** (`ASH-HP-241`, `C:\Users\ben`). The home machine is `C:\Users\bengr`. The Antigravity port, both vendor packs and the whole Occam trial are home-machine only, and their absence here is correct, not drift (DECISIONS 2026-11-05). A machine-local fact must name its host, not just its path
 - Run hook suites as `node <file>`, never `node --test` (hangs past two minutes locally)
 - `~/.agents/skills` is current at `ee6554a` and listed in `~/.claude/skills-mirrors.json`. Its pre-reset state is at `~/.claude/agents-skills-backup-2026-11-05` with the diff as `tracked-modifications.patch`
