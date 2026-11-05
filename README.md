@@ -66,7 +66,7 @@ it in [CONTRIBUTING.md](CONTRIBUTING.md).
 Skills are installed at the **user level**, so they apply to every project on the machine with no
 per-project setup.
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 57 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 58 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
@@ -115,6 +115,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **fixtures-from-reality** | leaf | Fixtures recorded from the pinned provider version, fakes that carry the service's failures, setups by production's path, real output fed across seams, and each claim's runtime named. |
 | **measure-per-route** | leaf | A measured platform fact holds for the route, build, timing and machine it was measured on; measure again elsewhere, compare whole ranges, subtract the environment, prove a stop by its effect. |
 | **spawn-from-declared-state** | leaf | A spawned child inherits settings, CLAUDE.md, auto-memory, tokens and its parent's lifetime unless the launch declares otherwise; check what it loaded before its output reaches anyone. |
+| **instrument-reports-itself** | leaf (routed by honest-failure-surfacing) | A broken instrument keeps producing readings: make failure a distinct value, never a sentinel, zero or an absent key; one message per terminal unattended failure, sent before it is marked handled; check as often as the thing can fail; alarm on no result at all. |
 | **tool-layer-bytes** | leaf (with a hook) | Code with backslashes goes to disk through the Write tool, never a heredoc or `-e`/`-c` string; no `sed -i` on CRLF checkouts; prove the bytes after any scripted edit. |
 | **date-parse-utc-safe** | leaf (micro) | Parse date-only strings as explicit local components; UTC runtimes render the previous day. |
 | **constant-time-secret-compare** | leaf (micro) | Hash then timingSafeEqual for any secret comparison. |
