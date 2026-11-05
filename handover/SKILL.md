@@ -108,3 +108,11 @@ Long sessions fail at the seams: the next session re-discovers what the last one
   "still open" item once rode four consecutive handovers a month after the work was done.
   Re-verifying at write time is cheaper than the duplicate build it prevents (see
   live-state-first).
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **Report uncommitted files by status letter, never as a count.** "175 uncommitted files"
+  reads as work to save; `175 deletions` reads as an incident. Give the breakdown from
+  `git status -s` by letter (` M`, ` D`, `??`, `A `) so the next session can tell work in
+  progress from damage, and name the branch and worktree each count belongs to. (Library 40,
+  where the count was the whole of the misreading.)

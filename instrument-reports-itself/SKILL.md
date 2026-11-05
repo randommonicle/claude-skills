@@ -27,7 +27,7 @@ said nothing.
 2. **Never let an absence reach the success path through a default.** `(x ?? []).every(...)`
    is vacuously true; `count || 0` turns a failed count into a real-looking zero; `if (!cfg)
    return null` turns an unconfigured feature into a silent one. A capability that is switched
-   off is legible as off — in the record, with a reason — never indistinguishable from one
+   off is legible as off, in the record, with a reason, and never indistinguishable from one
    that ran. This is the shape of library 46 and it reached a success path three layers deep.
 3. **A step that did no work is summed as failed, not as zero.** Aggregates are where the
    distinction gets thrown away: a mean over readings that include failures-as-zero is lower
@@ -41,7 +41,7 @@ said nothing.
 5. **Every terminal failure on an unattended path tells a person, once, on the failure's own
    path.** Not on the next success, not on the next scheduled summary, not in a status row the
    failure itself writes and nobody reads. The notification is part of the failure handler, and
-   the failure is marked handled only *after* the message has gone — if the notify step throws,
+   the failure is marked handled only *after* the message has gone. If the notify step throws,
    the item is still outstanding. Once, not every cycle: a failure that re-notifies hourly is
    muted within a day, and a muted channel is a silent one.
 6. **A check runs at least as often as the thing it watches can fail.** A weekly check over a
@@ -57,7 +57,7 @@ said nothing.
    question.** The fire log was found because a review read the log instead of assuming it
    worked. Surprisingly cheap, surprisingly empty, surprisingly fast and surprisingly clean
    are all the same signal: check one reading end to end against the thing it claims to
-   measure (`trace-one-record`), and prefer a second, independent source — the transcripts that
+   measure (`trace-one-record`), and prefer a second, independent source. The transcripts that
    survived the fire log's month are the example.
 9. **An instrument needs the same can-fail proof as a check.** Break the thing being measured
    on purpose and confirm the instrument says so, and that the saying arrives. An alerting path

@@ -81,3 +81,19 @@ entries), 2026-07-19 (two entries), 2026-07-15, Sessions 16, 18, 30, 33; ASH LES
 - **A reference frozen when written alarms on history.** A monitor judges "new" by each item's own timestamp in a rolling window, never against a count captured when it was written. (AI domain L-092.)
 - **A gate never compares against evidence a later step produces.** Check, for each artefact a gate reads, that the run order creates it first. (passive income L-059.)
 - **Restore a mutation by reverse edit or a copy, never by checkout.** `git checkout -- <file>` after a red-proof also discards uncommitted work in that file and may rewrite its line endings. (AI domain L-145.)
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A rule is a list of patterns, and a can-fail proof on one alternative says nothing about
+  the others.** Every alternative of a pattern, every branch of an `|`, every member of a
+  keyword list gets its own must-flag case, and a structural test asserts that each listed
+  alternative has one. Breaking a single alternative and seeing one case red is the proof
+  that was given and was wrong. (Library 44; `enumerate-the-set` is the general form.)
+- **The mutation-restore rule covers any tree-wide checkout or reset, not one file.** Rule at
+  line 79 above names `git checkout -- <file>`; the same loss happens through
+  `git checkout -- .`, `git restore`, `git reset --hard`, `git stash` and a branch switch,
+  and it reaches work that has nothing to do with the mutation. (Library 44; Rimagent
+  2026-10-29, which recurred a week after line 79 landed.)
+- **Commit the builder's work before mutation testing.** The proof deliberately breaks
+  something and then restores it, so run it from a committed tree. Uncommitted work has no
+  reflog entry and no `fsck --unreachable` record once a hard reset has taken it.

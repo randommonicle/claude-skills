@@ -186,3 +186,11 @@ sender-domain limit that converted into a paid plan).
 ## Additions from the misses-log sweep (2026-10-22)
 
 - **An account-wide usage reading has no single owner.** Before acting on a jump, list every running session and say what is not known; stop work on the reading itself, never on a guess about its cause. (ICC L-075, the second instance.)
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A cost field's scope is read from its documentation or by differencing results, never
+  from its name.** `total_cost_usd` is per session, not per call, and a name that sounds like
+  a total is the easiest thing in an API to misread. Confirm the scope against the provider's
+  own documentation, or by making two calls and differencing, before any figure built on it
+  is reported. (Rimagent 2026-10-02.)

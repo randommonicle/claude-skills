@@ -76,3 +76,14 @@ a path in; it does not narrow this skill's own trigger.
 
 - **A test never waits on a person.** Patch every modal or prompt in the test harness to fail with its title, so an unexpected dialog is a failure, not a hang. (RimModManager L-005.)
 - **A live check stays off the user's desktop.** A check that opens windows, takes focus or starts apps on the user's own machine needs their go-ahead and a quiet moment; otherwise hand them the exact steps. (RimModManager L-010.)
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A service-role anchor query carries a firm predicate.** A query run with the service role
+  bypasses RLS, so an anchor or teardown written without a tight `WHERE` reaches every
+  tenant's rows rather than the test's. Name the fixture's own key in the predicate and never
+  rely on the policy that is not applying. (PropOS 2026-07-24.)
+- **A suite whose tests share accumulated state declares serial mode.** Parallel workers get
+  their own `beforeAll`, and a worker restart re-runs it, so shared accumulated state is
+  rebuilt underneath a test that was counting on it. Declare the file serial, or give each
+  test its own fixture. (PropOS 2026-08-11.)

@@ -51,3 +51,30 @@ machine memory: ICC L-043, L-046, L-083, L-094, L-120 and the session of 22 Octo
 (fifty working-copy files turned LF by Python's default read; three heredocs that dropped
 backslashes); AI domain L-122, L-144, L-146; passive income L-084; RimModManager L-011.
 `docs/SKILL_PROPOSALS_2026-10-22.md`, Tier 1 item 1.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+Four more layers that rewrite bytes between the thing you typed and the thing that ran.
+
+- **A byte-exact test against a working-tree file needs a `.gitattributes` behind it.** Git's
+  `text=auto` normalises to LF in the object store and may hand the working copy CRLF on
+  checkout, so a test asserting exact bytes passes on the machine that wrote the file and
+  fails on the next clone. Pin the path's `eol` in `.gitattributes` and let the test assert
+  against that, or the test is measuring the checkout rather than the content. (PropOS
+  2026-07-27. Acted on here: this repository pinned `*.json text eol=lf` on 2026-11-05 after
+  the three skill-count files warned on commit.)
+- **PowerShell double-quoted strings turn backtick sequences into control bytes.** In
+  PowerShell the backtick is the escape character, so `` `n `` becomes a newline, `` `t `` a
+  tab and `` `0 `` a null inside `"..."`, before your program sees any of it. Use single
+  quotes for a literal, or write the file with a tool rather than through a shell string.
+  (Rimagent 2026-10-13.)
+- **Git Bash drops `TZ` region names on the way to a Windows program.** `TZ=Europe/London`
+  set in Git Bash does not reach a native Windows binary as that zone, so a time read through
+  one is not the zone you asked for. Read Windows clock values with PowerShell `Get-Date`
+  instead, and see `live-state-first` for how the reading reaches the record. Rule 5 above
+  covers the other half of this layer, the `//` and `origin/main:path` rewrite. (ASH
+  2026-10-08.)
+- **`$'\r'` inside a double-quoted substitution is the two letters, not a carriage return.**
+  `grep -c "$'\r'" file` searches for a dollar sign, a quote and the letter r. Bash expands
+  `$'...'` only when it is unquoted, so write `grep -c $'\r' file`. The failure is silent and
+  reports zero, which reads as a clean file. (Library 35.)

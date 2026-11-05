@@ -45,3 +45,13 @@ Ad-hoc surgery is where the worst class of loss lives: no harness, no teardown, 
 and a plausible-looking predicate. The protocol converts "I'm fairly sure" into a result
 grid. Evidence: PropOS LESSONS_LEARNED Sessions 12, 46, 53, 2026-07-02, 2026-07-06,
 2026-07-20.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **An import or seed script whose rows people now edit is a bulk update when it is re-run.**
+  The second run of a script written for an empty table overwrites every field a user has
+  since changed, and it does so silently because each row's write succeeds. Once real data
+  exists, make the script insert-only, skip rows that are already present, and print what it
+  skipped and why. A re-run that reports only what it wrote cannot be distinguished from one
+  that reverted a month of work. (ASH 2026-10-08, where a re-run would have reverted
+  compliance statuses.)

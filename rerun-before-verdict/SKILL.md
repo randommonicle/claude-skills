@@ -55,3 +55,14 @@ Distilled from two methodology kernels ("implausibly good is probably broken",
 reviewed 2026-08-03). The other two kernels reviewed that day were already owned by
 findings-are-evidence, verify-the-effect, and prove-it-can-fail, and were not duplicated.
 Text written in-house; no upstream text copied.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A CI rerun replays the trigger-time SHA, not today's branch.** "Re-run failed jobs" on a
+  pull request re-runs the workflow against the commit that triggered it, so a green rerun
+  after a fix on the base branch proves nothing about the merge. Rebase or push, and let a
+  fresh run start, before reading green as the present. (PropOS 2026-08-04.)
+- **A green advisory gate expires when its feed moves.** A check that reads an external feed
+  (an advisory database, a licence list, a vulnerability index) was green against the feed as
+  it stood at run time. Its result ages at the feed's pace, not the code's, so re-run it
+  before relying on it rather than reading the last green as current. (PropOS 2026-08-09.)

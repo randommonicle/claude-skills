@@ -28,7 +28,7 @@ and each suite was written by the person who wrote the gate, out of the same ima
    over input that was really produced: session transcripts for a shell or tool gate, real
    commit messages, the project's actual source for a lint rule, real captions and real
    customer records for a content filter. The overnight stall of 2026-09-16 is the canonical
-   instance — the gate had passed 64 hand-written commands that evening, and not one of them
+   instance. The gate had passed 64 hand-written commands that evening, and not one of them
    was the PowerShell multi-line here-string block the driver actually emits
    (`hooks/preflight-unattended.mjs:5-14`, which exists to do exactly this). An invented
    corpus tests the author's mental model twice.
@@ -51,14 +51,14 @@ and each suite was written by the person who wrote the gate, out of the same ima
    a substring of a longer identifier.
 5. **A refusal is recoverable without disclosing what it refused.** The caller must be able
    to retry and succeed without being told the pattern, the list, or the customer datum that
-   triggered it — otherwise the guard either becomes an oracle for the thing it protects, or
+   triggered it. Otherwise the guard either becomes an oracle for the thing it protects, or
    leaves the caller looping on a failure it cannot diagnose. Give the refusal a stable code,
    a safe suggestion ("rename the variable", "resubmit without the quoted block"), and a
    documented exempt form. ICC L-126 is the failure: the retry path could not recover without
    sending the protected name back to the model.
 6. **A guard over a curated list checks the list's omissions, not only its members.** If the
    set is maintained by hand, the interesting failure is the member nobody added. Derive the
-   full set from its source — the directory, the catalogue, the schema — compare it against
+   full set from its source (the directory, the catalogue, the schema), compare it against
    the curated list, and fail on the difference. PropOS 2026-08-18: the guard inspected only
    the specs named in `DB_ONLY_SPECS`, so a spec left off the list was never inspected and the
    run exited 0. This is `enumerate-the-set` applied to a gate's own configuration.
@@ -68,7 +68,7 @@ and each suite was written by the person who wrote the gate, out of the same ima
    phrase inside one commit message. Decide deliberately whether a given gate should refuse
    the batch or quarantine the item, and say which in the gate's own header.
 8. **Every exemption you discover becomes a test case, in both directions.** When a false
-   positive is fixed by an exemption — `pass_count` passes where `pass` does not — the suite
+   positive is fixed by an exemption, so that `pass_count` passes where `pass` does not, the suite
    gains the allowed form *and* keeps the denied one, so the next widening cannot quietly
    swallow the exemption or the rule. A fix recorded only in a commit message is not a
    control.
@@ -81,7 +81,7 @@ there are two, and both need an answer before the gate is armed:
 - **What legitimate input does this refuse?** Name it from a real corpus, not from thought.
 - **What violating form does this miss?** Name it from your own project's mandated shapes.
 
-If the answer to either is "none that I can think of", the gate has not been tested — that
+If the answer to either is "none that I can think of", the gate has not been tested. That
 sentence is the description of an untested gate, and it was true of all six instances below.
 
 ## Provenance
@@ -101,8 +101,8 @@ omission exited 0). `docs/SKILL_PROPOSALS_2026-11-01.md`, Tier 1 item 1, admitte
 2026-11-05.
 
 Adjacent, and deliberately not duplicated: `prove-it-can-fail` owns the other direction, and
-its rule 3 is the nearest existing line — a negative assertion needs a positive control
-(`prove-it-can-fail/SKILL.md:30`) — but it governs assertions inside a test, not a gate's
+its rule 3 is the nearest existing line, a negative assertion needing a positive control
+(`prove-it-can-fail/SKILL.md:30`), but it governs assertions inside a test, not a gate's
 corpus. `hooks/preflight-unattended.mjs` does the real-corpus replay for the wired PreToolUse
 hooks on this machine, which is rule 1 built for one case; this skill is the general rule and
 names the tool. `enumerate-the-set` owns rule 6's parent idea. `mass-red-triage` owns a suite

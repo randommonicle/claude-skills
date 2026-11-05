@@ -176,3 +176,23 @@ is a latent lockout: enforce NOT NULL before the column becomes the axis.
 
 - Ad-hoc destructive SQL outside a test harness → load **live-data-surgery**.
 - The change drops, renames, or gates anything existing code writes → load **blast-radius-grep**.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+The section above reads privileges back after CREATE. Three more shapes need the same
+treatment, and all three refuse at a layer the migration did not touch.
+
+- **Read the ACL back after `ADD COLUMN` and after a column-level `REVOKE`.** A new column
+  inherits the table-level grant, so adding one can widen access without any grant statement
+  in the migration. A column-level `REVOKE` does not subtract from a table-level grant, so it
+  can read as applied and change nothing. Prove both with
+  `information_schema.column_privileges`, not by reading the migration. (PropOS 2026-09-03,
+  2026-07-28.)
+- **A `SECURITY INVOKER` trigger runs as the writing role, so its callees need `EXECUTE` for
+  every role that can fire it.** The trigger's own permissions are not the question; the
+  functions it calls are. List the firing roles and check each one. (PropOS 2026-09-23c.)
+- **List every layer that can refuse before designing a privileged write.** Table grant,
+  column grant, RLS policy for the command, triggers with and without a column list, and
+  CHECK constraints. A write designed against one layer is refused by another at runtime, and
+  the error names the layer that happened to fire first. This is `enumerate-the-set` applied
+  to a permission surface.

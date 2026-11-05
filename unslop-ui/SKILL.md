@@ -66,7 +66,7 @@ Establish, concretely:
 - **A reference.** One real site, screenshot, brand, or product whose design language to
   follow. This single input does more than every other rule combined. If the user has
   one, anchor to it. If not, ask for one, or pick a real one from the collection indexed
-  in [references/picking-a-reference.md](references/picking-a-reference.md) — a specific
+  in [references/picking-a-reference.md](references/picking-a-reference.md). A specific
   named direction (editorial, brutalist, utilitarian-dense, warm-consumer,
   technical-mono, and so on) is the last resort, and "modern and clean" means nothing.
 - **A color decision.** A real brand color or a deliberately chosen one, stated. Not the

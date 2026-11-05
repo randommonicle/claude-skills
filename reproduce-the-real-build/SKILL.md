@@ -34,3 +34,12 @@ ASH CLAUDE.md Railway/Docker tsc lesson (2026-05-20); ASH LESSONS_LEARNED 2026-0
 
 - **A generator can write a resolved path into a tracked file.** After a generator runs in a checkout whose dependencies are linked from elsewhere, read `git status` and restore any tracked file that now names another checkout. (ICC L-108.)
 - **The nearest package.json sets a file's module type.** A `.js` under a package with `"type": "module"` is an ES module to Node whatever it contains; a file shared between a page and CommonJS callers is `.cjs`, served with an explicit JavaScript content type. (ICC L-115.)
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **Pass every shaping flag the generator has a default for.** A generator that defaults a
+  flag produces different output on two machines with the same command, and the difference
+  reads as drift in the artefact rather than as a bug in the invocation. Name the schema, the
+  target, the platform and the version explicitly. `supabase gen types` without `--schema` is
+  the worked instance. A regen that differs by machine is a defect in the command, not in the
+  output. (PropOS 2026-08-09.)

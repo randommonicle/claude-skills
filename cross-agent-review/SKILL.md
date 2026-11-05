@@ -270,3 +270,12 @@ A third model for the panel, driven by `scripts/deepseek-seat.mjs` over DeepSeek
 - **Long reviews think for over ten minutes, so the seat streams.** On 2026-10-26 two reviews (35k and 90k input tokens) were still thinking at the old 600 s cap; the abort landed while the body was being read, `res.json().catch(() => ({}))` swallowed it, and both were reported as `EMPTY ... (finish: none)`. The seat now streams (`stream: true` with usage), caps a call at 1,800 s (`DEEPSEEK_TIMEOUT_MS`), treats 120 s with no bytes as `STALLED` (`DEEPSEEK_IDLE_MS`), and names `TIMEOUT` and `BAD_BODY`; `EMPTY` now only means DeepSeek finished with no text. run-seat's `timeoutMs` for the seat is 1,860,000. An aborted call is not ledgered, and DeepSeek may still bill it.
 - **Never `process.exit()` in a seat that used `fetch`.** On Windows it aborted Node with exit 0xC0000409 under run-seat; the script sets `exitCode` and lets the event loop end.
 - **Its terms let DeepSeek keep prompts.** Send it only what the operator is content for it to see.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **Give a build seat its whole tool set in `--settings` up front.** A seat discovering
+  mid-task that it cannot write, run a test or read a path spends the round on the discovery
+  and returns an opinion instead of a result. Decide what the seat must do, grant all of it
+  at launch, and treat a missing permission found mid-round as a setup defect rather than
+  something to work around. (VisitorYard L-001; `spawn-from-declared-state` rule 1 covers
+  declaring the source, this covers its completeness.)

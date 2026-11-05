@@ -45,3 +45,13 @@ rested on a flag bit whose stability across two fetch timings was never measured
 reading included the machine's antivirus script); AI domain L-119 (stopping a backgrounded
 dev server left its child process holding the port). `docs/SKILL_PROPOSALS_2026-10-22.md`,
 Tier 1 item 5.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A file or version read from an agent's shell is a reading on that process's view of the
+  filesystem, not on the machine's.** The desktop app's packaging redirects `%APPDATA%` and
+  the Python manager virtualises `%LOCALAPPDATA%`, so a path that exists for the agent may
+  not exist for the consumer, and the same import can resolve to two different installs.
+  Take the reading from the process that will consume it, and record which process it came
+  from alongside the value. (Rimagent 2026-10-09, 2026-10-26; PropOS 2026-09-28, the npm
+  view.)

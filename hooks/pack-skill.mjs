@@ -92,9 +92,17 @@ const CRC_TABLE = (() => {
   return table;
 })();
 
+// The shift is 8, not 1: the table lookup consumes a whole byte of the register,
+// so the remaining register shifts by a byte. `c >>> 1` here produced a stable,
+// deterministic, wrong CRC for every member of every archive this tool has ever
+// written, and check-archives.mjs read content by recorded size and never
+// validated the field, so nothing in the repository could see it. Found 2026-11-05
+// when Python's zipfile refused to open an archive the gate called current; fixed
+// with a CRC check in that gate and a case in its suite. (prove-it-can-pass: the
+// gate was proved on the property it checks and never on the one it skips.)
 function crc32(buf) {
   let c = 0xffffffff;
-  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 1);
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
 }
 
