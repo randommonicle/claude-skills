@@ -5,6 +5,67 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-11-05 The 1 November sweep is built out: 60 skills, and four standing choices
+
+Ben, 2026-11-05, "agree to all your proposals". All four Tier 1 proposals and the whole Tier 2
+table of `docs/SKILL_PROPOSALS_2026-11-01.md` are now in the library. `spawn-from-declared-state`
+landed in PR #41; `instrument-reports-itself`, `prove-it-can-pass` and `enumerate-the-set`
+follow here, taking the count to 60. Four choices inside that work are decisions rather than
+mechanics:
+
+- **The live-state-first clock contradiction is resolved in favour of library 34.** The sweep
+  flagged it as needing Ben's decision and "agree to all" did not reach it, so it was taken for
+  him and is reversible by one edit. The reading is substituted into the write by the shell, in
+  the same command, on Windows from PowerShell `Get-Date`; the separate-call form survives only
+  where substitution is impossible, and then the printed value is copied verbatim. Library 34 is
+  the tested half: a separate call leaves a hand carrying the value across the gap, which is
+  where both 2026-10-04 slips happened. The superseded wording and the reason are in the skill.
+- **The em-dash gate covers three files, not the library.** `enforce-invariants-in-build`'s row
+  says a skill that ships a scanner has the scanner run over its own text, so the `index` job
+  now scans `unslop-text/SKILL.md`, `unslop-code/SKILL.md` and `unslop-ui/SKILL.md`, behind a
+  step that plants an em dash and fails if the scanner calls it clean. It is not widened past
+  those three: `UPSTREAM.md` uses the library's own bold lead-in format and `unslop-ui`'s
+  generated reference index is vendor text carrying 293 em dashes, so a library-wide gate would
+  red on house style and on upstream content. **Open for Ben:** six em dashes in
+  `live-state-first/SKILL.md` and eight in `README.md` predate today and were left alone rather
+  than rewritten quietly. Whether the gate should eventually cover all prose in the repository
+  is his call.
+- **`pack-skill.mjs` wrote a wrong CRC-32 into every archive, and the gate now reads the
+  field.** One character (`>>> 1` for `>>> 8`), deterministic, so all five archives and all
+  twenty-one members were refused by any standard zip reader while `check-archives.mjs` called
+  them current. Fixed at the source, every archive re-packed with the real tool, a CRC check
+  added to the gate with a case that reds on a member whose content is current and whose CRC is
+  not. LESSONS 47. The re-pack also normalised the archives' stored line endings to LF, which
+  the gate has always tolerated deliberately (`check-archives.mjs:77`) and `.gitattributes` now
+  pins for `*.json` as well as `*.md`.
+- **The Occam second read is a home-machine task, not an overdue one here.** It has sat on the
+  deferred list since 2026-10-16. This session established that it cannot be run from the work
+  machine at all, and `docs/OCCAM_second-read_2026-11-05.md` records the evidence, the commands
+  for the home machine, and the fact that a `--days 7` window no longer reaches the trial
+  fortnight. Nothing of Occam has entered the library, so either decision is free here.
+
+## 2026-11-05 This work machine holds no port, no vendor packs and no Occam, and that is correct
+
+Three items had been carried as "verification outstanding" on the assumption that something was
+missing from this machine. It was established on 2026-11-05 that the sessions which recorded
+them ran on the **home** machine (`C:\Users\bengr`), and that this machine (`ASH-HP-241`,
+`C:\Users\ben`) is the work machine named in `docs/REVIEW_occam_2026-09-29.md:5` and
+`docs/HANDOVER_secret-guard_2026-09-24.md:84`.
+
+- **The Antigravity port.** `sync-port.mjs` refreshes "the Antigravity port in the AI domain
+  project" (DECISIONS 2026-11-01). That project is `C:\Users\bengr\Projects\AI domain and social
+  network`, which does not exist here. `ports: []` in this machine's `skills-mirrors.json` is
+  therefore right, and `sync-port.mjs` having nothing to do here is right. The port's source of
+  truth is `ports/antigravity/` in this repository, which is present and tracked.
+- **The Cloudflare and marketing vendor packs.** Installed into the home machine's two roots.
+  Neither `~/.claude/skills-vendor-backup-2026-11-01` nor `~/.agents/skills-vendor-backup-2026-11-01`
+  exists here, and `~/.agents/skills` has no reflog entry between 2026-08-17 and today, so the
+  1 November session did not touch this machine. The packs are gitignored by design, so their
+  absence from a second machine is expected rather than drift.
+
+What follows: a machine-local fact must say which machine it is about. The three items above
+cost a session each because the records named a path and not a host.
+
 ## 2026-11-01 The Cloudflare pack reinstalled at 1a33048, with cf-cli added
 
 Ben, 2026-11-01, "Yes, add cf-cli too". **Reinstall:** the 13 skills in `~/.claude/skills` and
