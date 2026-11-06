@@ -5,6 +5,41 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-11-06 `~/.agents/skills` is a Codex port, not a checkout, and is out of the updater
+
+Not Ben's decision: taken by a session on 2026-11-06 while he was away, from evidence, and
+reversible by one edit of a machine-local file. **It needs his ruling**, which is why it is
+here rather than only in a commit message.
+
+The 05:30 scheduled run failed: `ff-only merge failed: untracked working tree files would be
+overwritten by merge: spawn-from-declared-state/SKILL.md`. Four skill directories had appeared
+in `~/.agents/skills` at 21:32 on 2026-11-05, all four untracked, all four created in one
+operation: `enumerate-the-set`, `instrument-reports-itself`, `prove-it-can-pass` and
+`spawn-from-declared-state`. The first three are byte-identical to the library. The fourth
+carries `claude`-to-`Codex` and `CLAUDE.md`-to-`AGENTS.md` substitutions, which is the same
+hand-maintenance LESSONS 46 found on that tree in August (the `claude-api`-to-`Codex-api`
+rewrites). No script in this repository copies into that path; `update-skills.mjs` is the only
+file that names it, and it fast-forwards rather than copies.
+
+So the tree is a **Codex port maintained by hand**, and listing it under `checkouts` was wrong
+in both directions: the updater fails against it every run, and on the one run where it had
+succeeded it would have overwritten the rewrites. It is out of `checkouts` as of 2026-11-06,
+with the reason carried in the config's new `note` field so it reaches the report rather than
+living only here. The four copies are backed up at
+`~/.claude/agents-skills-codex-port-2026-11-06`, with the substitutions as `codex-rewrites.patch`.
+
+**For Ben, three ways forward, none taken:** leave it unmanaged and hand-maintained, which is
+how it reached 295 commits behind; make it a real port with a transform step, which is what it
+actually is and which `sync-port.mjs` cannot do today because it copies HEAD verbatim; or drop
+it and let Codex read the library directly.
+
+**A defect in the rewrite, whichever way that goes.** The substitution was applied to the
+skill's Provenance section, turning "a headless `claude -p` ran the operator's SessionStart
+hook and loaded 131 skills" into "a headless `Codex -p` ...". That incident happened on Claude.
+A blanket rename over an evidence section converts a true record into a false one, and a reader
+of the port now has a citation that never happened. A transform step must exempt Provenance,
+LESSONS references and anything else that reports what occurred. LESSONS 48.
+
 ## 2026-11-05 The 1 November sweep is built out: 60 skills, and four standing choices
 
 Ben, 2026-11-05, "agree to all your proposals". All four Tier 1 proposals and the whole Tier 2

@@ -264,6 +264,39 @@ test('an unreadable mirrors file is reported, not ignored', (f) => {
   return true;
 });
 
+// The neighbour of the absent-config case above, and the member of the set that the
+// 2026-11-05 fix did not decide. A config that exists and lists nothing produced
+// `"mirrors": []`, which `every()` reads as true, so the run reported success for a
+// capability that did nothing -- the same hole in a different shape. Reached for real on
+// 2026-11-06 when ~/.agents/skills came out of `checkouts` and the file was left listing
+// neither a checkout nor a port.
+test('a mirrors config that lists nothing says so, rather than reporting an empty list', (f) => {
+  writeFileSync(join(f.root, 'skills-mirrors.json'), JSON.stringify({ checkouts: [], ports: [] }));
+  const r = runUpdater(f.lib);
+  if (!Array.isArray(r.json?.mirrors)) return 'the record has no mirrors key at all';
+  if (r.json.mirrors.length === 0) return 'mirrors is an empty array, which is the bug: nothing says the config is empty';
+  const cfg = r.json.mirrors.find((m) => m.kind === 'config');
+  if (!cfg) return 'no config entry in mirrors: ' + JSON.stringify(r.json.mirrors);
+  if (cfg.state !== 'none') return 'state=' + cfg.state;
+  if (!/lists no checkouts and no ports/i.test(cfg.reason ?? '')) return 'reason does not say why: ' + cfg.reason;
+  if (r.code !== 0) return 'exit ' + r.code + ', but an empty config is not a failure';
+  return true;
+});
+
+// ...and when the operator wrote down WHY it is empty, that reason reaches the report
+// instead of the generic sentence, so the next session reads the decision and not a
+// default. instrument-reports-itself rule 1: a disabled state carries its reason.
+test('a note in the mirrors config is what the record reports as the reason', (f) => {
+  const note = 'the Codex port is maintained by hand; a fast-forward would overwrite it';
+  writeFileSync(join(f.root, 'skills-mirrors.json'), JSON.stringify({ checkouts: [], ports: [], note }));
+  const r = runUpdater(f.lib);
+  const cfg = r.json?.mirrors?.find((m) => m.kind === 'config');
+  if (!cfg) return 'no config entry: ' + JSON.stringify(r.json?.mirrors);
+  if (cfg.reason !== note) return 'reason=' + cfg.reason;
+  if (r.code !== 0) return 'exit ' + r.code;
+  return true;
+});
+
 for (const [name, fn] of cases) {
   const f = fixture();
   try {

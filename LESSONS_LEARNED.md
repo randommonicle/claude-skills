@@ -1708,3 +1708,40 @@ the rule being written, in a check built by the author of the rule. The gate and
 loop fail the same way in opposite directions: one passed what it should have refused because
 it never read the field, the other refused what it should have passed because it never read
 the output.
+
+## 48. A rename applied to a provenance section turned a true record into a false one
+
+**What happened.** `~/.agents/skills` is kept as a Codex port of this library by hand,
+substituting `claude` for `Codex` and `CLAUDE.md` for `AGENTS.md` so the text reads correctly
+for that agent. On 2026-11-05 at 21:32 the substitution was applied to
+`spawn-from-declared-state/SKILL.md`, and it reached the Provenance section. The port now says
+"Rimagent 2026-09-26 (a headless `Codex -p` ran the operator's SessionStart hook and loaded
+131 skills)". That incident happened on Claude. The port also tells its reader to re-verify
+flags with `Codex --help`, where the library's line names `claude --help`, so a reader who
+follows it gets a different tool's answer to a question about this one.
+
+The rename is correct almost everywhere in that file: rules, examples, the names of the
+switches a Codex user would type. It is wrong in exactly the places that report what happened
+rather than what to do, and those are the places a reader cannot check, because the evidence
+lives in another repository.
+
+**verified**: the four untracked directories and their timestamps; the diff against the
+library, saved as `~/.claude/agents-skills-codex-port-2026-11-06/codex-rewrites.patch`; the
+library's own line reading `claude -p`.
+
+**The lesson.** A find-and-replace over a document has two kinds of target, and only one of
+them should move. Instructions, identifiers and examples are about what the reader should do,
+and they are translated. Provenance, citations, incident records and verification notes are
+about what occurred, and translating them manufactures history. A transform that ships a
+document to another context exempts the sections that report facts, or it fabricates a
+citation on every pass and does it silently, because nothing downstream can tell a translated
+claim from an original one.
+
+**skill that should have prevented this:** `verified-citations` owns the accuracy of a
+reference and `blast-radius-grep` owns finding every place a fact lives. Neither covers the
+inverse, a sweep that correctly updates a place it should have left alone. Closest is
+`blast-radius-grep`'s own scope line; this is a candidate addition to it rather than a new
+skill, on one instance.
+
+**class:** a correct transformation applied to the one region of a document where correctness
+means leaving it alone, so the output is wrong in the way least likely to be checked.
