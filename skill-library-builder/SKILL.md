@@ -129,3 +129,14 @@ awareness. A documented trap in the worked-example repo recurred anyway until th
 was fixed mechanically; prose that raises awareness fails exactly when attention is
 elsewhere, which is when the trap fires. When authoring any skill, convert each "be careful
 about X" into a command or a check, or expect the lesson to repeat.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **Name the trigger that delivers the rule at the moment it applies, and check it fires.**
+  A rule added to a skill is not learned by being on disk. It is learned when a description
+  matches the situation in which it is needed, so a new rule comes with the answer to "what
+  is the model doing, in what words, at the moment this should load", and that wording goes
+  into the description. Then check it: state the situation plainly and see whether the skill
+  loads. A rule whose description no situation reaches is a comment in a file nobody opens.
+  (Rimagent 2026-10-16; Rimagent 2026-10-29, where `prove-it-can-fail` line 79 already
+  existed and did not load; library 39, "It did not load".)

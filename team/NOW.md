@@ -1,41 +1,39 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-11-05 15:12 GMT, session end (the maintenance session: git hygiene, the mirror, spawn-from-declared-state). Diagnoses in this note are unverified unless marked
-topic: PR #40 merged and the branch list cleared; the mirror feature was found switched off and is now on; Tier 1 item 3 built
-next: Ben picks the next Tier 1 proposal (prove-it-can-pass, enumerate-the-set, instrument-reports-itself); the Ask board could not be read this session and needs a working link
-branches: main; feat/spawn-from-declared-state (this session's PR, no worktree)
-ask: https://claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH — **could not be read on 2026-11-05** ("artifact not found"). ASK-0010 and ASK-0011 are named in the 2026-11-01 note but their content and any answers were not visible to this session
+updated: 2026-11-09, after Ben ruled on all seven open questions. Diagnoses are unverified unless marked
+topic: the 1 November sweep is built and shipped. 60 skills, and nothing left waiting on a decision
+next: no work is queued. The next misses-log sweep has no date set
+branches: main; feat/tier1-and-tier2-2026-11-05 (merged 2026-11-09)
+ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09; ASK-0010 and ASK-0011 dropped unanswered, never read by any session)
 
-## Landed since the last NOW.md
+## Landed
 
-- PR #40 merged (`ee6554a`): the 2026-11-01 note and LESSONS 45, open four days, green the whole time. verified: `gh pr view 40` MERGED, `git ls-remote`
-- 13 merged remote branches deleted; only `origin/main` remains and no PRs are open. verified: `git branch -r`, `gh pr list`
-- Upstream forks checked: `rohasnagpal/legal-ai-skills` at `ad5df1934e98` and `JCarterJohnson/vibecoded-design-tells` at `f7c4aefc2c79`, both **identical to their pins**. No updates to adopt. All seven `UPSTREAM.md` files record the 2026-11-05 check. verified: `gh api .../commits/HEAD`, bytes re-grepped after the scripted edit
-- This session's PR: `spawn-from-declared-state` (Tier 1 item 3), the updater's absent-config fix with two tests, LESSONS 46, counts to 57
+- **60 skills.** All four Tier 1 proposals of the 1 November sweep: `spawn-from-declared-state` (PR #41), then `instrument-reports-itself`, `prove-it-can-pass` and `enumerate-the-set`. Plus the entire Tier 2 table, eighteen skills
+- Two Tier 2 rows built rather than written: `*.json text eol=lf` pinned, and the unslop scanner wired over its own three `SKILL.md` files in the `index` job, behind a plant-an-em-dash step that fails if the scanner calls the violation clean
+- **`pack-skill.mjs` wrote a wrong CRC-32 into every archive** (`>>> 1` for `>>> 8`): 5 archives, 21 members, all refused by a standard zip reader while the gate called them current. Fixed at source, all re-packed, CRC check and a red case added. LESSONS 47
+- LESSONS 48: a `claude`-to-`Codex` rename reached a skill's Provenance section and turned a Claude incident into a Codex one. Instructions translate; records do not
+- `prove-it-can-pass` rule 9, after the same throwaway pass-line grep misreported a healthy suite twice in four days. Read the exit code, not the prose
+- The updater's empty-config hole, the neighbour of LESSONS 46, closed with two cases that both go red without the fix
 
-## In flight
+## Settled on 2026-11-09, not open (DECISIONS 2026-11-09)
 
-- This session's PR only. Nothing else running
+- The Avast moratorium stands, so **CI is the only coverage for the four win32 suites.** The `hooks-windows` job is load-bearing: removing, renaming or softening it stops those four running anywhere
+- The Codex port at `~/.agents/skills` stays hand-maintained and unmanaged, permanently. It will drift and nothing will report it. The `claude-api`-to-`Codex-api` rewrites stay in the backup patch, unported
+- The em-dash gate stays at the three unslop `SKILL.md` files. The 6 em dashes in `live-state-first` and 8 in `README.md` stay
+- The Occam read, if run, asks about the three weeks since the trial, not its second week. No comparable baseline exists for that window: `docs/OCCAM_second-read_2026-11-05.md`
+- The live-state-first clock rule is ratified, not a default left standing
 
 ## Deferred, with grep anchors
 
-- Three Tier 1 proposals unbuilt: `prove-it-can-pass`, `enumerate-the-set`, `instrument-reports-itself` (`docs/SKILL_PROPOSALS_2026-11-01.md`). The 1 November Tier 2 upgrades are also unbuilt
-- The second Occam read (DECISIONS 2026-10-09): still overdue, was ASK-0010
 - `session-recon` prints nothing inside a port; unverified cause
-- Earlier: `FORWARD:` naming `team/INBOX/` in `docs/DESIGN_team-loop_2026-10-02.md:512`; unpinned agents
-
-## Verification outstanding
-
-- **The Antigravity port could not be located.** `~/.claude/backups/ash-plugin-2026-11-01` does not exist and no `plugin.json` was found under `~/Projects` or `~/.claude` outside the library. Two roots searched, not the whole disk. `skills-mirrors.json` therefore lists `ports: []`, so `sync-port.mjs` runs against nothing
-- **The Cloudflare vendor packs are absent from both roots.** DECISIONS 2026-11-01 records them installed into `~/.claude/skills` and `~/.agents/skills` at `1a33048`; neither root holds `cloudflare/`, `wrangler/` or `cf-cli/` today. verified by `ls`. Cause unknown — not investigated this session
-- `relay-cli-takeover.test.mjs` was not run locally (the 2026-09-21 Avast moratorium, never formally lifted). CI covers it
+- `FORWARD:` naming `team/INBOX/` in `docs/DESIGN_team-loop_2026-10-02.md:512`; unpinned agents
 
 ## Traps
 
+- **This is the work machine** (`ASH-HP-241`, `C:\Users\ben`). The home machine is `C:\Users\bengr`. The Antigravity port, both vendor packs and the whole Occam trial are home-machine only, and their absence here is correct, not drift (DECISIONS 2026-11-05). A machine-local fact must name its host, not just its path
+- **Do not put `~/.agents/skills` back under `checkouts` or `ports`.** A fast-forward overwrites its hand substitutions. Settled 2026-11-09; its state is backed up at `~/.claude/agents-skills-backup-2026-11-05` and `~/.claude/agents-skills-codex-port-2026-11-06`
 - A direct push to main is refused; two PRs that both change the skill count conflict, so stack skills on one branch
-- Run hook suites as `node <file>`, never `node --test` (hangs past two minutes locally)
-- **`~/.agents/skills` was three months stale behind a silently-disabled feature.** It is now at `ee6554a`, clean, and listed in `~/.claude/skills-mirrors.json`. Its pre-reset state, including nineteen hand edits and three `claude-api`-to-`Codex-api` rewrites, is at `~/.claude/agents-skills-backup-2026-11-05` with the diff as `tracked-modifications.patch`. If a Codex port is wanted, port it into `ports/` — do not re-edit the mirror
-- Heredocs into an interpreter still eat one backslash level: write files with the Write or Edit tool (tool-layer-bytes). A `perl -0pi` substitution silently matched nothing this session and the only tell was a count that did not change
-- Ports and `~/.agents/skills` take committed HEAD only; edit the library, never a port. UK clocks are GMT since 25 October
-- Take clock times from PowerShell `Get-Date`, never an estimate
+- Run hook suites as `node <file>`, never `node --test` (hangs past two minutes locally). Judge them by exit code, never by grepping their last line (`prove-it-can-pass` rule 9)
+- Heredocs into an interpreter still eat one backslash level: write files with the Write or Edit tool (`tool-layer-bytes`). The four newest byte layers are in that skill's 2026-11-01 section
+- Take clock times from PowerShell `Get-Date`, in the same command that writes them (`live-state-first`, ratified 2026-11-09). UK clocks are GMT since 25 October

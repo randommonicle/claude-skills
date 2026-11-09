@@ -50,4 +50,21 @@ stale document. Evidence: PropOS LESSONS_LEARNED Sessions 9, 11, 12, 22, 41, 52,
 
 ## Additions from the misses-log sweep (2026-10-22)
 
-- **A time, date or count written into a record is read from a command, never composed.** Run the clock (`date -u`) or the count in its own call, then write what it printed in the next; a reading in the same command as the write was typed before it existed. A value no command can give is written as unknown. (ICC L-093, seven instances.)
+- **A time, date or count written into a record is read from a command, never composed.** The
+  reading is substituted into the write by the shell, in the same command, so the write path
+  carries it and no hand ever retypes it. On Windows use `Get-Date` in PowerShell, not Git Bash
+  `date`, which has no time-zone database on this machine and printed GMT during BST. Where
+  substitution is impossible, run the command in its own call and copy what it printed
+  verbatim into the next, with no rounding and no arithmetic. A value no command can give is
+  written as unknown. (ICC L-093, seven instances; library 34, two slips on one day, the second
+  of them hours after a note saying to use `Get-Date` had been written into memory and into
+  NOW.md's traps.)
+
+  *An earlier form of this bullet said to run the clock in its own call and forbade taking the
+  reading in the same command as the write, the reverse of the rule above, on the ground that
+  a same-command reading "was typed before it existed". That is true of a typed value and false
+  of a substituted one, and `docs/SKILL_PROPOSALS_2026-11-01.md` flagged the contradiction with
+  library 34 as needing Ben's decision. Resolved 2026-11-05 in favour of library 34, which is
+  the empirically tested half: a separate call still leaves a human or a model carrying the
+  value across the gap, and that is where both of the 2026-10-04 slips happened. Reversible by
+  restoring the old wording.*

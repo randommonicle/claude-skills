@@ -53,3 +53,12 @@ confirmation must carry the state it was given for), and the "from" pins of 22 O
 GPT's review R7 (a role change needs the role the admin saw), and R11 and R12 (the
 access-notes editor pinned to the notes shown, closed on a 409 or an answer in doubt).
 `docs/SKILL_PROPOSALS_2026-10-22.md`, Tier 1 item 4.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A pinned value compared after a store round trip is compared field by field, and its test
+  reads back through the store.** Serialisation is not identity: `jsonb` sorts object keys,
+  numeric types widen, timestamps gain or lose precision, so a value that went in and came
+  out is not byte-equal to the one that was pinned. Compare the fields the decision depends
+  on, and write the test so it reads the value back through the real store rather than
+  comparing two in-memory objects. (ICC L-127.)

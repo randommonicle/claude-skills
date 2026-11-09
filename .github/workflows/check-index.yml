@@ -80,6 +80,30 @@ jobs:
         run: node hooks/check-index.test.mjs
       - name: the index agrees with the disk
         run: node hooks/check-index.mjs
+      # Library 43: the anti-em-dash skill shipped an em dash inside its own rule about em
+      # dashes, and it sat in the archive and every installed copy for three months because
+      # nobody pointed the tool at the tool. enforce-invariants-in-build's 2026-11-01 row.
+      # Scope is the three SKILL.md files themselves, not their trees: UPSTREAM.md uses the
+      # library's bold lead-in format and unslop-ui's generated reference index is vendor
+      # text with 293 em dashes in it. Widening this past SKILL.md reds on house style.
+      - name: the scanner can go red on its own skill's text
+        run: |
+          set -e
+          cp unslop-text/SKILL.md "$RUNNER_TEMP/violation.md"
+          printf 'A deliberate violation \xe2\x80\x94 this line must be flagged.\n' >> "$RUNNER_TEMP/violation.md"
+          if python3 unslop-text/scripts/unslop_text_scan.py "$RUNNER_TEMP/violation.md" --severity high; then
+            echo "the scanner reported no HIGH finding on a file carrying an em dash."
+            echo "the gate below cannot go red, so it is proving nothing. Fix the scanner or this step."
+            exit 1
+          fi
+          echo "ok: the scanner reds on a planted em dash"
+      - name: each unslop skill is clean under its own scanner
+        run: |
+          set -e
+          for f in unslop-text/SKILL.md unslop-code/SKILL.md unslop-ui/SKILL.md; do
+            echo "scanning $f"
+            python3 unslop-text/scripts/unslop_text_scan.py "$f" --severity high
+          done
 
   archives:
     runs-on: ubuntu-latest

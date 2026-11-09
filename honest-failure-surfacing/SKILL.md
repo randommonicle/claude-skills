@@ -50,3 +50,12 @@ guard-the-spend-paths).
 
 - **Bound every await on the path, not the one holding the fetch.** A network wait is bounded end to end: reading or refreshing the credential, each third-party client call, the request and the body (keep the timer running until the body is read). A test hangs each stage and asserts the call ends. (ICC L-103.)
 - **A long silent call looks like a hang.** Keep each tool call or step to a couple of minutes, write output to disk in stages, and say what is still running between them; a session that shows nothing for fourteen minutes cannot be told from a stuck one. (Factorio Mods, 2026-10-18.)
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A shared hook's error that a call site declines degrades to a normal-looking empty
+  screen.** When a data hook swallows or returns its error and the component renders its
+  empty state regardless, the failure is indistinguishable from "there is nothing here" and
+  the user is told, falsely, that their data is absent. Render the empty state only on a
+  successful fetch that returned nothing, and give the error its own branch at every call
+  site that consumes the hook. (PropOS 2026-09-22b.)

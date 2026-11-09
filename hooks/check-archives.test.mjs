@@ -15,6 +15,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { crc32 } from 'node:zlib';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CHECK = join(HERE, 'check-archives.mjs');
@@ -62,17 +63,23 @@ function patch(path, from, to) {
 }
 
 // A minimal STORED (uncompressed) zip, used only to fake archive layouts the
-// packer never emits: directory entries. CRC is left 0 because check-archives.mjs
-// reads member content by recorded size and never validates the CRC.
+// packer never emits: directory entries, and a deliberately wrong CRC. It writes
+// a correct CRC-32 by default; pass `crc` on an entry to plant a wrong one. It
+// used to leave the field 0 "because check-archives.mjs never validates the CRC",
+// and that sentence was true and was the defect: pack-skill.mjs had written a
+// wrong CRC into every archive in the repository and nothing could see it.
 function storedZip(entries) {
   const local = [];
   const central = [];
   let offset = 0;
-  for (const { name, data } of entries) {
+  for (const entry of entries) {
+    const { name, data } = entry;
+    const sum = entry.crc === undefined ? crc32(data) >>> 0 : entry.crc;
     const nameBuf = Buffer.from(name, 'utf8');
     const lh = Buffer.alloc(30);
     lh.writeUInt32LE(0x04034b50, 0);
     lh.writeUInt16LE(20, 4);
+    lh.writeUInt32LE(sum, 14);
     lh.writeUInt32LE(data.length, 18);
     lh.writeUInt32LE(data.length, 22);
     lh.writeUInt16LE(nameBuf.length, 26);
@@ -82,6 +89,7 @@ function storedZip(entries) {
     cd.writeUInt32LE(0x02014b50, 0);
     cd.writeUInt16LE(20, 4);
     cd.writeUInt16LE(20, 6);
+    cd.writeUInt32LE(sum, 16);
     cd.writeUInt32LE(data.length, 20);
     cd.writeUInt32LE(data.length, 24);
     cd.writeUInt16LE(nameBuf.length, 28);
@@ -224,6 +232,24 @@ check(
   'a corrupt archive exits 2 rather than passing or reporting staleness',
   (root) => writeFileSync(join(root, 'alpha-skill', 'alpha-skill.skill'), Buffer.from('not a zip at all')),
   { code: 2, contains: ['not a zip'] },
+);
+
+// The case that did not exist until 2026-11-05, which is why pack-skill.mjs could
+// write a wrong CRC-32 into every member of every archive in this repository and
+// stay green for as long as it had. The content here is correct and matches the
+// directory exactly: only the integrity field is wrong, which is precisely the
+// defect that shipped, and the one a content comparison cannot see. Structural
+// (exit 2), not staleness: the bytes are right, the archive is unreadable.
+check(
+  'a member whose CRC-32 does not match its content exits 2, although the content is current',
+  (root) => {
+    const body = skillMd('beta-skill');
+    writeFileSync(
+      join(root, 'beta-skill', 'beta-skill.skill'),
+      storedZip([{ name: 'beta-skill/SKILL.md', data: Buffer.from(body), crc: 0xdeadbeef }]),
+    );
+  },
+  { code: 2, contains: ['CRC-32 mismatch', 'standard zip reader will refuse'], absent: ['differs'] },
 );
 
 if (failed > 0) {

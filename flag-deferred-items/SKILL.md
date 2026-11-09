@@ -64,3 +64,15 @@ Out-of-scope items recorded only in a session-specific document decay. By the ti
 - **Dormant controls say so everywhere.** A gate that bites nothing yet states its dormancy
   in the migration, the smoke, the decision log, and to the user — otherwise its first bite
   is diagnosed as a new bug.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A deferral whose reason is a claim about a third party re-asks the claim on every run.**
+  "Deferred until the vendor ships X" is a statement about somebody else that was true once.
+  Write the claim as a check the anchor can run, or carry a date by which it is re-asked, and
+  treat the date as the backstop rather than the plan. (PropOS 2026-08-04, the `reviewBy`
+  case.)
+- **An anchor whose prerequisite was overtaken elsewhere is closed, not left standing.** When
+  the thing a deferral waited for has been solved another way, or has become impossible, the
+  anchor is removed and the removal is recorded. A stale anchor costs a reader the same
+  investigation every time it is found. (PropOS 2026-09-09 addendum.)

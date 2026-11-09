@@ -46,3 +46,14 @@ Prose invariants rot precisely because they look official: the next reader assum
 is enforced somewhere and edits accordingly. Every incident in the evidence survived weeks
 of competent review. Evidence: ASH LESSONS_LEARNED 2026-06-10 (lifts carve-out), 2026-07-19
 (models.ts); PropOS Session 17 ("a lesson is not a control"); ICC L-020.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A skill that ships a scanner has the scanner run over its own text.** The anti-em-dash
+  skill shipped an em dash inside its own rule about em dashes and it sat in the archive and
+  in every installed copy for three months, because the rule was prose and nobody thought to
+  point the tool at the tool. Where a skill, linter or convention ships an executable check,
+  wire that check over the skill's own files in CI. Library 43's own conclusion is the line
+  to keep: "write carefully" failed three times where a grep would not have. (Library 43;
+  wired for this repository in `.github/workflows/check-index.yml` on 2026-11-05, with a
+  deliberate violation proving the step can go red.)

@@ -124,6 +124,23 @@ function updateMirrors(library) {
   } catch (e) {
     return [{ kind: 'config', path: mirrorsPath, state: 'error', reason: `unreadable: ${e.message}` }];
   }
+  // A config that exists and lists nothing is the same hole as a config that does not
+  // exist: `out` stays empty, `every()` is vacuously true, and the run reports success
+  // for a capability that did nothing. Yesterday's fix (2026-11-05) covered the absent
+  // file and left this neighbouring case, which is enumerate-the-set rule 1 -- the set
+  // here is {absent, present but empty, populated} and only one member was decided.
+  // Reached for real on 2026-11-06, when ~/.agents/skills had to come out of `checkouts`.
+  // `note` is optional and machine-local; it travels into the report so the reason for
+  // an empty config is visible at every run rather than living only in a commit message.
+  if ((cfg.checkouts ?? []).length === 0 && (cfg.ports ?? []).length === 0) {
+    return [{
+      kind: 'config',
+      path: mirrorsPath,
+      state: 'none',
+      reason: cfg.note || 'the mirrors config lists no checkouts and no ports, so only the library itself is kept current',
+    }];
+  }
+
   const out = [];
   for (const c of cfg.checkouts ?? []) {
     const path = real(resolve(c));

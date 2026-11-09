@@ -1648,3 +1648,115 @@ for it, found four days after the sweep proposed it and in the library's own too
 **class:** a capability whose disabled, unconfigured or skipped state is encoded as the
 absence of data rather than as data, so it reaches the success path through a default and
 cannot be distinguished from the capability having run.
+
+## 47. Every archive in the repository was unreadable, and the gate over them said current
+
+**What happened.** On 2026-11-05 `check-archives.mjs` reported two stale `.skill` archives
+after a Tier 2 edit. Rebuilding them with Python's `zipfile` failed with
+`BadZipFile: Bad CRC-32`. The defect was not in those two: every member of all five archives
+carried a CRC-32 that did not match the bytes it stored, twenty-one of twenty-one, and
+`zipfile.testzip()` rejected each archive at its first member. The content was correct
+throughout and matched the directory exactly, so the archives worked with a lenient reader
+and were refused by a strict one (`zipfile`, `unzip -t`).
+
+The cause was one character. `hooks/pack-skill.mjs:105` ran the CRC-32 update as
+`c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 1)`, where the algorithm shifts by a byte,
+`c >>> 8`, because the table lookup has already consumed one. Deterministic, so every archive
+the tool has ever written carries a wrong CRC and a re-pack reproduces it byte for byte: the
+first attempt at a fix re-ran the packer and got "unchanged", which is what identified the
+packer rather than the archives as the subject.
+
+Nothing in the repository could see it. `check-archives.mjs` reads member content by the
+recorded size, inflates it and compares it with the directory, and never read the CRC field.
+Its own suite says so in a comment on the fixture helper: "CRC is left 0 because
+check-archives.mjs reads member content by recorded size and never validates the CRC." That
+sentence was accurate, was written as a convenience, and was the defect. A gate that compares
+what we wrote with what we wrote cannot see a field neither copy depends on.
+
+**verified**: the packer's output byte-identical to the committed archive before the fix; the
+gate exiting 2 and naming the mismatch after the `>>> 1` was deliberately restored and the
+archives re-packed; then restored to `>>> 8`, re-packed, `check-archives.mjs` ok on 5 archives
+and 21 members, its suite green including the new case, and `zipfile.testzip()` returning
+`None` for all five.
+
+**The lesson.** An integrity field that nothing reads is not an integrity field. Where a
+writer and its checker are a matched pair built by the same author, the checker will tend to
+verify the properties the writer is careful about and skip the ones it is careless about,
+because both come from one mental model. The question that finds this is not "does the
+checker pass" but "what does a *different* consumer make of this artefact" - here, any zip
+reader that is not ours.
+
+**skill that should have prevented this:** `prove-it-can-pass`, built earlier the same day,
+Tier 1 item 1 of `docs/SKILL_PROPOSALS_2026-11-01.md`. Its rules 1 and 6 are the two that
+apply: take the corpus from reality rather than from the author's model, and check a curated
+set for what is missing from it. `instrument-reports-itself`, built the same day, owns the
+other half: the checker's reading was wrong while the checker looked well.
+
+**class:** a writer and its checker built as a pair, where the checker verifies only the
+properties the writer thinks about, so a field both ignore can be wrong indefinitely and no
+test in the repository can go red.
+
+**A smaller instance the same hour, recorded because it is the other direction.** The loop
+written to run the hook suites judged each one by grepping its last line for
+`all cases passed` or a trailing `passed`, and reported "suites that did not report a pass
+line: 13". Every suite had in fact passed; thirteen of them print `ALL PASS`, which the
+pattern did not know about. The pass-line formats were guessed rather than read from the
+suites, so the check reported thirteen failures that did not exist, and the only thing that
+stopped it being believed was that its own output sat directly above it. That is
+`prove-it-can-pass` rule 1, an invented corpus, producing a false positive within an hour of
+the rule being written, in a check built by the author of the rule. The gate and the throwaway
+loop fail the same way in opposite directions: one passed what it should have refused because
+it never read the field, the other refused what it should have passed because it never read
+the output.
+
+**It then recurred, on 2026-11-09, four days after the paragraph above was written into this
+file.** A fresh loop over the same suites greped for `all cases passed` and reported
+`hooks/check-licences.test.mjs` as a failure; that suite prints `all 9 cases passed`. The
+entry existed, in this file, about this exact check, and did not reach the moment it applied,
+which is the `skill-library-builder` Tier 2 row of 2026-11-01 (a rule on disk that no trigger
+delivers is not learned) demonstrating itself. **verified**: re-run reading exit codes instead,
+23 runnable suites, every one exit 0.
+
+The remedy is smaller than the diagnosis and is now `prove-it-can-pass` rule 9. Every one of
+those suites ends `process.exit(fails ? 1 : 0)`. The exit code was authoritative, present, and
+free, and both instances parsed the human-facing summary line instead, which is written to be
+read by a person and changes wording freely. The reason the rule had to be written twice is
+that a one-line shell loop does not feel like code, so it never gets the scrutiny a check
+would get. That is the class, not the regex.
+
+## 48. A rename applied to a provenance section turned a true record into a false one
+
+**What happened.** `~/.agents/skills` is kept as a Codex port of this library by hand,
+substituting `claude` for `Codex` and `CLAUDE.md` for `AGENTS.md` so the text reads correctly
+for that agent. On 2026-11-05 at 21:32 the substitution was applied to
+`spawn-from-declared-state/SKILL.md`, and it reached the Provenance section. The port now says
+"Rimagent 2026-09-26 (a headless `Codex -p` ran the operator's SessionStart hook and loaded
+131 skills)". That incident happened on Claude. The port also tells its reader to re-verify
+flags with `Codex --help`, where the library's line names `claude --help`, so a reader who
+follows it gets a different tool's answer to a question about this one.
+
+The rename is correct almost everywhere in that file: rules, examples, the names of the
+switches a Codex user would type. It is wrong in exactly the places that report what happened
+rather than what to do, and those are the places a reader cannot check, because the evidence
+lives in another repository.
+
+**verified**: the four untracked directories and their timestamps; the diff against the
+library, saved as `~/.claude/agents-skills-codex-port-2026-11-06/codex-rewrites.patch`; the
+library's own line reading `claude -p`.
+
+**The lesson.** A find-and-replace over a document has two kinds of target, and only one of
+them should move. Instructions, identifiers and examples are about what the reader should do,
+and they are translated. Provenance, citations, incident records and verification notes are
+about what occurred, and translating them manufactures history. A transform that ships a
+document to another context exempts the sections that report facts, or it fabricates a
+citation on every pass and does it silently, because nothing downstream can tell a translated
+claim from an original one.
+
+**skill that should have prevented this:** `verified-citations` owns the accuracy of a
+reference and `blast-radius-grep` owns finding every place a fact lives. Neither covers the
+inverse, a sweep that correctly updates a place it should have left alone. Closest is
+`blast-radius-grep`'s own scope line; this is a candidate addition to it rather than a new
+skill, on one instance.
+
+**class:** a correct transformation applied to the one region of a document where correctness
+means leaving it alone, so the output is wrong in the way least likely to be checked.

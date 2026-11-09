@@ -26,7 +26,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { inflateRawSync } from 'node:zlib';
+import { crc32, inflateRawSync } from 'node:zlib';
 
 const USAGE = 'usage: node hooks/check-archives.mjs [--root <dir>]';
 
@@ -146,6 +146,7 @@ function readArchive(skillFile) {
   for (let n = 0; n < count; n++) {
     if (buf.readUInt32LE(p) !== 0x02014b50) throw new Error(`corrupt central directory at byte ${p}`);
     const method = buf.readUInt16LE(p + 10);
+    const recordedCrc = buf.readUInt32LE(p + 16);
     const compSize = buf.readUInt32LE(p + 20);
     const uncompSize = buf.readUInt32LE(p + 24);
     const nameLen = buf.readUInt16LE(p + 28);
@@ -169,6 +170,20 @@ function readArchive(skillFile) {
     else if (method === 8) content = inflateRawSync(raw);
     else throw new Error(`${name}: unsupported compression method ${method}`);
     if (content.length !== uncompSize) throw new Error(`${name}: inflated size ${content.length} != recorded ${uncompSize}`);
+    // The CRC is checked because nothing here checked it until 2026-11-05, and in
+    // that gap pack-skill.mjs wrote a wrong one for every member of every archive
+    // (a `>>> 1` where the CRC-32 update needs `>>> 8`). The content inflated
+    // correctly and matched the directory, so this gate called the archives current
+    // while Python's zipfile and `unzip -t` refused to open them. Comparing content
+    // without the integrity field is comparing what we wrote to what we wrote.
+    const actualCrc = crc32(content) >>> 0;
+    if (actualCrc !== recordedCrc) {
+      throw new Error(
+        `${name}: CRC-32 mismatch, archive records 0x${recordedCrc.toString(16).padStart(8, '0')} ` +
+        `but the stored bytes are 0x${actualCrc.toString(16).padStart(8, '0')}. ` +
+        `A standard zip reader will refuse this archive. Rebuild it: node hooks/pack-skill.mjs ${dirname(name) || name}`
+      );
+    }
     members.set(name, content);
   }
   return members;

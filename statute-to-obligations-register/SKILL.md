@@ -82,6 +82,17 @@ it goes in the verification list.
 9. **Gap assessment only against described practice.** Mark Met, Partly met, Not met or Unclear
    only where the user has described what they do. Otherwise the register carries no status
    column for compliance.
+10. **Every obligation row carries its exceptions, or says it is subject to one.** Rule 2 reads
+    scope, definitions and exemptions before extracting; this one governs what survives into
+    the cell. An Obligation or Trigger cell that states the effect and drops the proviso is
+    wrong in the direction that gets acted on, because an incomplete duty reads as a complete
+    one. Where the section carries a disapplication, a saving or a "except while" limb, the row
+    either states it or carries `subject to <subsection>` and a Verification list entry. A
+    worked instance of the failure: the treated-as-not-due rule under LTA 1987 s.48 extracted
+    without s.48(3), which disapplies it while a court- or tribunal-appointed receiver or
+    manager collects those sums. See `legal-notice-handling/SKILL.md:130-131` for the wording
+    as verified, and read the section on legislation.gov.uk before relying on it. A register
+    that omits an exception can make a sum look not due when it is due, or due when it is not.
 
 ## Worked example (read on legislation.gov.uk, 2026-10-03)
 

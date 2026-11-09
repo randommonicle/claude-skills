@@ -103,3 +103,11 @@ left nothing in `reflog` or `fsck`. The session had re-probed before committing 
 the recon section requires; what it did not do was commit, and it was editing on the strength
 of a start-up reading. LESSONS_LEARNED entry 21.
 
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **A worktree lives beside the clone, never in a session scratchpad or under Temp.** A
+  worktree placed under `%LOCALAPPDATA%\Temp` had every tracked file deleted from disk by
+  something never identified, and the branch then read as 175 files of unsaved work when the
+  truth was 175 deletions. Committing them would have committed the removal of the whole
+  library. Put a worktree next to its clone, where no cleaner reaches it. (Library 40.)

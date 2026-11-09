@@ -18,6 +18,17 @@
 //   node hooks/preflight-unattended.mjs --dir <projects dir> --since 2026-09-16
 //
 // Exit code is the number of distinct commands that would block, so it can gate CI.
+//
+// Two things this tool does NOT catch, from the misses-log sweep of 2026-11-01. Check both
+// by hand before an unattended run, because neither is a PreToolUse decision:
+//
+//  1. A desktop scheduled task runs in the folder of the session that created it and stalls
+//     on a permission prompt for ANY write outside that folder, with nobody there to answer.
+//     So the run's whole working set belongs inside that folder, or the task is created
+//     somewhere that covers it. (library 33, 2026-10-03.)
+//  2. Fire the run ONCE with the exact --model the context that will run it uses. A model
+//     chosen by default, or carried from an interactive session, is a different run from the
+//     one that was proven, and the difference shows up only under load. (PropOS 2026-09-28.)
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';

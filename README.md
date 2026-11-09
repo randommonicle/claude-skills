@@ -66,7 +66,7 @@ it in [CONTRIBUTING.md](CONTRIBUTING.md).
 Skills are installed at the **user level**, so they apply to every project on the machine with no
 per-project setup.
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 57 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 60 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
 
 ## Layers
 
@@ -83,7 +83,8 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **live-state-first** | norm + playbook | Probe live state before building from any described state; the catalog settles disagreements. |
 | **no-silent-data-drop** | norm + playbook | Filters and gates hide empty things, never drop content; clamp model-emitted routing keys. |
 | **honest-failure-surfacing** | norm + playbook | One message per failure mode; pressable controls that explain; error level for terminal states only. |
-| **prove-it-can-fail** | norm + hub (tests/checks) | Every test, seed, gate, or check must demonstrably be able to fail. Routes: safe-smokes, mass-red-triage. |
+| **prove-it-can-fail** | norm + hub (tests/checks) | Every test, seed, gate, or check must demonstrably be able to fail. Routes: safe-smokes, mass-red-triage, prove-it-can-pass. |
+| **prove-it-can-pass** | leaf (routed by prove-it-can-fail) | The other half of a gate: prove it lets real innocent input through and catches the violating forms nobody pictured. Real corpora not invented ones, your own mandated command shapes, the domain's ordinary vocabulary, recoverable refusals, and a curated list checked for omissions. |
 | **findings-are-evidence** | norm + playbook | Agent/reviewer reports are evidence, not findings; re-derive Critical/High and regulatory claims. |
 | **one-real-ride** | hub (done gate) | One real end-to-end invocation through the real seams before "done". Routes: verify-the-effect, email-delivery-verification, env-change-verification, reproduce-the-real-build. |
 | **parallel-work-recon** | hub (session boundary) | Fetch/PR/log recon at session start AND pre-commit; identifier claims scan all refs; worktree path discipline. |
@@ -92,6 +93,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **ai-surface-discipline** | hub (LLM surfaces) | Input minimisation, output discipline, human gate, rules-bind-in-the-prompt pillar, guard hardening. Routes: no-silent-data-drop, guard-the-spend-paths, outbound-side-effect-idempotency. |
 | **verified-citations** | hub (citing docs) | Quoted-line citations, provenance by command, statutory facts against primary sources. Routes: deliverable-integrity, substantiate-outward-claims, handover, legal-citation-integrity. |
 | **blast-radius-grep** | leaf (Tier 1) | The unit of change is the action or fact; grep app, tests, seeds, branches, and built output; drift-check denormalised copies. Completion gate: an errored sweep found nothing, and never truncate a matched line below the match. |
+| **enumerate-the-set** | leaf (Tier 1) | Blast-radius-grep's twin: it enumerates the places a fact lives, this enumerates the members a change must decide. List fields, kinds, statuses, legs, exit paths and anchors from their source, decide each one in code and in a test, give every start an end, and ask a reviewer which member is uncovered. |
 | **trace-one-record** | leaf | Two correct figures can make a wrong total: name what each source contains and trace one record end to end through both before combining them; a stated check is not a performed check. |
 | **env-change-verification** | leaf (Tier 1) | An env change is not live until the reading artifact is rebuilt/redeployed; validate the value, not its presence. |
 | **enforce-invariants-in-build** | leaf (Tier 1) | A rule asserted only in prose is a comment; back invariants with a test, constraint, or trigger. |
@@ -115,6 +117,7 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **fixtures-from-reality** | leaf | Fixtures recorded from the pinned provider version, fakes that carry the service's failures, setups by production's path, real output fed across seams, and each claim's runtime named. |
 | **measure-per-route** | leaf | A measured platform fact holds for the route, build, timing and machine it was measured on; measure again elsewhere, compare whole ranges, subtract the environment, prove a stop by its effect. |
 | **spawn-from-declared-state** | leaf | A spawned child inherits settings, CLAUDE.md, auto-memory, tokens and its parent's lifetime unless the launch declares otherwise; check what it loaded before its output reaches anyone. |
+| **instrument-reports-itself** | leaf (routed by honest-failure-surfacing) | A broken instrument keeps producing readings: make failure a distinct value, never a sentinel, zero or an absent key; one message per terminal unattended failure, sent before it is marked handled; check as often as the thing can fail; alarm on no result at all. |
 | **tool-layer-bytes** | leaf (with a hook) | Code with backslashes goes to disk through the Write tool, never a heredoc or `-e`/`-c` string; no `sed -i` on CRLF checkouts; prove the bytes after any scripted edit. |
 | **date-parse-utc-safe** | leaf (micro) | Parse date-only strings as explicit local components; UTC runtimes render the previous day. |
 | **constant-time-secret-compare** | leaf (micro) | Hash then timingSafeEqual for any secret comparison. |

@@ -49,3 +49,11 @@ each other's output), L-119 (Android 17 behaviour the Android 16 emulator never 
 domain L-095 (a query plan no functional test can see), L-139 and L-143 (the Node test
 runtime accepted what workerd and D1 refuse), L-140 (a test pinned a value a planned later
 step changes). `docs/SKILL_PROPOSALS_2026-10-22.md`, Tier 1 item 3.
+
+## Additions from the misses-log sweep (2026-11-01)
+
+- **Test Windows process liveness and file replacement under the contention they actually
+  meet.** On Windows a held handle blocks a rename or delete, and a polling reader keeps a
+  file open between reads, so a replace that passes against an idle file fails against a
+  watched one. Build the fixture with the handle held and the reader polling, because that is
+  the state the code runs in. (Rimagent 2026-10-02.)

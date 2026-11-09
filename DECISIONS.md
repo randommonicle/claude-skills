@@ -5,6 +5,146 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-11-09 Ben's rulings on the seven questions left open by the build-out
+
+Ben, 2026-11-09, answering each in turn. Six of these close items that have been carried on the
+deferred list, two of them since September.
+
+- **The branch ships.** "Yes do all of them" to push, PR and merge, as three authorisations
+  given together. Eleven commits, taking the library to 60 skills, land on `main` once the four
+  required checks pass.
+- **The Avast moratorium of 2026-09-21 stands.** "Keep it". The four win32 suites
+  (`watchdog-unattended`, `watchdog-network`, `relay-cli-takeover`, `relay-cli-handback`) are
+  not run locally on this machine. **CI is therefore their only coverage**, which makes the
+  `hooks-windows` job load-bearing rather than a convenience: if it is ever removed, renamed or
+  allowed to go advisory, those four suites stop being run anywhere. The 2026-10-04 ruleset
+  entry already forbids a rename without updating the ruleset; this is the reason it matters.
+- **The Codex port stays hand-maintained and unmanaged.** Option (a) of the 2026-11-06 entry,
+  "as it's not often used". `~/.agents/skills` stays out of `checkouts` and out of `ports`
+  permanently, not pending a later decision. No transform step will be built, so LESSONS 48's
+  constraint is advice for anyone who revisits it rather than a requirement on anything that
+  exists. **The consequence, accepted:** that tree drifts, as it did to 295 commits behind, and
+  nothing will report it. The `claude-api`-to-`Codex-api` rewrites stay in the backup patch at
+  `~/.claude/agents-skills-backup-2026-11-05` and are not ported into `ports/`.
+- **The em-dash gate stays at three files.** "Don't expand it to the whole repo". It covers the
+  `SKILL.md` of `unslop-text`, `unslop-code` and `unslop-ui`, which is library 43's own scope.
+  The 6 em dashes in `live-state-first/SKILL.md` and 8 in `README.md` stay as they are, and
+  this is settled rather than deferred.
+- **The Occam read asks about the three weeks since, not the trial's second week.** "Over the
+  three weeks I guess". DECISIONS 2026-10-09 ordered the second trial week; that window closed
+  on 2026-10-16 and is now out of reach of any sensible `--days` value, so the question is
+  changed rather than answered. `docs/OCCAM_second-read_2026-11-05.md` is updated to say what
+  that costs: there is no comparable baseline for the new window, so the result is a reading of
+  the present rather than a before-and-after, and the keep-or-remove decision rests on it
+  accordingly.
+- **The Ask board is dead.** "Declare it dead". The artifact at
+  `claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH` returned "artifact not found" on three attempts
+  across 2026-11-05 to 2026-11-09. ASK-0010 (the Occam read, which decision 5 above has now
+  taken) and ASK-0011 (port-only skills) are dropped unanswered; neither was ever read by any
+  session, so nothing is known to be lost, and that is a statement about what is known rather
+  than a reassurance. `team/NOW.md` carries `ask: none`, which is the value `session-recon.mjs`
+  checks for at line 267, so it stops being reported at every session start.
+- **The live-state-first clock resolution is ratified.** "Ratified". The reading substitutes
+  into the write in the same command, PowerShell `Get-Date` on Windows, with the separate-call
+  form kept only where substitution is impossible. It was taken for Ben on 2026-11-05 in his
+  absence and is now his, not a default left standing.
+
+## 2026-11-06 `~/.agents/skills` is a Codex port, not a checkout, and is out of the updater
+
+Not Ben's decision: taken by a session on 2026-11-06 while he was away, from evidence, and
+reversible by one edit of a machine-local file. **It needs his ruling**, which is why it is
+here rather than only in a commit message.
+
+The 05:30 scheduled run failed: `ff-only merge failed: untracked working tree files would be
+overwritten by merge: spawn-from-declared-state/SKILL.md`. Four skill directories had appeared
+in `~/.agents/skills` at 21:32 on 2026-11-05, all four untracked, all four created in one
+operation: `enumerate-the-set`, `instrument-reports-itself`, `prove-it-can-pass` and
+`spawn-from-declared-state`. The first three are byte-identical to the library. The fourth
+carries `claude`-to-`Codex` and `CLAUDE.md`-to-`AGENTS.md` substitutions, which is the same
+hand-maintenance LESSONS 46 found on that tree in August (the `claude-api`-to-`Codex-api`
+rewrites). No script in this repository copies into that path; `update-skills.mjs` is the only
+file that names it, and it fast-forwards rather than copies.
+
+So the tree is a **Codex port maintained by hand**, and listing it under `checkouts` was wrong
+in both directions: the updater fails against it every run, and on the one run where it had
+succeeded it would have overwritten the rewrites. It is out of `checkouts` as of 2026-11-06,
+with the reason carried in the config's new `note` field so it reaches the report rather than
+living only here. The four copies are backed up at
+`~/.claude/agents-skills-codex-port-2026-11-06`, with the substitutions as `codex-rewrites.patch`.
+
+**For Ben, three ways forward, none taken:** leave it unmanaged and hand-maintained, which is
+how it reached 295 commits behind; make it a real port with a transform step, which is what it
+actually is and which `sync-port.mjs` cannot do today because it copies HEAD verbatim; or drop
+it and let Codex read the library directly.
+
+**A defect in the rewrite, whichever way that goes.** The substitution was applied to the
+skill's Provenance section, turning "a headless `claude -p` ran the operator's SessionStart
+hook and loaded 131 skills" into "a headless `Codex -p` ...". That incident happened on Claude.
+A blanket rename over an evidence section converts a true record into a false one, and a reader
+of the port now has a citation that never happened. A transform step must exempt Provenance,
+LESSONS references and anything else that reports what occurred. LESSONS 48.
+
+## 2026-11-05 The 1 November sweep is built out: 60 skills, and four standing choices
+
+Ben, 2026-11-05, "agree to all your proposals". All four Tier 1 proposals and the whole Tier 2
+table of `docs/SKILL_PROPOSALS_2026-11-01.md` are now in the library. `spawn-from-declared-state`
+landed in PR #41; `instrument-reports-itself`, `prove-it-can-pass` and `enumerate-the-set`
+follow here, taking the count to 60. Four choices inside that work are decisions rather than
+mechanics:
+
+- **The live-state-first clock contradiction is resolved in favour of library 34.** The sweep
+  flagged it as needing Ben's decision and "agree to all" did not reach it, so it was taken for
+  him and is reversible by one edit. The reading is substituted into the write by the shell, in
+  the same command, on Windows from PowerShell `Get-Date`; the separate-call form survives only
+  where substitution is impossible, and then the printed value is copied verbatim. Library 34 is
+  the tested half: a separate call leaves a hand carrying the value across the gap, which is
+  where both 2026-10-04 slips happened. The superseded wording and the reason are in the skill.
+- **The em-dash gate covers three files, not the library.** `enforce-invariants-in-build`'s row
+  says a skill that ships a scanner has the scanner run over its own text, so the `index` job
+  now scans `unslop-text/SKILL.md`, `unslop-code/SKILL.md` and `unslop-ui/SKILL.md`, behind a
+  step that plants an em dash and fails if the scanner calls it clean. It is not widened past
+  those three: `UPSTREAM.md` uses the library's own bold lead-in format and `unslop-ui`'s
+  generated reference index is vendor text carrying 293 em dashes, so a library-wide gate would
+  red on house style and on upstream content. **Open for Ben:** six em dashes in
+  `live-state-first/SKILL.md` and eight in `README.md` predate today and were left alone rather
+  than rewritten quietly. Whether the gate should eventually cover all prose in the repository
+  is his call.
+- **`pack-skill.mjs` wrote a wrong CRC-32 into every archive, and the gate now reads the
+  field.** One character (`>>> 1` for `>>> 8`), deterministic, so all five archives and all
+  twenty-one members were refused by any standard zip reader while `check-archives.mjs` called
+  them current. Fixed at the source, every archive re-packed with the real tool, a CRC check
+  added to the gate with a case that reds on a member whose content is current and whose CRC is
+  not. LESSONS 47. The re-pack also normalised the archives' stored line endings to LF, which
+  the gate has always tolerated deliberately (`check-archives.mjs:77`) and `.gitattributes` now
+  pins for `*.json` as well as `*.md`.
+- **The Occam second read is a home-machine task, not an overdue one here.** It has sat on the
+  deferred list since 2026-10-16. This session established that it cannot be run from the work
+  machine at all, and `docs/OCCAM_second-read_2026-11-05.md` records the evidence, the commands
+  for the home machine, and the fact that a `--days 7` window no longer reaches the trial
+  fortnight. Nothing of Occam has entered the library, so either decision is free here.
+
+## 2026-11-05 This work machine holds no port, no vendor packs and no Occam, and that is correct
+
+Three items had been carried as "verification outstanding" on the assumption that something was
+missing from this machine. It was established on 2026-11-05 that the sessions which recorded
+them ran on the **home** machine (`C:\Users\bengr`), and that this machine (`ASH-HP-241`,
+`C:\Users\ben`) is the work machine named in `docs/REVIEW_occam_2026-09-29.md:5` and
+`docs/HANDOVER_secret-guard_2026-09-24.md:84`.
+
+- **The Antigravity port.** `sync-port.mjs` refreshes "the Antigravity port in the AI domain
+  project" (DECISIONS 2026-11-01). That project is `C:\Users\bengr\Projects\AI domain and social
+  network`, which does not exist here. `ports: []` in this machine's `skills-mirrors.json` is
+  therefore right, and `sync-port.mjs` having nothing to do here is right. The port's source of
+  truth is `ports/antigravity/` in this repository, which is present and tracked.
+- **The Cloudflare and marketing vendor packs.** Installed into the home machine's two roots.
+  Neither `~/.claude/skills-vendor-backup-2026-11-01` nor `~/.agents/skills-vendor-backup-2026-11-01`
+  exists here, and `~/.agents/skills` has no reflog entry between 2026-08-17 and today, so the
+  1 November session did not touch this machine. The packs are gitignored by design, so their
+  absence from a second machine is expected rather than drift.
+
+What follows: a machine-local fact must say which machine it is about. The three items above
+cost a session each because the records named a path and not a host.
+
 ## 2026-11-01 The Cloudflare pack reinstalled at 1a33048, with cf-cli added
 
 Ben, 2026-11-01, "Yes, add cf-cli too". **Reinstall:** the 13 skills in `~/.claude/skills` and
