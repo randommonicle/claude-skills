@@ -5,6 +5,50 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-11-09 Ben's rulings on the seven questions left open by the build-out
+
+Ben, 2026-11-09, answering each in turn. Six of these close items that have been carried on the
+deferred list, two of them since September.
+
+- **The branch ships.** "Yes do all of them" to push, PR and merge, as three authorisations
+  given together. Eleven commits, taking the library to 60 skills, land on `main` once the four
+  required checks pass.
+- **The Avast moratorium of 2026-09-21 stands.** "Keep it". The four win32 suites
+  (`watchdog-unattended`, `watchdog-network`, `relay-cli-takeover`, `relay-cli-handback`) are
+  not run locally on this machine. **CI is therefore their only coverage**, which makes the
+  `hooks-windows` job load-bearing rather than a convenience: if it is ever removed, renamed or
+  allowed to go advisory, those four suites stop being run anywhere. The 2026-10-04 ruleset
+  entry already forbids a rename without updating the ruleset; this is the reason it matters.
+- **The Codex port stays hand-maintained and unmanaged.** Option (a) of the 2026-11-06 entry,
+  "as it's not often used". `~/.agents/skills` stays out of `checkouts` and out of `ports`
+  permanently, not pending a later decision. No transform step will be built, so LESSONS 48's
+  constraint is advice for anyone who revisits it rather than a requirement on anything that
+  exists. **The consequence, accepted:** that tree drifts, as it did to 295 commits behind, and
+  nothing will report it. The `claude-api`-to-`Codex-api` rewrites stay in the backup patch at
+  `~/.claude/agents-skills-backup-2026-11-05` and are not ported into `ports/`.
+- **The em-dash gate stays at three files.** "Don't expand it to the whole repo". It covers the
+  `SKILL.md` of `unslop-text`, `unslop-code` and `unslop-ui`, which is library 43's own scope.
+  The 6 em dashes in `live-state-first/SKILL.md` and 8 in `README.md` stay as they are, and
+  this is settled rather than deferred.
+- **The Occam read asks about the three weeks since, not the trial's second week.** "Over the
+  three weeks I guess". DECISIONS 2026-10-09 ordered the second trial week; that window closed
+  on 2026-10-16 and is now out of reach of any sensible `--days` value, so the question is
+  changed rather than answered. `docs/OCCAM_second-read_2026-11-05.md` is updated to say what
+  that costs: there is no comparable baseline for the new window, so the result is a reading of
+  the present rather than a before-and-after, and the keep-or-remove decision rests on it
+  accordingly.
+- **The Ask board is dead.** "Declare it dead". The artifact at
+  `claude.ai/artifact/Kqqm4sFUJLD4VAg6Tz14SH` returned "artifact not found" on three attempts
+  across 2026-11-05 to 2026-11-09. ASK-0010 (the Occam read, which decision 5 above has now
+  taken) and ASK-0011 (port-only skills) are dropped unanswered; neither was ever read by any
+  session, so nothing is known to be lost, and that is a statement about what is known rather
+  than a reassurance. `team/NOW.md` carries `ask: none`, which is the value `session-recon.mjs`
+  checks for at line 267, so it stops being reported at every session start.
+- **The live-state-first clock resolution is ratified.** "Ratified". The reading substitutes
+  into the write in the same command, PowerShell `Get-Date` on Windows, with the separate-call
+  form kept only where substitution is impossible. It was taken for Ben on 2026-11-05 in his
+  absence and is now his, not a default left standing.
+
 ## 2026-11-06 `~/.agents/skills` is a Codex port, not a checkout, and is out of the updater
 
 Not Ben's decision: taken by a session on 2026-11-06 while he was away, from evidence, and
