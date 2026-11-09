@@ -1709,6 +1709,21 @@ loop fail the same way in opposite directions: one passed what it should have re
 it never read the field, the other refused what it should have passed because it never read
 the output.
 
+**It then recurred, on 2026-11-09, four days after the paragraph above was written into this
+file.** A fresh loop over the same suites greped for `all cases passed` and reported
+`hooks/check-licences.test.mjs` as a failure; that suite prints `all 9 cases passed`. The
+entry existed, in this file, about this exact check, and did not reach the moment it applied,
+which is the `skill-library-builder` Tier 2 row of 2026-11-01 (a rule on disk that no trigger
+delivers is not learned) demonstrating itself. **verified**: re-run reading exit codes instead,
+23 runnable suites, every one exit 0.
+
+The remedy is smaller than the diagnosis and is now `prove-it-can-pass` rule 9. Every one of
+those suites ends `process.exit(fails ? 1 : 0)`. The exit code was authoritative, present, and
+free, and both instances parsed the human-facing summary line instead, which is written to be
+read by a person and changes wording freely. The reason the rule had to be written twice is
+that a one-line shell loop does not feel like code, so it never gets the scrutiny a check
+would get. That is the class, not the regex.
+
 ## 48. A rename applied to a provenance section turned a true record into a false one
 
 **What happened.** `~/.agents/skills` is kept as a Codex port of this library by hand,

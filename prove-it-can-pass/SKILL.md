@@ -72,6 +72,19 @@ and each suite was written by the person who wrote the gate, out of the same ima
    gains the allowed form *and* keeps the denied one, so the next widening cannot quietly
    swallow the exemption or the rule. A fix recorded only in a commit message is not a
    control.
+9. **If the thing already reports in a machine channel, read that channel and not its
+   prose.** The commonest invented corpus is not a deny-list at all: it is a one-line
+   throwaway that greps a tool's output for the word it assumes means success. Exit codes,
+   JSON fields and structured results are written to be read; a human-facing summary line is
+   written to be read by a human and changes wording freely. Grepping it guesses at a format
+   you could have looked up, and the guess fails silently in both directions, passing a suite
+   that printed a failure in an unexpected shape and failing one that passed. Twice in one
+   piece of work here, a loop checking suites for `all cases passed` reported a healthy suite
+   as broken because that suite prints `all 9 cases passed`, while every one of those suites
+   ends `process.exit(fails ? 1 : 0)` and had been telling the truth all along. The second
+   time was four days after the first was written into the misses log. This rule is cheap
+   enough to apply without thinking, which is the point: the checks that go unexamined are
+   the quick ones nobody counts as code.
 
 ## The question to ask
 
