@@ -68,3 +68,7 @@ stale document. Evidence: PropOS LESSONS_LEARNED Sessions 9, 11, 12, 22, 41, 52,
   the empirically tested half: a separate call still leaves a human or a model carrying the
   value across the gap, and that is where both of the 2026-10-04 slips happened. Reversible by
   restoring the old wording.*
+
+## Addition (2026-11-08)
+
+- **One document, two editable surfaces: probe both, by content.** When a record exists as both a local file and a hosted doc (a Claude Doc, Google Doc or artifact), either one can be edited from somewhere else. At session start, compare the hosted copy's revision or latest dated entry with the local file. A gallery or listing date ("updated 26 Oct") does not track content edits, so it proves nothing. A "sync the doc" step is done only when a read-back shows the new revision. A closing message saying it was skipped does not count, and the next session must re-check it. (Terran Republic LESSONS_LEARNED 2026-11-08: the bible forked for ten days.)
