@@ -209,6 +209,14 @@ failure the round had declared unreachable; and it caught that the census used t
 had been produced by the very parser defect the same debate had just identified. A conclusion that
 survives this is worth acting on. One that does not was never evidence.
 
+**Read the section, not the token.** A seat can write `[[CONVERGED]]` under a body that still
+asks for an edit ("one correction is required", "one final precision edit"). On 2026-11-11 the
+GPT seat did this twice in one batch of five outward answers, and the send gate, which matches
+only the closing tokens, would have passed both bodies unchanged. Before acting on a convergence,
+read every converging section in full; any edit it requests is applied and goes back to both
+seats. A script that gates on the token can confirm the token is there, never that the request
+was met. (AI domain L-162.)
+
 **What this does not fix.** A seat that has agreed with you is not a seat that has checked. Both
 seats accepted a census in one round that neither had verified, and one of them had produced its
 own wrong version of it. The hub still re-derives every load-bearing number itself, before and

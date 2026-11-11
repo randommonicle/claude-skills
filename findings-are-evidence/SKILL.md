@@ -59,4 +59,5 @@ Sessions 12, 15, 16, 22, 35, 42, 43, 2026-07-07, 2026-07-20; ASH LESSONS_LEARNED
 
 ## Additions from the misses-log sweep (2026-10-22)
 
+- **A reviewer's verdict token is a claim about its own content.** A section that ends in an approval marker can still ask for an edit; read the body before treating the marker as the verdict, and never let a script that reads only the marker be the last check before an outward act. Mechanics for the review exchange: cross-agent-review, "Read the section, not the token". (AI domain L-162.)
 - **On a money path, keep every review layer.** The builder's red-proofs, the review seats and the final gate each caught what the others passed; none is redundant because the layer before it was green. (AI domain L-112.)
