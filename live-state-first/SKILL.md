@@ -68,3 +68,13 @@ stale document. Evidence: PropOS LESSONS_LEARNED Sessions 9, 11, 12, 22, 41, 52,
   the empirically tested half: a separate call still leaves a human or a model carrying the
   value across the gap, and that is where both of the 2026-10-04 slips happened. Reversible by
   restoring the old wording.*
+
+- **"Nothing owed" on a threaded surface is read from every branch that touches us, never
+  from the tail.** A comment thread, forum or review is a tree: a reply to us can sit nested
+  under our own comment while someone else holds the newest slot, and a tail read then says
+  "settled" with a reply four days unanswered. To decide whether anything is owed, list the
+  comments whose parent (at any depth) is one of ours and that are newer than our last write
+  there; to decide whether a send is done, find our own landed id. Neither question is
+  answered by who spoke last. (Commonhold L-054, 2026-09-12, and its recurrence L-163,
+  2026-11-11: a reply under our envoy's comment missed by four daily watch runs and one agent
+  run, all of which read the tail.)
