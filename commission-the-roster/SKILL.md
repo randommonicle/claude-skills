@@ -333,7 +333,8 @@ It did expose three things this skill did not say.
 
 - **A lone spawn still needs a model, and this skill is not what will say so.** It does not fire
   on one agent for one bounded task, so this bullet is reference for a roster, and the lever for
-  the lone spawn lives outside it (an always-on norm, or the environment variable below).
+  the lone spawn lives outside it: the environment variable below. An always-on norm was the
+  other candidate and NORMS.md is at its cap of six (DECISIONS 2026-11-14).
   Claude Code's sub-agents documentation
   (`https://code.claude.com/docs/en/sub-agents.md`, read 2026-11-14): "By default, a subagent you
   define runs on the same model as the conversation that starts it." The built-in general-purpose
@@ -346,7 +347,9 @@ It did expose three things this skill did not say.
   environment variable, then the main conversation's model. That variable is the harness-level
   default for spawns nobody pinned; by itself it does not change the built-in Explore and Plan
   agents. Whether to set it on a machine is the operator's call, and it is a settings change,
-  never something an agent does for itself.
+  never something an agent does for itself. With it set to the mid tier, the failure reverses:
+  an unpinned spawn that needed the strong tier now gets the mid one without a word, so strong
+  work still states its model on the call.
 - **Step up one tier on evidence, with the operator's yes.** When an agent's work fails its
   check, the first suspect is the brief: a wrong fact, a scope too wide, a derive-it-yourself
   task priced as a mechanical one. The sequence is: attempt one fails, the lead reads the brief,

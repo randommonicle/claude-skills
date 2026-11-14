@@ -16,10 +16,21 @@ step. The same change writes down three things it exposed: a lone spawn inherits
 model unless the call states one (sub-agents documentation, read 2026-11-14), recorded as
 reference only; nothing said what happens after a failed gate, so a step up one tier on the
 operator's yes is written as an unmeasured hypothesis; and no Rounds re-run is recorded for
-Fable 5.2, carried on NOW.md. **Not decided:** how a lone spawn gets its model, by a norms
-line or by `CLAUDE_CODE_SUBAGENT_MODEL`, on either machine. **Status:** drafted by the session
-on Ben's "Draft the PR", 2026-11-14; Ben has not yet read or ruled on this entry. Revisit on
-our own ledger, never on a third party's post.
+Fable 5.2, carried on NOW.md.
+
+**A lone spawn gets its model from `CLAUDE_CODE_SUBAGENT_MODEL=sonnet`**, set in
+`~/.claude/settings.json` on the home machine (`bengr`) on 2026-11-14. The norms line was the
+alternative and was not taken: NORMS.md is capped at six and has six, and a harness default
+cannot be forgotten where a sentence can. Pins and a per-call model still win over it, and it
+does not change the built-in Explore and Plan agents. The accepted cost: an unpinned spawn that
+needed the strong tier now runs on Sonnet silently, so strong work states its model on the
+call. The work machine (`ASH-HP-241`) is not set and will not report the difference. Its
+effect is unverified until a fresh session on the home machine spawns an unpinned agent and
+reads the model back from the usage report.
+
+Ben, 2026-11-14, on the session's recommendations for this entry and the lone spawn: "Yes to
+all, go with your recommendations for rulings and fix the lone spawn". Revisit on our own
+ledger, never on a third party's post.
 
 ## 2026-11-09 Ben's rulings on the seven questions left open by the build-out
 
