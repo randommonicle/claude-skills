@@ -3,7 +3,7 @@
 template: team-loop NOW v1
 updated: 2026-11-09, after Ben ruled on all seven open questions. Diagnoses are unverified unless marked
 topic: the 1 November sweep is built and shipped. 60 skills, and nothing left waiting on a decision
-next: no work is queued. The next misses-log sweep has no date set
+next: no work is queued. The next misses-log sweep is called by the issue "Unswept lesson candidates" in the private `randommonicle/lessons-watch` (threshold 10; DECISIONS 2026-11-14), and its baselines are reset by hand after the sweep
 branches: main; feat/tier1-and-tier2-2026-11-05 (merged 2026-11-09)
 ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09; ASK-0010 and ASK-0011 dropped unanswered, never read by any session)
 

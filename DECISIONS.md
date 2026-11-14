@@ -5,6 +5,31 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-11-14 A sweep is called by a weekly count, and one push runs unattended
+
+Ben asked whether a weekly scheduled task should update skills and look at what should have
+prevented each lesson. Decided: no weekly model run. The library already updates daily by a
+deterministic task, and a sweep's bottleneck is Ben's ruling on its proposals, which an
+unattended agent cannot supply. What was missing was any signal that a sweep is due, so
+`lessons-watch/` counts the candidate lines written since the last sweep, weekly, on GitHub
+Actions, and keeps one issue current. No model is involved.
+
+- **It runs in a private repository, `randommonicle/lessons-watch`, never in this one.** This
+  repository is public and eight of the nine GitHub sources are private; a count posted here
+  would publish their names. The first recommendation put it here and was wrong.
+- **Lessons files with no remote are copied there daily from the home machine (`bengr`)** by
+  `lessons-watch/mirror.mjs`: eight files on 2026-11-14, four of them in projects with no git
+  at all. Only the lessons file travels. **This is a standing exception to the per-push rule**,
+  given by Ben on 2026-11-14 ("Ok yes to all") for that one script pushing to that one private
+  repository. It covers nothing else. The script refuses any other origin, and a file matching
+  a secret shape is not copied and is named in the report.
+- **Baselines** are in the private `watch.json`, set per source from the three sweep documents
+  and git history, and reset by hand after each sweep.
+- **Not done:** the work machine (`ASH-HP-241`) has no mirror config, so lessons files that
+  exist only there are not counted and nothing reports their absence.
+- **Not decided:** private remotes for Rimagent and the AI domain project, which have no copy
+  off the home machine beyond their mirrored lessons files.
+
 ## 2026-11-14 The orchestrator-prompt post does not change the tier policy
 
 Checked against a Facebook post telling users to make the strongest model a lead that hands
