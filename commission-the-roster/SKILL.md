@@ -323,3 +323,43 @@ spent rather than from what they reported spending.
   not be there, say so to the operator and have it changed; if the approval is needed, go and
   get it. An agent blocked for want of an approval is the system working. (Rimagent
   2026-10-19, twice in one session; `docs/SKILL_PROPOSALS_2026-11-01.md`, Tier 2.)
+
+## Additions from the orchestrator-prompt review (2026-11-14)
+
+A widely shared prompt asks a lead to split a specification into tasks and pick the cheapest
+adequate model for each. Rules 1 and 2 already do that with a budget, an artifact and a brief
+attached, and the measurements under Rule 3 contradict its premise that tier is the main lever.
+It did expose three things this skill did not say.
+
+- **A lone spawn still needs a model, and this skill is not what will say so.** It does not fire
+  on one agent for one bounded task, so this bullet is reference for a roster, and the lever for
+  the lone spawn lives outside it (an always-on norm, or the environment variable below).
+  Claude Code's sub-agents documentation
+  (`https://code.claude.com/docs/en/sub-agents.md`, read 2026-11-14): "By default, a subagent you
+  define runs on the same model as the conversation that starts it." The built-in general-purpose
+  and Plan agents follow the parent conversation's model too. So in a session on the strongest
+  model, a spawn with no pin and no override is billed at the lead's rate, whatever the job. The
+  documented exception is the built-in Explore agent, which on a subscription runs on the model
+  the `opus` alias resolves to when the parent runs Fable.
+  Pass the model on the call, by decision class as in Rule 2. The resolution order is the
+  per-call parameter, then the definition's `model` field, then the `CLAUDE_CODE_SUBAGENT_MODEL`
+  environment variable, then the main conversation's model. That variable is the harness-level
+  default for spawns nobody pinned; by itself it does not change the built-in Explore and Plan
+  agents. Whether to set it on a machine is the operator's call, and it is a settings change,
+  never something an agent does for itself.
+- **Step up one tier on evidence, with the operator's yes.** When an agent's work fails its
+  check, the first suspect is the brief: a wrong fact, a scope too wide, a derive-it-yourself
+  task priced as a mechanical one. The sequence is: attempt one fails, the lead reads the brief,
+  corrects it if it was wrong, and resumes the same agent; attempt two fails the same check on a
+  brief that stands, and the lead proposes the row one tier up, naming the failing check. That
+  is an amended row of an approved roster, so under Rule 1 it needs the operator's yes unless
+  the commission said in advance that one step up is allowed. The stepped-up row gets the same
+  two attempts, and a second failure there goes back to the operator with no further step. A
+  stronger model given the same bad brief fails more expensively. This is a hypothesis: no
+  ledger of ours has measured it yet, and the source is a single social post.
+- **The lead's model moves with the session, and the pins do not.** The lead inherits whatever
+  the session runs on, while each build tier is a literal alias in an agent's frontmatter. The
+  team-loop design of 2026-10-02 had an Opus lead and an `opus` regulated builder; a session
+  run on a stronger model raises the lead's rate and changes nothing below it. That is the
+  intended shape, since the table under Rule 3 already separates strongest from strong. Move a
+  pin on a re-run of archived work (**team-loop**, Rounds), never on a launch page.

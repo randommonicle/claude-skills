@@ -27,6 +27,7 @@ ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09; ASK-0010 and AS
 ## Deferred, with grep anchors
 
 - `session-recon` prints nothing inside a port; unverified cause
+- No `team-loop` Rounds re-run is recorded for Fable 5.2 in DECISIONS, WORKLOG or this file (checked 2026-11-14 from the home machine, `bengr`). Unverified whether any archived package exists to re-run. The `opus` pins are as designed on 2026-10-02 and are not in question
 - `FORWARD:` naming `team/INBOX/` in `docs/DESIGN_team-loop_2026-10-02.md:512`; unpinned agents
 
 ## Traps

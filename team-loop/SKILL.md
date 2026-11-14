@@ -189,6 +189,14 @@ the tested merge, the red and green ids and the result onto the package's BOARD 
 only after the builder has finished and committed: a gate run alongside the step it certifies
 sees an unfinished state.
 
+**A failed gate** is read before anything is re-spawned. If the brief was wrong (a fact, the
+`SCOPE`, a check that cannot pass), the lead corrects it and resumes the same builder. If the
+brief stands and a second attempt fails the same check, the lead proposes the package one tier
+up, naming the red id the gate wrote on the BOARD row. That is a model departure on an approved
+roster, so it takes the operator's yes in the session unless the roster allowed one step in
+advance. Two attempts at the higher tier, then the package goes back to the operator
+(`commission-the-roster`, 2026-11-14 section; unmeasured until a ledger carries one).
+
 **A ledger line** is one JSON object: `{"wp", "milestone", "date", "agents": [{"agent",
 "model", "effort", "tokens", "turns"}], "wall_minutes", "gate": "pass" | "fail", "tested",
 "build_review"}`, with tokens from the Agent tool's own usage report, never estimated.
