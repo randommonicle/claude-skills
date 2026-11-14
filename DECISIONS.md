@@ -5,6 +5,22 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-11-14 The orchestrator-prompt post does not change the tier policy
+
+Checked against a Facebook post telling users to make the strongest model a lead that hands
+each task to Haiku, Sonnet or itself. commission-the-roster's allocation stays as it is.
+**Why:** Rules 1 and 2 already publish a roster with a model per row, and the post's premise
+that tier is the main cost lever is contradicted by the 2026-08-03 table under Rule 3, where
+scope and briefing outweighed tier, and by the 2026-10-11 entry below on the cheap tier's price
+step. The same change writes down three things it exposed: a lone spawn inherits the session's
+model unless the call states one (sub-agents documentation, read 2026-11-14), recorded as
+reference only; nothing said what happens after a failed gate, so a step up one tier on the
+operator's yes is written as an unmeasured hypothesis; and no Rounds re-run is recorded for
+Fable 5.2, carried on NOW.md. **Not decided:** how a lone spawn gets its model, by a norms
+line or by `CLAUDE_CODE_SUBAGENT_MODEL`, on either machine. **Status:** drafted by the session
+on Ben's "Draft the PR", 2026-11-14; Ben has not yet read or ruled on this entry. Revisit on
+our own ledger, never on a third party's post.
+
 ## 2026-11-09 Ben's rulings on the seven questions left open by the build-out
 
 Ben, 2026-11-09, answering each in turn. Six of these close items that have been carried on the
