@@ -45,6 +45,12 @@ About five minutes.
    argue over a change) needs the `agy` and `codex` command-line tools and one settings file.
    The steps are in [cross-agent-review/SKILL.md](cross-agent-review/SKILL.md).
 
+**Using Claude on the web, desktop or phone?** Add the connector instead: in Claude, go to
+Customize, then Connectors, then Add custom connector, and paste
+`https://claude-skills-connector.randommonicle.workers.dev/mcp`. You get the skills without the
+hooks or agents, which only run in Claude Code. What it records, and how its reports feed the
+sweep, is in [connector/README.md](connector/README.md).
+
 Before you install, read [What installing changes](#what-installing-changes). One hook asks for
 confirmation on every push, and you may not want that.
 
@@ -148,6 +154,10 @@ How to read it:
   skill.
 - If a skill never loaded and was never missed, consider pruning it, unless its tag explains the
   zero.
+
+If you run your own copy of the connector, its reported misses can join this step too.
+`connector/scripts/export.mjs` writes them out as a lessons log for `audit-fires.mjs` to read;
+see [connector/README.md](connector/README.md).
 
 ### Step 4: the sweep
 

@@ -1,0 +1,14 @@
+name = "claude-skills-connector"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+workers_dev = true
+preview_urls = false
+
+[[d1_databases]]
+binding = "DB"
+database_name = "claude-skills-connector"
+database_id = "decd1c54-9e3d-4a64-a9c2-a6d2c05ba1ac"
+
+# Daily at 03:17 UTC: delete raw events older than 90 days.
+[triggers]
+crons = ["17 3 * * *"]
