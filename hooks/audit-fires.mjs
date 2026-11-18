@@ -4,7 +4,8 @@
 //
 // Scores the rating system (README, "The rating system") by reading the fire log
 // that skill-fire-log.mjs appends against the misses log carried in each repo's
-// docs/LESSONS_LEARNED.md. Fires alone can never demote a skill, because the fire
+// docs/LESSONS_LEARNED.md, or its root LESSONS_LEARNED.md when docs/ has none.
+// Fires alone can never demote a skill, because the fire
 // log is structurally blind to three layers: the six always-on norms are
 // CLAUDE.md text and never a Skill call, the hooks enforce without one, and
 // knowledge applied from memory leaves no line at all. So every never-fired
@@ -186,15 +187,27 @@ function classify(part) {
   return { kind: 'unparsed', text: part.trim() };
 }
 
+// docs/LESSONS_LEARNED.md is the convention for projects; this library keeps its
+// own at the root, so the root file is read when docs/ has none. Only one is
+// read: docs/ wins when both exist.
 function readMisses(repo) {
-  const path = join(repo, 'docs', 'LESSONS_LEARNED.md');
+  const candidates = [join(repo, 'docs', 'LESSONS_LEARNED.md'), join(repo, 'LESSONS_LEARNED.md')];
   const label = basename(repo) || repo;
-  const result = { repo, path, label, named: new Map(), candidates: new Map(), unparsed: [], lines: 0, read: false };
+  const result = { repo, path: candidates[0], label, named: new Map(), candidates: new Map(), unparsed: [], lines: 0, read: false };
   let text;
-  try {
-    text = readFileSync(path, 'utf8');
-  } catch (err) {
-    notice(`misses log not read at ${path}: ${reason(err)} (no misses counted for ${label})`);
+  let firstErr;
+  for (const path of candidates) {
+    try {
+      text = readFileSync(path, 'utf8');
+      result.path = path;
+      break;
+    } catch (err) {
+      firstErr ??= err;
+      if (err.code !== 'ENOENT') break;
+    }
+  }
+  if (text === undefined) {
+    notice(`misses log not read at ${candidates.join(' or ')}: ${reason(firstErr)} (no misses counted for ${label})`);
     return result;
   }
   result.read = true;
@@ -282,7 +295,7 @@ if (never.length) {
 }
 
 // 3. Misses per skill, from each repo's lessons log.
-section('3. MISSES PER SKILL (docs/LESSONS_LEARNED.md)');
+section('3. MISSES PER SKILL (each repo\'s LESSONS_LEARNED.md)');
 const namedTotals = new Map();
 const candidateRows = [];
 let missLines = 0;

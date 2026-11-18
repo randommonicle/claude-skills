@@ -227,6 +227,23 @@ check(
   row(noLessons.out, s4, 'total fires'),
 );
 
+// A repo that keeps its lessons file at the root, as this library does, is
+// read from there when docs/LESSONS_LEARNED.md is absent.
+const rootRepo = join(root, 'root-lessons-repo');
+mkdirSync(rootRepo, { recursive: true });
+writeFileSync(
+  join(rootRepo, 'LESSONS_LEARNED.md'),
+  ['## 1. a root-level entry', 'skill that should have prevented this: verify-the-effect', ''].join('\n'),
+);
+const rootLessons = await run(['--fire-log', fireLog, '--repo', rootRepo]);
+check(
+  'a root-level LESSONS_LEARNED.md is read when docs/ has none',
+  rootLessons.code === 0 &&
+    /misses logs scanned: .*root-lessons-repo.LESSONS_LEARNED\.md$/m.test(rootLessons.out) &&
+    /^named misses 1$/.test(row(rootLessons.out, s4, 'named misses')),
+  row(rootLessons.out, s4, 'named misses'),
+);
+
 const noFireLog = await run(['--fire-log', join(root, 'absent.jsonl'), '--repo', repo]);
 check(
   'missing fire log gives a notice, exit 0, and misses still counted',
