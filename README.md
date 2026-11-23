@@ -6,76 +6,210 @@ A set of guardrails for [Claude Code](https://claude.com/claude-code), the AI co
 one is a short rule that Claude loads by itself, at the moment it is about to do the thing that
 rule covers. Almost every one exists because that mistake already shipped on a real project.
 
-They are not prompts or personas. They came out of the lessons-learned records of four production
-codebases, one of them a regulated UK property-management platform, so the examples are concrete
-and a few are specific to that domain. Install the lot, fork it, or read two and steal the ideas.
-The two that change the most behaviour for the least reading are
-[`verify-the-effect`](verify-the-effect/SKILL.md), which says never call something done because a
-command exited without error, and [`prove-it-can-fail`](prove-it-can-fail/SKILL.md), which says a
-test that cannot go red is not a test.
+Each rule came from the lessons-learned records of four production codebases. One of them is a
+regulated UK property-management platform, so the examples are concrete and a few are specific to
+that field. Install the lot, fork it, or read two and borrow the ideas.
 
-**Four kinds of thing live here.**
+If you only read two, read [`verify-the-effect`](verify-the-effect/SKILL.md) and
+[`prove-it-can-fail`](prove-it-can-fail/SKILL.md). The first says a command that exits without an
+error has not proved anything worked. The second says a test that can never fail is not testing
+anything.
 
-- **Skills**: short playbooks Claude reads at the right moment. The table below lists all 56.
-- **Hooks**: small scripts that run automatically around what Claude does. One stops and asks you
-  before Claude uploads any code to GitHub. One checks a file Claude has just edited for mistakes,
-  using whatever checker that project already uses. One looks up what has changed in your project
-  since you last worked on it, so Claude is not working from an out-of-date picture.
-- **Norms**: six one-line rules that apply in every session, listed in [NORMS.md](NORMS.md).
-- **Agents**: reviewers Claude can hand a change to for a second opinion, listed under
+Four kinds of thing live here.
+
+- Skills are short playbooks Claude reads at the right moment. The table below lists all 60.
+- Hooks are small scripts that run automatically around what Claude does. One stops and asks you
+  before Claude uploads any code to GitHub. One checks a file Claude has just edited, using
+  whatever checker that project already has. One tells Claude what has changed in your project
+  since you last worked on it, so it starts from an up-to-date picture.
+- Norms are six one-line rules that apply in every session, listed in [NORMS.md](NORMS.md).
+- Agents are reviewers Claude can hand a change to for a second opinion, listed under
   [Agents](#agents).
 
-It installs once per machine and applies to every project on it. You never run any of it by hand.
-
-**This repository is licensed under Apache-2.0** (see the `LICENSE` file). The three `unslop-*`
-skills and the four legal skills (`contract-review`, `legal-citation-integrity`,
-`statute-to-obligations-register`, `legal-notice-handling`) are forks and carry their
-upstream's terms, recorded in their own `UPSTREAM.md`; the unslop skills also carry a `LICENSE`
-file, which goes into their `.skill` archives. `hooks/check-licences.mjs` fails the build if a
-fork loses its notice.
+It installs once per machine and applies to every project on it. Day to day, it runs by itself.
+The only parts you run by hand are the learning loop tools, covered in
+[Keep it learning](#keep-it-learning-run-your-own-loop).
 
 ## Install
 
 About five minutes.
 
 1. Install Claude Code, [git](https://git-scm.com/) and [Node.js](https://nodejs.org/). For the
-   checks that read your project's state, also the [GitHub CLI](https://cli.github.com/), then
-   run `gh auth login`.
+   checks that read your project's state, also install the [GitHub CLI](https://cli.github.com/)
+   and run `gh auth login`.
 2. In a Claude Code session, run `/plugin marketplace add randommonicle/claude-skills`, then
    `/plugin install ash@ash-skills`.
-3. Check it worked: `/plugin` should list the installed plugin, and asking Claude to do something
-   a skill guards (say, write a test) should visibly load that skill.
-4. Optional, for the two-model code review (`cross-agent-review`, where Claude has Gemini and GPT
-   argue over a change): install the `agy` and `codex` command-line tools and copy one settings
-   file. Steps in [cross-agent-review/SKILL.md](cross-agent-review/SKILL.md).
+3. Check it worked. `/plugin` should list the plugin. Then ask Claude to do something a skill
+   guards, such as writing a test. You should see it load that skill.
+4. Optional: the two-model code review (`cross-agent-review`, where Claude has Gemini and GPT
+   argue over a change) needs the `agy` and `codex` command-line tools and one settings file.
+   The steps are in [cross-agent-review/SKILL.md](cross-agent-review/SKILL.md).
 
-The manual route, what each hook does, and what to know before installing are in
-[Install on a new machine](#install-on-a-new-machine) further down.
+Before you install, read [What installing changes](#what-installing-changes). One hook asks for
+confirmation on every push, and you may not want that.
 
-**What changes afterwards**: a confirmation prompt before Claude uploads anything; a note about
-your project's state at the start of each session; a report when Claude edits a JavaScript or
-TypeScript file in a project that has a checker configured; and Claude visibly loading a named
-rule before it writes a test, changes a database, or calls an AI model.
+Afterwards you will notice:
 
-**Where things are**: the skills in the table below; the agents in [agents/](agents/); what
-each hook does in [hooks/HOOKS.md](hooks/HOOKS.md); what went wrong on real jobs in
-[LESSONS_LEARNED.md](LESSONS_LEARNED.md); standing choices in [DECISIONS.md](DECISIONS.md); how
-the library gates itself in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); house rules for changing
-it in [CONTRIBUTING.md](CONTRIBUTING.md).
+- a confirmation prompt before Claude pushes anything;
+- a short note about your project's state at the start of each session;
+- a report when Claude edits a JavaScript or TypeScript file in a project with a checker set up;
+- Claude loading a named rule before it writes a test, changes a database or calls an AI model.
 
-Skills are installed at the **user level**, so they apply to every project on the machine with no
-per-project setup.
+Where to find things:
 
-The library is organised as a four-layer architecture (hooks / always-on norms / lifecycle hubs / narrow leaves) so 60 skills coexist without diluting description-trigger matching. Design and rationale: [docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md); the three-lens committee review that ratified it: [docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). Most skills were distilled from the lessons-learned corpora of four real repos; recurrence across repos is the admission criterion.
+- the skills: the table below;
+- the agents: [agents/](agents/);
+- what each hook does: [hooks/HOOKS.md](hooks/HOOKS.md);
+- what went wrong on real jobs: [LESSONS_LEARNED.md](LESSONS_LEARNED.md);
+- standing choices and why: [DECISIONS.md](DECISIONS.md);
+- how the library checks itself: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md);
+- house rules for changing it: [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Layers
+## Keep it learning: run your own loop
 
-- **Hooks** ([hooks/HOOKS.md](hooks/HOOKS.md)) — deterministic enforcement in `~/.claude/settings.json`, per machine: push gate (with a live freshness block in the ask), surgery gate (destructive SQL asks, carrying the target script's own header), secret-echo guard (a command that would print a secret value is denied with the safe form in the reason), kill guard (a process kill chosen by name or pattern is denied with the by-PID form in the reason), skill fire log, session recon, and the warn family that fires where descriptions cannot: schedule-cost, migration-write, test-write, lint-after-edit.
-- **Norms** ([NORMS.md](NORMS.md)) — six always-on one-liners copied into the global `~/.claude/CLAUDE.md`; each points at its skill playbook.
-- **Hubs** — skills owning a workflow moment, each with a routing table to leaves.
-- **Leaves** — narrow triggers, orthogonal vocabulary, one "does not fire on" line each.
+The skills here are a snapshot of what went wrong on our projects. Your projects will go wrong in
+their own ways. This library is built to learn from that, and you can run the same loop on your
+own work.
+
+The loop has four steps.
+
+1. **Record what loads.** A hook logs every skill Claude loads. This happens by itself.
+2. **Record what went wrong.** When a mistake ships, you write it up in your project's lessons log
+   and name the skill that should have caught it.
+3. **Compare the two.** A script lines up what loaded against what was missed.
+4. **Sweep.** Every few weeks, Claude reads the misses and proposes fixes. You decide what goes
+   in.
+
+### Step 1: the fire log
+
+Nothing to set up. Every time a skill loads, `skill-fire-log.mjs` adds a line to
+`~/.claude/skills/FIRE_LOG.jsonl`. It works the same in plugin and direct-clone installs. The file
+stays on your machine.
+
+The log has blind spots. The six norms are always on, so they never "load". The hooks act without
+loading anything. A skill Claude applies from what it already knows leaves no line either. So a
+skill with no fires has not necessarily gone unused. Treat a zero as a question to look into.
+
+### Step 2: a lessons log in each project
+
+In each project, keep a file at `docs/LESSONS_LEARNED.md`. Add an entry whenever something ships
+broken, or nearly does. End every entry with one line in this exact form:
+
+```markdown
+## 12. The invoice total was right on screen and wrong in the export
+
+**What happened.** ...
+
+**The lesson.** ...
+
+**How to apply.** ...
+
+skill that should have prevented this: trace-one-record
+```
+
+That last line is what the script reads. It accepts three shapes:
+
+- one skill: `skill that should have prevented this: trace-one-record`
+- several, split by a slash: `skill that should have prevented this: plan-first / blast-radius-grep`
+- none fits: `skill that should have prevented this: none, new candidate (invoice-export-check)`
+
+Put a short note in brackets after a skill name if it helps; the script ignores it. In the "none"
+shape, the name in brackets becomes the proposed name for a new skill.
+
+Write the entry the day it happens. A week later the detail has gone.
+
+### Step 3: compare loads against misses
+
+The comparison script is `hooks/audit-fires.mjs`. Plugin installs keep their copy in Claude Code's
+plugin cache, so the simplest way to run it is from a clone kept anywhere:
+
+```bash
+git clone https://github.com/randommonicle/claude-skills.git ~/claude-skills
+node ~/claude-skills/hooks/audit-fires.mjs --repo ~/projects/app-one --repo ~/projects/app-two
+```
+
+Pass one `--repo` for each project with a lessons log. The script reads
+`docs/LESSONS_LEARNED.md`, or `LESSONS_LEARNED.md` at the project root if there is no `docs/`
+copy. On a direct-clone install, use
+`~/.claude/skills/hooks/audit-fires.mjs` instead. The script changes nothing. It prints four
+sections:
+
+1. how often each skill loaded;
+2. skills that never loaded, each tagged with any reason a zero is expected;
+3. misses per skill, plus the new candidates;
+4. a summary, including the skills that appear in both logs.
+
+How to read it:
+
+- If a skill loaded often and was still missed, its rule is too weak. Strengthen it.
+- If a skill was missed and never loaded, the rule may be right but it never reaches Claude at
+  the right moment. Fix its description so it triggers, or back it with a hook.
+- If the same new candidate turns up in two or more projects, that is a strong case for a new
+  skill.
+- If a skill never loaded and was never missed, consider pruning it, unless its tag explains the
+  zero.
+
+### Step 4: the sweep
+
+Open Claude Code in your copy of the library and ask for a sweep. For example:
+
+> Run a misses-log sweep. Read every lessons log entry written since the last sweep in these
+> repos: (list them). Read each entry in full. For each miss, grep every SKILL.md and hooks/ to
+> check whether a rule already covers it. Group what is left into new skills, upgrades to existing
+> skills, and project-only rules. Write the proposals to docs/SKILL_PROPOSALS_(date).md. Build
+> nothing yet.
+
+[docs/SKILL_PROPOSALS_2026-11-01.md](docs/SKILL_PROPOSALS_2026-11-01.md) is a real sweep to copy
+the shape from. It ranks proposals in three tiers, and lists what it rejected and why.
+
+Then you choose. Build each accepted proposal on its own branch, with its tests, and run
+`node hooks/check-index.mjs` before you merge. A new skill also needs a row in the table below
+and the skill count updated in three places; the check tells you if one is missing.
+
+Two rules keep the loop honest:
+
+- **You make the decision.** Claude proposes; a person admits each change. A skill is an
+  instruction Claude will follow in every project, so nothing goes in unread.
+- **Lessons specific to one project stay in that project.** Put them in the project's own
+  `.claude/skills/` folder. The [`skill-library-builder`](skill-library-builder/SKILL.md) skill
+  covers how.
+
+### Making the library your own
+
+To change skills for yourself, fork this repository and install from your fork:
+
+```
+/plugin marketplace add <your-github-name>/claude-skills
+/plugin install ash@ash-skills
+```
+
+Install from your fork or from this repository, not both. Pull changes from here into your fork
+when you want them.
+
+To keep a plugin install up to date, run `/plugin marketplace update ash-skills`. A direct clone
+can update itself on a schedule with `hooks/update-skills.mjs`; the setup is in
+[hooks/HOOKS.md](hooks/HOOKS.md).
 
 ## Skills
+
+The library is split into four layers so 60 skills coexist without Claude confusing one for
+another:
+
+- Hooks ([hooks/HOOKS.md](hooks/HOOKS.md)) are scripts that enforce a rule every time, with no
+  judgement involved. They include the push gate, the destructive-SQL gate, a guard that blocks
+  commands which would print a secret, a guard that blocks killing processes by name, the fire
+  log, the session-start check, and warnings for moments a skill cannot spot by itself, such as
+  adding a scheduled job or writing a migration.
+- Norms ([NORMS.md](NORMS.md)) are six one-line rules loaded into every session. Each points at
+  the skill that explains it.
+- Hubs are skills that own a moment in the work, such as planning, testing or calling something
+  done. Each has a table pointing to the narrower skills it relies on.
+- Leaves are narrow skills with their own trigger words. Each states what it does not cover.
+
+The design and its review are in
+[docs/SKILL_PROPOSALS_2026-07-23.md](docs/SKILL_PROPOSALS_2026-07-23.md) and
+[docs/REVIEW_2026-07-23_skill_proposals.md](docs/REVIEW_2026-07-23_skill_proposals.md). A lesson
+becomes a skill when the same mistake turns up in more than one project.
 
 | Skill | Layer / role | What it does |
 |-------|--------------|--------------|
@@ -136,22 +270,23 @@ The library is organised as a four-layer architecture (hooks / always-on norms /
 | **legal-citation-integrity** | leaf (routed by verified-citations) | Audit every citation in a finished or received legal document; extracted count must equal table rows, and Confirmed needs a named retrieval. Fork, see its `UPSTREAM.md`. |
 | **statute-to-obligations-register** | leaf (domain) | Turn a statute, regulation or code into an obligations register read from the current official text; no empty cell, every extracted item accounted for, commencement status from the page. Fork, see its `UPSTREAM.md`. |
 | **legal-notice-handling** | leaf (domain) | Draft, reply to, or analyse a legal notice; every deadline a calendar date with its arithmetic, every threatened consequence confirmed and lawfully available, every admission of fact kept apart from the legal conclusion. Fork, see its `UPSTREAM.md`. |
-| **ai-surface-discipline / unslop-ui / unslop-text / unslop-code** | see rows above / forks | The three **unslop-\*** skills are forks of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches — see each skill's `UPSTREAM.md`. |
+| **ai-surface-discipline / unslop-ui / unslop-text / unslop-code** | see rows above / forks | The three **unslop-\*** skills are forks of [JCarterJohnson/vibecoded-design-tells](https://github.com/JCarterJohnson/vibecoded-design-tells) with local patches. See each skill's `UPSTREAM.md`. |
 
 ## Agents
 
 Reviewers in [agents/](agents/) that Claude can hand a named change to for a second opinion.
-Each returns a verdict and findings ranked by severity with `file:line` evidence, and
-recommends rather than edits. With the plugin installed they are namespaced under it, so you
-can call one directly, for example `@agent-ash:property-reg-reviewer`.
+Each returns a verdict and findings ranked by severity, with `file:line` evidence. They recommend
+changes and never make them. With the plugin installed they sit under its name, so you can call
+one directly, for example `@agent-ash:property-reg-reviewer`.
 
 | Agent | What it reviews |
 |-------|-----------------|
 | [code-reviewer](agents/code-reviewer.md) | A specific diff or file, as an independent second opinion on correctness, security, failure modes and test adequacy. |
 | [property-reg-reviewer](agents/property-reg-reviewer.md) | A change touching service-charge maths, demands, client money, leaseholder-facing output, retention or erasure, or AI surfaces, against LTA 1985, the RICS Service Charge Code, TPI, BSA 2022 and UK GDPR. Run it as well as code-reviewer on regulated changes. |
 
-The **team-loop** skill's stage 2 adds four role agents. They build and research rather than
-review, each pinned to model, effort and `maxTurns`, and none can spawn agents of its own.
+Stage 2 of the **team-loop** skill adds four role agents. These four build and
+research. Each is pinned to a model, an effort level and a turn limit, and none can start agents of
+its own.
 
 | Agent | What it does |
 |-------|--------------|
@@ -173,88 +308,95 @@ files that are not on GitHub into that private repository; it is off until you w
 
 ## Install on a new machine
 
-**Prerequisites.** Claude Code, `git`, and **`node` on PATH** (every hook is a node script). The
-session-recon and push-gate hooks also shell out to `git` and `gh`, so install the
-[GitHub CLI](https://cli.github.com/) and run `gh auth login` if you want their live repo state.
-Everything degrades quietly rather than breaking: a missing `node` or `gh` means the affected hook
-produces nothing, which looks identical to nothing being wrong. If a hook seems inert, check the
-prerequisite first.
+**Prerequisites.** Claude Code, `git`, and `node` on your PATH, since every hook is a Node
+script. The session-start check and the push gate also use `git` and `gh`, so install the
+[GitHub CLI](https://cli.github.com/) and run `gh auth login` if you want live repo state.
 
-**What installing changes about your sessions**, stated plainly because none of it is obvious
-afterwards and one item can interrupt you:
+If a prerequisite is missing, the hook that needs it stays silent. That looks exactly like nothing
+being wrong. If a hook seems to do nothing, check its prerequisite first.
 
-- **Ten command hooks are wired**, listed in [hooks/HOOKS.md](hooks/HOOKS.md). Two are gates that
-  ask for confirmation rather than warn: `push-gate` intercepts `git push`, `gh pr merge` and
-  remote branch deletion, and `sql-surgery-warn` intercepts destructive SQL in an execution
-  context. Both match the `Bash` and `PowerShell` tools, which is load-bearing on Windows desktop:
-  a `Bash`-only matcher leaves both gates absent on the PowerShell path, and shipped that way
-  until 2026-09-16. If you do not want a confirmation prompt on every push, do not install the plugin
-  mode; take the skills only. Two more deny rather than ask: `secret-echo-guard` (a command that
-  would print a secret value) and `kill-guard` (a process kill chosen by name or pattern, such as
-  `Stop-Process -Name` or `pkill`; kills by PID pass).
-- **A SessionStart hook runs `git fetch` and `gh pr list`** in your repo at the start of every
-  session, and injects the result as context. That is network activity in your repo, on your
-  credentials, without a prompt.
-- **`skill-fire-log.mjs` appends the skill name, its arguments and your cwd** to
-  `~/.claude/skills/FIRE_LOG.jsonl` every time a skill loads, and unrecognised event shapes to
-  `FIRE_LOG_DEBUG.jsonl` beside it. Both are local-only and gitignored, and nothing in them is
-  transmitted anywhere. The only network activity any hook performs is the `git fetch` and
-  `gh pr list` named above, on your own credentials. Delete the files or remove the hook if you
-  would rather not keep them.
-- **The six norms are injected into every session** as instructions, per [NORMS.md](NORMS.md).
+### What installing changes
+
+None of this is obvious once it is running, and the first item can interrupt you.
+
+- **Twelve hook scripts are wired**, listed in [hooks/HOOKS.md](hooks/HOOKS.md).
+  - Two ask before acting. `push-gate` stops `git push`, `gh pr merge` and remote branch deletion
+    for your confirmation. `sql-surgery-warn` does the same for destructive SQL. If you do not
+    want a prompt on every push, skip the plugin and take the skills only.
+  - Two refuse outright. `secret-echo-guard` blocks a command that would print a secret value.
+    `kill-guard` blocks killing a process by name or pattern, such as `pkill` or
+    `Stop-Process -Name`. Killing by process ID still works.
+  - The rest only warn or report.
+- **At the start of every session, a hook runs `git fetch` and `gh pr list`** in your repo and
+  passes the result to Claude. That is network activity on your own credentials, with no prompt.
+  It is the only network activity any hook performs.
+- **The fire log records each skill that loads**, with its arguments and your working folder, in
+  `~/.claude/skills/FIRE_LOG.jsonl`. Event shapes it does not recognise go to
+  `FIRE_LOG_DEBUG.jsonl` beside it. Both stay on your machine and are never sent anywhere. Delete
+  them, or remove the hook, if you would rather not keep them.
+- **The six norms are added to every session** as instructions, per [NORMS.md](NORMS.md).
 - **Nothing in [lessons-watch](lessons-watch/) runs unless you set it up.** It is not a hook.
   Its optional `mirror.mjs` is the one script in this library that sends file content off the
   machine (the lessons files you name, to the private repository you name), and with no config
   file it does nothing and says so.
 
-Two modes — pick ONE per machine (both at once double-registers every skill and double-fires
-every hook):
+### Two ways to install
 
-**Plugin (recommended — skills, hooks and norms in one step):**
+Pick one per machine. Using both registers every skill twice and fires every hook twice.
+
+**Plugin (recommended).** Skills, hooks, norms and agents in one step:
 
 ```
 /plugin marketplace add randommonicle/claude-skills
 /plugin install ash@ash-skills
 ```
 
-The repo doubles as a plugin marketplace (`.claude-plugin/marketplace.json`). The plugin
-serves the skills from the repo root (`"skills": "./"` in plugin.json), loads the agents from
-`agents/`, wires all Layer 0 hooks via `hooks/hooks.json`, and injects the NORMS.md block at
-every session start (`hooks/norms-inject.mjs`) — no manual CLAUDE.md or settings.json editing.
-Updates arrive when the machine refreshes the marketplace (no version field is set, so every
-push to main counts as a new version). The repo is public, so no credentials are needed to
-read it.
+The repository doubles as a plugin marketplace (`.claude-plugin/marketplace.json`). The plugin
+serves the skills from the repo root, loads the agents from `agents/`, wires the hooks through
+`hooks/hooks.json`, and adds the norms at each session start through `hooks/norms-inject.mjs`.
+You do not edit `CLAUDE.md` or `settings.json` by hand. The repository is public, so no
+credentials are needed.
 
-**Check it worked**, rather than assuming:
+To check it worked, run `/plugin` in a session and confirm the plugin is listed. Then ask Claude
+to write a test and watch for it loading a skill. If skills load but you never see a push prompt
+or a session-start note, the hooks are the part that did not install.
 
-```bash
-node ~/.claude/skills/hooks/check-index.mjs
-```
-
-That prints `ok: N skills, all indexed, ...` and exits 0. In a session, `/plugin` lists the
-installed plugin, and asking Claude to do something a skill guards (say, write a test) should
-visibly load the relevant skill. If skills are present but nothing ever fires, the hooks are the
-part that did not install.
-
-**To remove it:** `/plugin uninstall ash@ash-skills`, then delete `FIRE_LOG.jsonl`,
+To remove it, run `/plugin uninstall ash@ash-skills`. Then delete `FIRE_LOG.jsonl`,
 `FIRE_LOG_DEBUG.jsonl` and `SURGERY_LOG.jsonl` from `~/.claude/skills/` if you want the local
 logs gone.
 
-**Direct clone (the maintainer's dev machine only):**
+**Direct clone.** For editing the library itself:
 
 ```bash
 git clone https://github.com/randommonicle/claude-skills.git ~/.claude/skills
 ```
 
-Then copy the NORMS.md block into `~/.claude/CLAUDE.md`, install the hooks per
-[hooks/HOOKS.md](hooks/HOOKS.md), and copy the agents to where Claude Code reads user agents,
-which is not the clone:
+Then:
+
+1. Copy the block in [NORMS.md](NORMS.md) into `~/.claude/CLAUDE.md`.
+2. Install the hooks as set out in [hooks/HOOKS.md](hooks/HOOKS.md).
+3. Copy the agents to where Claude Code reads them, which is outside the clone:
+
+   ```bash
+   mkdir -p ~/.claude/agents && cp ~/.claude/skills/agents/*.md ~/.claude/agents/
+   ```
+
+Copy the agents again after pulling a change to one. The session-start check names any copy
+that is missing or out of date.
+
+To check a direct clone, run:
 
 ```bash
-mkdir -p ~/.claude/agents && cp ~/.claude/skills/agents/*.md ~/.claude/agents/
+node ~/.claude/skills/hooks/check-index.mjs
 ```
 
-Copy again after pulling a change to an agent; `session-recon` names a copy that is missing or
-out of date at the start of every session. This mode is for editing the skills; a machine on
-this mode must NOT also install the plugin.
+It should print `ok: 60 skills, all indexed, ...` and exit with code 0.
 
+## Licence
+
+This repository is licensed under Apache-2.0 (see `LICENSE`). Seven skills are forks and keep
+their upstream's terms, recorded in each one's `UPSTREAM.md`: the three `unslop-*` skills and the
+four legal skills (`contract-review`, `legal-citation-integrity`,
+`statute-to-obligations-register`, `legal-notice-handling`). The unslop skills also carry a
+`LICENSE` file, which goes into their `.skill` archives. `hooks/check-licences.mjs` fails the
+build if a fork loses its notice.
