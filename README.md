@@ -295,6 +295,17 @@ its own.
 | [tl-test-writer](agents/tl-test-writer.md) | A regulated package's tests, from the spec, independently of the builder. |
 | [tl-builder-regulated](agents/tl-builder-regulated.md) | A regulated package, built on top of the test writer's commit. |
 
+## Lessons watch: knowing when a sweep is due
+
+The skills here came from sweeps of the misses log: the `none - new candidate` lines that close
+lessons entries no skill covered. Nothing said when the next sweep was due. The
+[lessons-watch](lessons-watch/) tooling counts those lines across your repositories once a
+week on GitHub Actions and keeps one issue current in a private repository of your own, so the
+number reaches you with your computer off. It involves no model and installs nothing by itself:
+you opt in by creating the private repository and following
+[lessons-watch/README.md](lessons-watch/README.md). An optional local step copies lessons
+files that are not on GitHub into that private repository; it is off until you write its config.
+
 ## Install on a new machine
 
 **Prerequisites.** Claude Code, `git`, and `node` on your PATH, since every hook is a Node
@@ -324,6 +335,10 @@ None of this is obvious once it is running, and the first item can interrupt you
   `FIRE_LOG_DEBUG.jsonl` beside it. Both stay on your machine and are never sent anywhere. Delete
   them, or remove the hook, if you would rather not keep them.
 - **The six norms are added to every session** as instructions, per [NORMS.md](NORMS.md).
+- **Nothing in [lessons-watch](lessons-watch/) runs unless you set it up.** It is not a hook.
+  Its optional `mirror.mjs` is the one script in this library that sends file content off the
+  machine (the lessons files you name, to the private repository you name), and with no config
+  file it does nothing and says so.
 
 ### Two ways to install
 

@@ -1,0 +1,68 @@
+# Copy to .github/workflows/lessons-watch.yml in your PRIVATE watch repository.
+# See lessons-watch/README.md in randommonicle/claude-skills for the whole setup.
+#
+# Once a week it counts the "new candidate" lines in every lessons file watch.json
+# names and keeps one issue, "Unswept lesson candidates", up to date. It comments on
+# the issue, mentioning the repository owner, only when the figures change, so a quiet
+# week sends nothing. A source it cannot read fails the run; it is never counted as 0.
+name: lessons-watch
+
+on:
+  schedule:
+    - cron: '17 7 * * 1' # Mondays 07:17 UTC. Scheduled runs can start late; that is fine here.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  count:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # The counting script, pinned to a commit you have read. Bump the ref deliberately.
+      - uses: actions/checkout@v7
+        with:
+          repository: randommonicle/claude-skills
+          ref: REPLACE_WITH_A_FULL_COMMIT_SHA
+          path: .tool
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: count
+        id: count
+        continue-on-error: true
+        env:
+          # Fine-grained token, Contents: read-only, on the private repositories named
+          # in watch.json. Not needed when every source is public or a mirrored file.
+          LESSONS_READ_TOKEN: ${{ secrets.LESSONS_READ_TOKEN }}
+        run: node .tool/lessons-watch/count.mjs --config watch.json --out report.md
+      - name: put the report on the issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -s report.md || { echo "count.mjs wrote no report, so there is nothing to post"; exit 1; }
+          title="Unswept lesson candidates"
+          n=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --limit 200 --json number,title \
+                --jq "map(select(.title == \"$title\"))[0].number // empty")
+          prev=""
+          if [ -z "$n" ]; then
+            url=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file report.md)
+            n="${url##*/}"
+          else
+            prev=$(gh issue view "$n" --repo "$GITHUB_REPOSITORY" --json body --jq .body | grep -oE 'lessons-watch total=[0-9]+ failed=[0-9]+ warnings=[0-9]+' || true)
+            gh issue edit "$n" --repo "$GITHUB_REPOSITORY" --body-file report.md
+          fi
+          now=$(grep -oE 'lessons-watch total=[0-9]+ failed=[0-9]+ warnings=[0-9]+' report.md)
+          test -n "$now" || { echo "the report has no marker line"; exit 1; }
+          if [ "$prev" != "$now" ]; then
+            gh issue comment "$n" --repo "$GITHUB_REPOSITORY" \
+              --body "@${GITHUB_REPOSITORY_OWNER} the figures changed: ${now#lessons-watch }. Was: ${prev:-no earlier run}. The table is in the issue body above."
+          fi
+      - name: fail the run when a source could not be read
+        if: steps.count.outcome == 'failure'
+        run: |
+          echo "At least one source was not read. The issue names it."
+          exit 1

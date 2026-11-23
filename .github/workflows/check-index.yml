@@ -171,6 +171,9 @@ jobs:
       - name: the Ask board page suite
         if: always()
         run: node team-loop/ask-board.test.mjs
+      - name: the lessons-watch suite
+        if: always()
+        run: node lessons-watch/watch.test.mjs
 
   # The win32 half of the hooks job. Only the PowerShell-driven suites run here, plus
   # the transport suite for its one win32-only case: everything else is already covered
