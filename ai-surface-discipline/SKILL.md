@@ -1,6 +1,6 @@
 ---
 name: ai-surface-discipline
-description: Apply input minimisation, output discipline, and a human-in-the-loop gate to every surface that sends data to an LLM. Triggers when building or editing any send-to-LLM path: an Edge Function calling a model, a draft-commentary or summary generator, an auto-resolver, a cash-allocation suggestion, a classification call, or any new AI-assist feature, especially in a RICS or UK GDPR regulated context.
+description: Apply input minimisation, output discipline, and a human-in-the-loop gate to every surface that sends data to an LLM. Triggers when building or editing any send-to-LLM path: an Edge Function calling a model, a draft-commentary or summary generator, an auto-resolver, a cash-allocation suggestion, a classification call, or any new AI-assist feature, and when changing the model or the prompt behind one, especially in a RICS or UK GDPR regulated context.
 ---
 
 # AI-surface discipline
@@ -124,3 +124,15 @@ absent from the citeable corpus. This split is also the prompt-injection defence
 - Model output feeds a rendering/export path → load **no-silent-data-drop**.
 - The surface is a public endpoint spending money or writing shared state → load **guard-the-spend-paths**.
 - The surface sends email/SMS/webhooks and records status → load **outbound-side-effect-idempotency**.
+
+## Additions from the misses-log sweep (2026-11-23)
+
+- **A classification somebody outside sees is anchored on the commitment it creates, not on a
+  description of it.** A band defined in words ("deterioration likely") is read loosely by one
+  model and literally by the next. Define it by what the reader is promised (a response time, a
+  price, a deadline), with worked examples the business has signed off, hold one definition that
+  every prompt shares, and tie it to the printed value with a test.
+- **A model change is a behaviour change until a fixed sample says otherwise.** Keep a sample set,
+  run it on the old and the new model, and compare item by item, not by average. Two of nine items
+  moved up a band on an upgrade, and the band set the response time printed in the client's report.
+  (ASH 2026-10-13.)

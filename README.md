@@ -230,7 +230,7 @@ becomes a skill when the same mistake turns up in more than one project.
 | **enumerate-the-set** | leaf (Tier 1) | Blast-radius-grep's twin: it enumerates the places a fact lives, this enumerates the members a change must decide. List fields, kinds, statuses, legs, exit paths and anchors from their source, decide each one in code and in a test, give every start an end, and ask a reviewer which member is uncovered. |
 | **trace-one-record** | leaf | Two correct figures can make a wrong total: name what each source contains and trace one record end to end through both before combining them; a stated check is not a performed check. |
 | **env-change-verification** | leaf (Tier 1) | An env change is not live until the reading artifact is rebuilt/redeployed; validate the value, not its presence. |
-| **enforce-invariants-in-build** | leaf (Tier 1) | A rule asserted only in prose is a comment; back invariants with a test, constraint, or trigger. |
+| **enforce-invariants-in-build** | leaf (Tier 1) | A rule, prerequisite, permission or expiry that exists only in prose is a comment; back it with a test, constraint, trigger, preflight check or dated owner. |
 | **lock-at-the-chokepoint** | leaf | Serialise shared ops at the module-level chokepoint; check-then-act is not a lock; bounded resumable retry loops. |
 | **mass-red-triage** | leaf | Classify a broadly-red suite before debugging: root failure, rate-limit walls, truncated runs, environment defects. |
 | **rerun-before-verdict** | leaf | No verdict from one uncontrolled run: fixes re-run the failing case, deadness needs with/without, good news needs three datapoints or a controlled diff. |
@@ -319,7 +319,7 @@ being wrong. If a hook seems to do nothing, check its prerequisite first.
 
 None of this is obvious once it is running, and the first item can interrupt you.
 
-- **Twelve hook scripts are wired**, listed in [hooks/HOOKS.md](hooks/HOOKS.md).
+- **Thirteen hook scripts are wired**, listed in [hooks/HOOKS.md](hooks/HOOKS.md).
   - Two ask before acting. `push-gate` stops `git push`, `gh pr merge` and remote branch deletion
     for your confirmation. `sql-surgery-warn` does the same for destructive SQL. If you do not
     want a prompt on every push, skip the plugin and take the skills only.

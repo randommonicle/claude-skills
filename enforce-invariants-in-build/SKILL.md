@@ -1,6 +1,6 @@
 ---
 name: enforce-invariants-in-build
-description: A rule asserted only in prose — "single source of truth", "never auto-X", "these must match" — is a comment, not a control; if a violation can exist without failing the build, one eventually will and it will look official. Triggers when writing or encountering any comment, doc, or convention that asserts an invariant nothing enforces. Does not fire on deferral markers (flag-deferred-items) or on rules already carried by a test, constraint, or trigger.
+description: A rule, prerequisite, permission or expiry that exists only in prose is a comment, not a control. Load when writing or meeting "must", "never", "single source of truth" or "these must match" in a comment or doc; noting that something has to be running, present or set before a run or release; accepting a known cost or side effect; writing "until launch" or "for now" into a file sessions load; or provisioning what idles or expires. Not for deferral markers (flag-deferred-items) or rules a test, constraint or trigger already carries.
 ---
 
 # Enforce invariants in the build
@@ -57,3 +57,28 @@ of competent review. Evidence: ASH LESSONS_LEARNED 2026-06-10 (lifts carve-out),
   to keep: "write carefully" failed three times where a grep would not have. (Library 43;
   wired for this repository in `.github/workflows/check-index.yml` on 2026-11-05, with a
   deliberate violation proving the step can go red.)
+
+## Additions from the misses-log sweep (2026-11-23)
+
+The rule above asks whether a violation can exist without failing the build. The same question
+applies to a running system and to a statement with an end date, where no build is looking.
+
+- **A stated prerequisite gets a check in the commit that states it.** "X must be running",
+  "the file must be present", "the PC must be on" is a check in the preflight, the build or the
+  release script, able to go red, or it is not a control. A show that depended on a program being
+  open had that written down, passed its preflight with the program closed, and never went on
+  air. A release built in a fresh checkout lacked a git-ignored input that a doc said to check by
+  hand, and the feature was silently absent for seventeen days. (Rimagent 2026-11-10; ICC L-139;
+  passive income L-111.)
+- **A known cost or side effect gets a guard or a named owner.** Recorded as a consequence and
+  left there, it lands. (Rimagent 2026-11-12, where a documented side effect destroyed the thing
+  it was documented to touch.)
+- **A permission or status with an end names the event that ends it, and that event's checklist
+  gets the removal item in the same commit.** "Until launch" in a file every session loads
+  outlived the launch by two months, because the ending condition lived only in the sentence that
+  granted the relaxation. When the event is ticked off, grep the session-start files for the old
+  state by name. (ICC L-146.)
+- **Anything provisioned ahead of its consumer records when it lapses.** Read the provider's idle,
+  expiry and quota rules at creation, then arm a keep-alive or write the date where a session will
+  see it. (One private project, 2026-09-27: a free-tier database paused before its consumer
+  existed.)
