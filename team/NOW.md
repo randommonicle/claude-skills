@@ -1,40 +1,40 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-11-24, after the first items of the 23 November sweep were built (home machine). Diagnoses are unverified unless marked
-topic: the 23 November sweep, `docs/SKILL_PROPOSALS_2026-11-23.md`. First items built on `feat/sweep-2026-11-23-first`, unpushed; the rest of its Tier 2 table waits
-next: Ben's word on the push and merge, on `skillListingBudgetFraction` (about half the library is listed with no description, verified in 541 sessions) and on wiring `record-time-warn`; the same counts on the work machine; then the private `watch.json` baselines. `lessons-watch` is live: task `lessons-watch mirror`, 16:00 daily, home machine (`bengr`)
-branches: main; feat/sweep-2026-11-23-first on docs/skill-proposals-2026-11-23 (both local, unpushed); PR #43 open and conflicting; PR #49 open
-ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09; ASK-0010 and ASK-0011 dropped unanswered, never read by any session)
+updated: 2026-11-24 00:31Z, home machine (`bengr`). Diagnoses are unverified unless marked
+topic: the 23 November sweep. First items merged (PR #50); 22 of its 24 Tier 2 rows are unbuilt
+next: on the work machine (`ASH-HP-241`), run `node hooks/audit-fires.mjs` and count name-only skills in its session listings, before building more rows. Detail: `docs/HANDOVER_sweep_2026-11-24.md`
+branches: main 38ab45f; docs/handover-2026-11-24 (this note); PR #43 open, conflicting; PR #49 open
+ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09). Open questions are in the handover, section 7
 
-## Landed
+## Landed since the last NOW.md
 
-- **60 skills.** All four Tier 1 proposals of the 1 November sweep: `spawn-from-declared-state` (PR #41), then `instrument-reports-itself`, `prove-it-can-pass` and `enumerate-the-set`. Plus the entire Tier 2 table, eighteen skills
-- Two Tier 2 rows built rather than written: `*.json text eol=lf` pinned, and the unslop scanner wired over its own three `SKILL.md` files in the `index` job, behind a plant-an-em-dash step that fails if the scanner calls the violation clean
-- **`pack-skill.mjs` wrote a wrong CRC-32 into every archive** (`>>> 1` for `>>> 8`): 5 archives, 21 members, all refused by a standard zip reader while the gate called them current. Fixed at source, all re-packed, CRC check and a red case added. LESSONS 47
-- LESSONS 48: a `claude`-to-`Codex` rename reached a skill's Provenance section and turned a Claude incident into a Codex one. Instructions translate; records do not
-- `prove-it-can-pass` rule 9, after the same throwaway pass-line grep misreported a healthy suite twice in four days. Read the exit code, not the prose
-- The updater's empty-config hole, the neighbour of LESSONS 46, closed with two cases that both go red without the fix
+- 5135cf2 PR #47, lessons-watch; verified: weekly workflow green twice on 2026-11-23 (runs 45283493186, 45289630547), 0 sources unread
+- 38ab45f PR #50, the sweep's first items and `record-time-warn`; verified: four checks green, suites green locally, the hook ridden live on the home machine
+- Home machine settings: `skillListingBudgetFraction` 0.03 (verified, 57,870 characters, no name-only skills) and `record-time-warn` wired (verified by two real commits). Both are per machine and neither is on the work machine
+- Task `lessons-watch mirror`, daily 16:00, home machine; verified by a fresh `ranAt` on 2026-11-23
 
-## Settled on 2026-11-09, not open (DECISIONS 2026-11-09)
+## In flight
 
-- The Avast moratorium stands, so **CI is the only coverage for the four win32 suites.** The `hooks-windows` job is load-bearing: removing, renaming or softening it stops those four running anywhere
-- The Codex port at `~/.agents/skills` stays hand-maintained and unmanaged, permanently. It will drift and nothing will report it. The `claude-api`-to-`Codex-api` rewrites stay in the backup patch, unported
-- The em-dash gate stays at the three unslop `SKILL.md` files. The 6 em dashes in `live-state-first` and 8 in `README.md` stay
-- The Occam read, if run, asks about the three weeks since the trial, not its second week. No comparable baseline exists for that window: `docs/OCCAM_second-read_2026-11-05.md`
-- The live-state-first clock rule is ratified, not a default left standing
+- nothing half-built. Two local branches and the worktree `~/.claude/skills-wt-sweep-2026-11-23` are left over and merged
 
 ## Deferred, with grep anchors
 
-- `session-recon` prints nothing inside a port; unverified cause
-- No `team-loop` Rounds re-run is recorded for Fable 5.2 in DECISIONS, WORKLOG or this file (checked 2026-11-14 from the home machine, `bengr`). Unverified whether any archived package exists to re-run. The `opus` pins are as designed on 2026-10-02 and are not in question
-- `FORWARD:` naming `team/INBOX/` in `docs/DESIGN_team-loop_2026-10-02.md:512`; unpinned agents
+- `FORWARD(description-budget)` in hooks/check-index.mjs: a CI check on the total length of the descriptions
+- A hook for staged deletes and renames, and the rest of Tier 2: docs/SKILL_PROPOSALS_2026-11-23.md
+- `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md:512; unpinned agents
+- `session-recon` prints nothing inside a port; unverified cause. No Rounds re-run recorded for Fable 5.2 (checked 2026-11-14)
+
+## Verification outstanding
+
+- The 16:00 mirror has not yet fired on its own schedule: read `mirror/STATUS.json` `ranAt` after 2026-11-24 16:00
+- Whether a wider list makes skills load in real sessions: read FIRE_LOG about 2026-12-22
 
 ## Traps
 
-- **This is the work machine** (`ASH-HP-241`, `C:\Users\ben`). The home machine is `C:\Users\bengr`. The Antigravity port, both vendor packs and the whole Occam trial are home-machine only, and their absence here is correct, not drift (DECISIONS 2026-11-05). A machine-local fact must name its host, not just its path
-- **Do not put `~/.agents/skills` back under `checkouts` or `ports`.** A fast-forward overwrites its hand substitutions. Settled 2026-11-09; its state is backed up at `~/.claude/agents-skills-backup-2026-11-05` and `~/.claude/agents-skills-codex-port-2026-11-06`
-- A direct push to main is refused; two PRs that both change the skill count conflict, so stack skills on one branch
-- Run hook suites as `node <file>`, never `node --test` (hangs past two minutes locally). Judge them by exit code, never by grepping their last line (`prove-it-can-pass` rule 9)
-- Heredocs into an interpreter still eat one backslash level: write files with the Write or Edit tool (`tool-layer-bytes`). The four newest byte layers are in that skill's 2026-11-01 section
-- Take clock times from PowerShell `Get-Date`, in the same command that writes them (`live-state-first`, ratified 2026-11-09). UK clocks are GMT since 25 October
+- Two machines: work `ASH-HP-241` (`C:\Users\ben`), home `C:\Users\bengr`. The Antigravity port, both vendor packs and the Occam trial are home only. A machine-local fact names its host
+- The Avast moratorium stands, so `hooks-windows` in CI is the only run of the four win32 suites. Never rename it or soften it
+- Never put `~/.agents/skills` under `checkouts` or `ports`. Never squash past or rewrite c58fe69: the private weekly workflow pins it
+- A direct push to main is refused; stack branches that change the skill count. Run suites as `node <file>`, judged by exit code
+- Scripts go to disk with the Write tool, never a heredoc. Clock times are taken in the command that writes them
+- This repository is public: three private projects are cited as A, B and C, and counts stay in `randommonicle/lessons-watch`
