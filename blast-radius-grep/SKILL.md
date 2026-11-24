@@ -1,6 +1,6 @@
 ---
 name: blast-radius-grep
-description: The unit of change is the action or the fact, never the named list of places someone handed you. Before shipping a gate, constraint, rename, drop, or a correction to any duplicated, mirrored, or denormalised value, grep the whole repo — app, tests, seeds, scripts, open branches, and the built or rendered output — and fix every occurrence in the same pass; back a value copied into a second store with a trigger and a zero-rows drift-check query. Triggers on "change X in A and B" instructions, constraint or gate additions, drops and renames, denormalising a value, correcting any fact that is not single-sourced, and concluding anything from a sweep whose run errored or whose output was truncated. Does not fire on checking references in prose documents — verified-citations owns citation accuracy; this skill owns content duplication.
+description: The unit of change is the action or the fact, never the list of places someone handed you. Load BEFORE editing when a change reaches code or text it does not name: deleting, moving or renaming anything; rewording a message or label; changing what a status, total or column means; narrowing a grant; adding a constraint, gate or new kind; a lookup on an email, reference or name; fixing one instance of a bug; working from a spec's list of affected places; correcting a duplicated fact; or concluding from a sweep that errored or was truncated. Grep the whole repo and fix every occurrence in one pass. Not for citations in prose (verified-citations).
 ---
 
 # Blast-radius grep
@@ -85,3 +85,14 @@ shared evidence with db-migration-verification), 2026-06-10; ICC L-009 addenda, 
 ## Additions from the misses-log sweep (2026-10-22)
 
 - **A fact recorded twice drifts.** When a decision record or doc states a fact another record already holds (an address, a figure, a name), link to the first record instead of restating it, or check in the same change that both agree. (ICC L-088.)
+
+## Additions from the misses-log sweep (2026-11-23)
+
+- **One identity, one way of matching it.** Before writing a lookup on an identity column (an
+  email, a reference, a name), grep for every other place that matches the same column, in SQL
+  and in code, and use the same normalisation, or call the one function that owns it. Where the
+  column is not normalised on write, say so beside the lookup, and test the two layers against
+  each other with a value stored in mixed case. Two layers that answer "is this the same
+  person?" differently are each right alone, and neither can report that they disagreed. This
+  matters most where the answer decides whose data is served, changed or erased. (PropOS
+  2026-11-11c.)

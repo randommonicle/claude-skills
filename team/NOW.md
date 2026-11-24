@@ -1,10 +1,10 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-11-09, after Ben ruled on all seven open questions. Diagnoses are unverified unless marked
-topic: the 1 November sweep is built and shipped. 60 skills, and nothing left waiting on a decision
-next: no work is queued. The next misses-log sweep is called by the issue "Unswept lesson candidates" in the private `randommonicle/lessons-watch` (threshold 10; DECISIONS 2026-11-14), and its baselines are reset by hand after the sweep
-branches: main; feat/lessons-watch-2026-11-14 (PR #47, draft, waits on a read token and Ben's yes: `docs/HANDOVER_lessons-watch_2026-11-14.md`)
+updated: 2026-11-24, after the first items of the 23 November sweep were built (home machine). Diagnoses are unverified unless marked
+topic: the 23 November sweep, `docs/SKILL_PROPOSALS_2026-11-23.md`. First items built on `feat/sweep-2026-11-23-first`, unpushed; the rest of its Tier 2 table waits
+next: Ben's word on the push and merge, on `skillListingBudgetFraction` (about half the library is listed with no description, verified in 541 sessions) and on wiring `record-time-warn`; the same counts on the work machine; then the private `watch.json` baselines. `lessons-watch` is live: task `lessons-watch mirror`, 16:00 daily, home machine (`bengr`)
+branches: main; feat/sweep-2026-11-23-first on docs/skill-proposals-2026-11-23 (both local, unpushed); PR #43 open and conflicting; PR #49 open
 ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09; ASK-0010 and ASK-0011 dropped unanswered, never read by any session)
 
 ## Landed

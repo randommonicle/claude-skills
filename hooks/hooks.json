@@ -36,6 +36,12 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/record-time-warn.mjs\"", "timeout": 20 }
+        ]
+      },
+      {
         "matcher": "Skill",
         "hooks": [
           { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/skill-fire-log.mjs\"" }

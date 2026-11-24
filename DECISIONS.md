@@ -5,6 +5,23 @@ the git history. Newest first. Lessons live in LESSONS_LEARNED.md; this file
 records choices, with enough of the why that a later session does not
 relitigate them.
 
+## 2026-11-24 The 23 November sweep: the first items built, and why the skills were not loading
+
+Ben, on the sweep's proposals: "Go ahead and build", in answer to a question naming the two priority
+rows and main proposals 1 and 2. Built on `feat/sweep-2026-11-23-first`, not pushed or merged.
+
+- **Built:** the identity row in `blast-radius-grep`, the client-facing row in
+  `ai-surface-discipline`, the running-systems section of `enforce-invariants-in-build`, two
+  descriptions, and `hooks/record-time-warn.mjs` (warn-only, PostToolUse on `git commit`).
+- **Held back from what was approved:** the three norm playbooks' descriptions. The proposal rested
+  on reading their zero loads as a fault, and the audit tool documents that zero as expected.
+- **The finding that replaced it:** the skill list is over its budget and shows about half the
+  library by name only. `docs/SKILL_PROPOSALS_2026-11-23.md` has the measurement.
+- **Not decided, Ben's:** raising `skillListingBudgetFraction`, and wiring the new hook into each
+  machine's `settings.json`.
+- **A description is a cost to every other skill.** A longer one can push another off the list, so a
+  rewrite is measured in characters as well as in loads.
+
 ## 2026-11-14 A sweep is called by a weekly count, and one push runs unattended
 
 Ben asked whether a weekly scheduled task should update skills and look at what should have
