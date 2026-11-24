@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// FORWARD(description-budget): also fail when the descriptions' total length passes a set budget.
+// Over the harness's list cap a skill is shown by name only and cannot load
+// (docs/SKILL_PROPOSALS_2026-11-23.md, the main finding; docs/HANDOVER_sweep_2026-11-24.md).
 // Library index gate, NOT an event hook. Run it against a library root:
 //   node hooks/check-index.mjs [--root <dir>]
 // Exit 0 when the index agrees with the disk, exit 1 with a named reason when it
