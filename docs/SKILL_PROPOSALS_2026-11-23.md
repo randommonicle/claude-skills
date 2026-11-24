@@ -12,35 +12,38 @@ This repository is public and most of the sources are private, so entries are ci
 - **Coverage.** Each candidate rule was grepped in every `SKILL.md`. `prove-it-can-fail`, `live-state-first`, `verify-the-effect`, `blast-radius-grep`, `findings-are-evidence`, `enumerate-the-set` and `instrument-reports-itself` were read whole; the others by section or by grep, so a "not covered" against one of those is weaker.
 - Read in one session by Claude (Opus 5.5). Coverage was checked on `main`; of the open pull requests, only #43 was compared. An advisor pass on the first draft corrected one entry wrongly dismissed as already swept (ASH 2026-10-13), the private names, and a row on `db-migration-verification`.
 
-## The main finding: on the home machine, the playbooks named most often were not loaded
+## The main finding, corrected twice on 2026-11-24: the skill list is over its budget
 
-Of 135 namings of an existing skill across those entries, 71 name four always-on norms: `prove-it-can-fail` 21, `live-state-first` 18, `verify-the-effect` 17, `blast-radius-grep` 15. A few of those entries record that the rule did fire, and were not separated out.
+Of 135 namings of an existing skill across those entries, 71 name four: `prove-it-can-fail` 21, `live-state-first` 18, `verify-the-effect` 17, `blast-radius-grep` 15. A few of those entries record that the rule did fire, and were not separated out. On the home machine the four have loaded twice between them since the fire log began on 14 September; that log and the session transcripts were counted separately and agree at 79 loads of any skill since 1 November.
 
-On the home machine, since 1 November, none of the four loaded as a skill. The fire log and the session transcripts were counted separately and agree: 79 loads each, of which `cross-agent-review` 26, `handover` 23 and `commission-the-roster` 7. Since the fire log began on 14 September the four playbooks total 2 loads. `enumerate-the-set`, `instrument-reports-itself` and `prove-it-can-pass`, built from the last sweep, have none.
+**First version, wrong.** It called all four always-on norms and read the zeros as a delivery failure of those norms. Three are norms, which the README and `audit-fires.mjs` both say never produce a Skill call. The sweep had read neither.
 
-What that does and does not show:
+**The cause, measured.** Claude Code gives the model a skill list capped at a share of the context window (`skillListingBudgetFraction`, default 0.01), about 30,000 characters here. Over the cap, skills are listed by name with no description, so nothing can match them. Read from the `skill_listing` record in 541 sessions since August on the home machine:
 
-- **It is one machine.** 25 of the 71 are PropOS, which ran 16 sessions here since 1 November, so most of those were probably written on the work machine, whose log was not read. The other 46 come from repositories that run here daily. For `blast-radius-grep`, ten of fifteen are PropOS, so this says little about it. The finding is firmest for the other three.
-- **The one-line norms were present,** injected at session start. The playbook, where the depth and every addition from three sweeps lives, was not.
-- **It cannot show that a load would have prevented a given miss.** It does show that a line added to one of these files reaches almost nobody here, and the 22 October and 1 November sweeps both added lines to them. `skill-library-builder` already says a rule whose description no situation reaches is not learned (2026-11-01).
+- The list has sat at 29,900 to 30,002 characters throughout. The library skills shown by name only rose from none on 3 August to between 28 and 32 of 60 on 23 November.
+- `enumerate-the-set`, `instrument-reports-itself` and `prove-it-can-pass` have had no description in any session since they were built (112 of 112). `tool-layer-bytes`: 238 of 238. `verify-the-effect`: 539 of 541. `live-state-first`: 509 of 541.
+- The vendor documentation says the least used skills lose theirs first, which makes it self-sustaining: a skill that has never loaded cannot be described, so it cannot load.
+- The setting does what it says: in one headless run each, the default gave 29,943 characters with 53 of 101 skills name-only, and 0.03 gave 57,870 with none.
+
+**What it does not explain.** `blast-radius-grep`, `prove-it-can-fail` and `enforce-invariants-in-build` kept their descriptions in all 541 sessions and still loaded 1, 1 and 0 times. In a clean folder with this library and a one-line task, the old `blast-radius-grep` description loaded in 5 of 7 runs of tasks shaped like its real misses (both failures were the identity lookup), so wording alone is not why it stays silent in long working sessions. Ten of its fifteen namings are PropOS, which rarely runs on this machine, and the work machine's log has not been read.
 
 ## Tier 1
 
-### 1. Find out why the playbooks do not load, and deliver at the moment of use, before adding to them
+### 1. Get the descriptions back in front of the model, and promote the clock rule to a hook
 
 **Evidence:** the section above.
-**Proposal, in this order:**
 
-1. Run `audit-fires.mjs` on the work machine and compare. One command, and it settles whether the PropOS misses share the cause.
-2. One warn-only hook for the miss a machine can recognise most cheaply: on a commit that adds a time of day to a record file, compare it with the clock and print any that is in the future or more than a few minutes old. Four entries between 27 October and 15 November, each recorded as a recurrence (passive income L-093, L-102, L-107; AI domain L-166). It needs an innocent corpus first (`prove-it-can-pass`).
-3. Rewrite the descriptions of the four playbooks around the words a session uses at the moment they apply, and read the fire log again after four weeks.
+1. **Raise the budget, per machine, in `settings.json`.** Ben's to decide: it adds about 28,000 characters (some 7,000 tokens) to every session. Not done.
+2. **Keep the library's own descriptions short.** They total about 34,500 characters, over the default cap alone, and the newest skills have the longest. A check in CI on the total is the control. Not built.
+3. **Built: `hooks/record-time-warn.mjs`**, warn-only. Four entries between 27 October and 15 November, each recorded as a recurrence (passive income L-093, L-102, L-107; AI domain L-166). It catches stamps from L-093 and the future half of L-102. It does not catch L-107 or a stamp gone stale, and L-166 was not traced to a commit.
+4. **Built: two descriptions rewritten and shortened on balance.** Trial, two runs a task, same library otherwise: `blast-radius-grep` on an identity lookup went from 0 of 2 to 2 of 2, `enforce-invariants-in-build` on a written prerequisite from 0 of 2 to 2 of 2; the tasks that already loaded still did, and an innocent task loaded nothing. Small numbers, clean folder.
 
-A second hook, which greps the tree for the basename of every staged delete or rename, waits on step 1: its one clear instance is PropOS 2026-10-13. The alternative to all of this is to accept that the norm line is all that will be read, and shorten the playbooks to match.
+**Not built:** the descriptions of the three norm playbooks, since the list budget is the cause for two of them. **Not possible from the home machine:** `audit-fires.mjs` and the listing count on the work machine. A hook that greps for the basename of every staged delete or rename waits on that: its one clear instance is PropOS 2026-10-13.
 
 ### 2. `enforce-invariants-in-build`: widen it from build invariants to running systems and dated statements
 
 **Evidence (6 instances, 4 repositories):** Rimagent 2026-11-10 (a prerequisite written down and never checked; the show never went on air), Rimagent 2026-11-12 (a side effect recorded as a known consequence, with no guard; it destroyed the thing it was known to endanger), ICC L-139 (a git-ignored build input checked by a sentence in a doc; a feature was silently absent for seventeen days), ICC L-146 (a relaxation "until launch" stayed in an always-loaded file for two months after launch), passive income L-111 (an evening precondition held only in prose), project A, L6 (a managed resource whose idle clock nobody recorded).
-**Proposal:** a stated runtime prerequisite gets a check that can go red in the same commit; a known cost or side effect gets a guard or a named owner; a permission or status that ends at an event puts its removal in that event's checklist in the same commit; anything provisioned ahead of its consumer records the date it lapses where a session will see it. An upgrade, not a new skill: the last three new skills have no loads.
+**Proposal:** a stated runtime prerequisite gets a check that can go red in the same commit; a known cost or side effect gets a guard or a named owner; a permission or status that ends at an event puts its removal in that event's checklist in the same commit; anything provisioned ahead of its consumer records the date it lapses where a session will see it. An upgrade, not a new skill: the last new skills cannot be seen by the model at all. **Built 2026-11-24**, with both priority rows.
 
 ## Tier 2: upgrades to existing skills
 
@@ -82,7 +85,7 @@ A second hook, which greps the tree for the basename of every staged delete or r
 
 - **Already built:** library 46 is `instrument-reports-itself`, which cites it.
 - **Covered by a rule that landed after the incident:** Project A, L7 (27 September) by `tool-layer-bytes` (22 October). AI domain L-162 and L-163 by the 11 November additions to `cross-agent-review` and `live-state-first`.
-- **Covered, did not reach the moment:** Rimagent 2026-11-08 (an ended record overwritten) by `enumerate-the-set` rule 7, exit paths are a set; AI domain L-157 by `live-state-first`'s general rule. PropOS 2026-10-12 (ALTER FUNCTION) by `db-migration-verification`'s "Work from the live definition", since `pg_get_functiondef` prints the SET clause. All three belong to Tier 1 item 1.
+- **Covered, did not reach the moment:** Rimagent 2026-11-08 (an ended record overwritten) by `enumerate-the-set` rule 7, exit paths are a set; AI domain L-157 by `live-state-first`'s general rule. PropOS 2026-10-12 (ALTER FUNCTION) by `db-migration-verification`'s "Work from the live definition", since `pg_get_functiondef` prints the SET clause. These are rules that existed and did not reach the moment.
 
 ## About the count itself
 
@@ -90,4 +93,4 @@ It reads default branches only, so lessons on an unmerged branch are invisible t
 
 ## Order proposed
 
-The regulatory row first (PropOS 2026-11-11c), then the client-facing one (ASH 2026-10-13). Then Tier 1 item 1, because it decides whether the Tier 2 rows on the four playbooks are worth writing. Then Tier 1 item 2, and the Tier 2 rows on skills that do load (`cross-agent-review`, `handover`, `commission-the-roster`). The remaining rows in one pass by skill, after the four-week reading.
+The regulatory row first (PropOS 2026-11-11c), then the client-facing one (ASH 2026-10-13). Then Tier 1 items 1 and 2, then the Tier 2 rows on skills that do load (`cross-agent-review`, `handover`, `commission-the-roster`). The remaining rows in one pass by skill, after the four-week reading.

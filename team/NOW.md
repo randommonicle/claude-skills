@@ -1,10 +1,10 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-11-23, after PR #47 merged and the fourth sweep was written (home machine). Diagnoses are unverified unless marked
-topic: the fourth misses-log sweep is written and nothing from it is built: `docs/SKILL_PROPOSALS_2026-11-23.md`
-next: Ben rules on the 23 November proposals, then each admitted one is built on its own branch; then the private `watch.json` baselines are reset (his word, a push). `lessons-watch` is live: token set, weekly run green 2026-11-23, and the task `lessons-watch mirror` runs daily at 16:00 on the home machine (`bengr`)
-branches: main; docs/skill-proposals-2026-11-23 (local, unpushed); PR #43 open and conflicting; PR #49 open
+updated: 2026-11-24, after the first items of the 23 November sweep were built (home machine). Diagnoses are unverified unless marked
+topic: the 23 November sweep, `docs/SKILL_PROPOSALS_2026-11-23.md`. First items built on `feat/sweep-2026-11-23-first`, unpushed; the rest of its Tier 2 table waits
+next: Ben's word on the push and merge, on `skillListingBudgetFraction` (about half the library is listed with no description, verified in 541 sessions) and on wiring `record-time-warn`; the same counts on the work machine; then the private `watch.json` baselines. `lessons-watch` is live: task `lessons-watch mirror`, 16:00 daily, home machine (`bengr`)
+branches: main; feat/sweep-2026-11-23-first on docs/skill-proposals-2026-11-23 (both local, unpushed); PR #43 open and conflicting; PR #49 open
 ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09; ASK-0010 and ASK-0011 dropped unanswered, never read by any session)
 
 ## Landed
