@@ -97,6 +97,12 @@ jobs:
             exit 1
           fi
           echo "ok: the scanner reds on a planted em dash"
+      # The connector serves the library to claude.ai from a bundle built off HEAD.
+      # Its suite checks the bundle holds every indexed skill and nothing else, that
+      # the MCP replies are well formed, and that reported text is cleaned before
+      # storage. Node stdlib only: wrangler is not installed here.
+      - name: the connector bundles the library and its suite passes
+        run: node connector/scripts/build.mjs && node connector/test.mjs
       - name: each unslop skill is clean under its own scanner
         run: |
           set -e
