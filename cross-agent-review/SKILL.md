@@ -287,3 +287,33 @@ A third model for the panel, driven by `scripts/deepseek-seat.mjs` over DeepSeek
   at launch, and treat a missing permission found mid-round as a setup defect rather than
   something to work around. (VisitorYard L-001; `spawn-from-declared-state` rule 1 covers
   declaring the source, this covers its completeness.)
+
+## Additions from the misses-log sweep (2026-11-23)
+
+- **Name artefacts by exact filename, never by pattern.** The DeepSeek seat reads every
+  `ARTIFACT_` token in the review file as a filename, so a pattern with any text after the
+  prefix names a file that does not exist and the call fails. The failure note run-seat writes
+  carries the same names back into the file, so the next turn fails on the note. When a seat
+  fails on its brief, start a clean review file; do not resume the one holding the note.
+  (ICC L-134.)
+- **Give each DeepSeek turn its own review file.** It checks the whole file it is sent, so a name
+  another seat wrote relative to a different root fails the call. Give it a copy holding the
+  CLAUDE sections and a summary of the others, with every artefact named relative to its own
+  `--cwd` (under `--cwd exchange` that is the bare name), and copy its section back verbatim
+  with a note saying so. (passive income L-097 addenda.)
+- **A seat with no repository access gets the core diff only.** Given the whole of a large diff,
+  DEEPSEEK spent its budget and answered nothing. (AI domain L-155.)
+- **A stop token stands alone on its own line.** Two seats closed with "SEND. [[CONVERGED]]" and
+  the gate, which reads the token only on a line of its own, rightly recorded no convergence;
+  each needed another round. The seat prompt, the protocol and the kickoffs now say so. Read the
+  gate's verdict, not the seat's prose, before treating a review as converged. (AI domain L-169.)
+- **What no seat really read needs a reader before it goes out.** Two kinds slip through. An
+  amendment to wording already reviewed, however small: two seats passed one because it looked
+  like a detail, and the amendment carried the error. And text addressed to the decider: a
+  ruling rested partly on a sentence nobody had checked, because the file was written to the
+  operator and not to a seat. Quote the changed or decider-facing sentences and ask a seat to
+  check each one, or re-derive them; until then call them unread. (AI domain L-158, L-160.)
+- **Run the downstream gate's dry run on the first draft, before any seat reads it.** Two seats
+  converged on a 2,733-character answer that the send script then refused at its 2,000 limit,
+  and its parser could not read the exchange file's header either. Limits and format that a later
+  step enforces are cheapest to meet first. (AI domain L-171.)

@@ -98,6 +98,8 @@ appends.
 - Hard cap on rounds: 3 each for a clean-converge check, 4 to 5 each for a genuine divergence. The
   opener names the cap. When it is hit, STOP.
 - End early by writing `[[CONVERGED]]` when both sides agree.
+- A stop token (`[[CONVERGED]]` or `[[POSITION - <HANDLE>]]`) stands alone on its own line, with no
+  other words on that line. The `[[END ...]]` line still comes after it.
 - If NOT converged at the cap, each side writes a one-paragraph `[[POSITION - <HANDLE>]]` and the human
   adjudicates. A documented disagreement is a valid outcome.
 - Whoever writes the closing section leaves it as the last section, terminator and all: a closing

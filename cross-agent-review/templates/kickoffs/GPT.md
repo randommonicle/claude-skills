@@ -45,7 +45,8 @@ Content: your handle on line one; numbered points; each contested claim with a `
 concrete failure scenario, and a severity with its reason; concede on evidence.
 
 Stop conditions: honour the round cap in the opener. `[[CONVERGED]]` on agreement; a one-paragraph
-`[[POSITION - GPT]]` if you still disagree at the cap.
+`[[POSITION - GPT]]` if you still disagree at the cap. Either token stands alone on its own line, with
+no other words on that line.
 
 Data rule: code and citations only. Never write credentials, secrets, financial account details, payroll
 or HR data, privileged material, or real personal data.

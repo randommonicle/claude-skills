@@ -38,7 +38,7 @@ before the rule caught up with the harness it actually runs in.
 A fixed shape, so the next session can read it once and resume:
 
 1. **Session goal.** One line: what this session set out to do.
-2. **Branch and worktree.** The working branch, and the worktree path if non-standard. The next session starts on `main` by default and otherwise has to rediscover this from `git log`.
+2. **Branch and worktree.** The working branch, and the worktree path if non-standard. The next session starts on `main` by default and otherwise has to rediscover this from `git log`. The worktree path says where the work sits now. Anything a later run needs is named by branch and commit, because a worktree belongs to its session and can be gone by morning.
 3. **What landed.** Commits and PRs with sha and a one-line description each. Mark each as verified or unverified.
 4. **In flight.** What is half-done, with exact `file:line` ranges, not bare paths. Enough that the next session can open the file at the right place.
 5. **Deferred items.** Every item deferred this session, each with its grep anchor, per the flag-deferred-items skill. The note records where the anchor was planted.
@@ -116,3 +116,15 @@ Long sessions fail at the seams: the next session re-discovers what the last one
   `git status -s` by letter (` M`, ` D`, `??`, `A `) so the next session can tell work in
   progress from damage, and name the branch and worktree each count belongs to. (Library 40,
   where the count was the whole of the misreading.)
+
+## Additions from the misses-log sweep (2026-11-23)
+
+- **Name the branch and the commit a later run needs, never only the worktree.** A handover gave a
+  worktree as the place the next day's run would start from. By morning it did not exist; the
+  branch had survived. The session that picks up runs `git worktree list` before relying on any
+  checkout a note names, and anything on a timer runs from the main checkout or a path no app
+  manages. (passive income L-096.)
+- **Call a session's own timer session-owned, never just "armed".** A background job dies with the
+  session that started it and leaves no trace. One did, and nothing looked for its output until a
+  new session found the gap. Record who owns the timer, what its output is and when to read it;
+  if the owning session ends early, the next one re-arms it. (passive income L-110.)
