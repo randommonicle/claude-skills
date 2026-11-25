@@ -186,6 +186,88 @@ test(
   },
 );
 
+// The status record is hours old by the time a session reads it, and a failure in it may
+// have been cleared by hand since. These run against a real two-commit checkout, because
+// the question is what the mirror is NOW. They red against a version that replays the
+// record undated, one that never looks at the mirror, one that goes quiet about a mirror
+// still behind, one that takes a port's HEAD as evidence, and one that reads an
+// unreadable HEAD as equal to a missing target.
+const AT = hoursAgo(25);
+const mirrorLayout = (rec) => ({
+  prep: (root) => {
+    const path = join(root, 'mirror');
+    mkdirSync(path);
+    const git = (...a) =>
+      spawnSync('git', ['-C', path, '-c', 'user.email=t@t', '-c', 'user.name=t', ...a], { encoding: 'utf8' }).stdout.trim();
+    git('init', '-q', '-b', 'main');
+    git('commit', '-q', '--allow-empty', '-m', 'one');
+    const one = git('rev-parse', 'HEAD');
+    git('commit', '-q', '--allow-empty', '-m', 'two');
+    const two = git('rev-parse', 'HEAD');
+    if (!/^[0-9a-f]{40}$/.test(one) || !/^[0-9a-f]{40}$/.test(two) || one === two) throw new Error('mirror fixture did not build');
+    const m = rec({ path, one, two, git });
+    writeFileSync(join(root, 'skills-update.json'), JSON.stringify({ state: 'current', at: AT, mirrors: [m] }), 'utf8');
+  },
+});
+const named = (r) => /skills mirror \(/.test(r.context);
+
+test(
+  'a checkout that reached its target after the failed run stays silent',
+  null,
+  async (r) => (named(r) ? 'a cleared failure was replayed: ' + r.context : true),
+  false,
+  mirrorLayout(({ path, one, two }) => ({ kind: 'checkout', path, state: 'error', from: one, to: two, reason: 'ff-only merge failed: x' })),
+);
+
+test(
+  'a checkout still short of its target is named, with the date of the run that saw it',
+  null,
+  async (r) => {
+    if (!named(r)) return 'a mirror that is still behind went quiet';
+    if (!r.context.includes('(last run ' + AT + ')')) return 'undated: ' + r.context;
+    return true;
+  },
+  false,
+  mirrorLayout(({ path, one, two, git }) => {
+    git('reset', '-q', '--hard', one);
+    return { kind: 'checkout', path, state: 'error', from: one, to: two, reason: 'ff-only merge failed: x' };
+  }),
+);
+
+test(
+  'a checkout ahead of origin is still named: it contains its target and is not at it',
+  null,
+  async (r) => (named(r) ? true : 'unpushed mirror commits went quiet'),
+  false,
+  mirrorLayout(({ path, one, two }) => ({ kind: 'checkout', path, state: 'skipped-ahead', from: two, to: one, ahead: 1, behind: 0 })),
+);
+
+test(
+  'a port is never cleared by a git HEAD',
+  null,
+  async (r) => (named(r) ? true : 'a failed port was cleared by the HEAD of the folder it sits in'),
+  false,
+  mirrorLayout(({ path, two }) => ({ kind: 'port', path, state: 'error', to: two, reason: 'refusing: x' })),
+);
+
+test(
+  'a mirror with no target and no readable HEAD is named',
+  null,
+  async (r) => (named(r) ? true : 'two unknowns were read as equal'),
+  false,
+  mirrorLayout(({ path }) => ({ kind: 'checkout', path: join(path, 'gone'), state: 'error', to: null, reason: 'fetch failed: x' })),
+);
+
+test(
+  'a record with no time says so instead of printing undefined',
+  { state: 'current', mirrors: [{ kind: 'port', path: 'C:/m/ash', state: 'error', reason: 'x' }] },
+  async (r) => {
+    if (!named(r)) return 'failure not surfaced: ' + r.context;
+    if (!/\(last run at an unrecorded time\)/.test(r.context)) return 'no honest time: ' + r.context;
+    return true;
+  },
+);
+
 test(
   'a stale status file is reported even though its state is healthy',
   { state: 'current', at: hoursAgo(48) },

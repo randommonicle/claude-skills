@@ -168,17 +168,23 @@ function skillsUpdateLine() {
 // The mirrors the same run kept (skills-mirrors.json beside the repo): one line per
 // mirror that wants a human, silent while they are current. A port skipped because
 // the library itself is not current says nothing here; the library line above is
-// the one to act on.
+// the one to act on. The record is only as fresh as the last run, so the line carries
+// that run's time, and a checkout whose HEAD now equals the target it failed to reach
+// was cleared since and says nothing (a replayed failure misled sessions on 2026-11-24).
+// Equality, never ancestry: a mirror with unpushed commits contains its target too. A
+// port has no HEAD of its own to ask.
 const MIRROR_OK = new Set(['current', 'updated', 'synced', 'skipped']);
+const clearedSince = (m) => m.kind === 'checkout' && m.to && run('git', ['-C', m.path, 'rev-parse', 'HEAD']) === m.to;
 
 function mirrorsLine() {
   try {
     const statusPath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'skills-update.json');
     if (!existsSync(statusPath)) return null;
     const s = JSON.parse(readFileSync(statusPath, 'utf8'));
+    const when = ' (last run ' + (s.at ?? 'at an unrecorded time') + ')';
     const lines = (s.mirrors ?? [])
-      .filter((m) => !MIRROR_OK.has(m.state))
-      .map((m) => 'skills mirror (' + m.kind + ') ' + m.path + ': ' + m.state + (m.reason ? ' - ' + m.reason : '') + '.');
+      .filter((m) => !MIRROR_OK.has(m.state) && !clearedSince(m))
+      .map((m) => 'skills mirror (' + m.kind + ') ' + m.path + ': ' + m.state + (m.reason ? ' - ' + m.reason : '') + '.' + when);
     return lines.length ? lines.join('\n') : null;
   } catch {
     return null;
