@@ -1,14 +1,15 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-11-25 16:40Z, home machine (`bengr`). Diagnoses are unverified unless marked
-topic: the 23 November sweep. First items merged (PR #50); three more rows and half a fourth are on `feat/sweep-2026-11-23-second`, unmerged
+updated: 2026-11-25 19:11Z, home machine (`bengr`). Diagnoses are unverified unless marked
+topic: the 23 November sweep. First items merged (PR #50); three more rows and half a fourth merged (PR #53)
 next: on the work machine (`ASH-HP-241`), run `node hooks/audit-fires.mjs` and count name-only skills in its session listings, before building rows on skills that do not load. Detail: `docs/HANDOVER_sweep_2026-11-24.md`
-branches: main 7bde76f; feat/sweep-2026-11-23-second (this note); PR #43 open, conflicting; PR #49 open
+branches: main 8fdfe00; fix/no-artifact-note (this note); PR #43 open, conflicting; PR #49 open
 ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09). Open questions are in the handover, section 7
 
 ## Landed since the last NOW.md
 
+- 8fdfe00 PR #53, the rows above; verified: four checks green on the merge commit
 - 6d94307 PR #51, the handover for the sweep; 7bde76f PR #52, `session-recon` dates the mirror line and drops one that has cleared. Verified: four checks green on each merge commit, #52 ridden on the home machine's real record
 - Home machine settings: `skillListingBudgetFraction` 0.03 (verified, 57,870 characters, no name-only skills) and `record-time-warn` wired (verified by two real commits). Both are per machine and neither is on the work machine
 - Task `lessons-watch mirror`, daily 16:00, home machine; verified on its own schedule, `ranAt` 2026-11-25 16:00Z
@@ -19,7 +20,6 @@ ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09). Open questions
 
 ## Deferred, with grep anchors
 
-- `FORWARD(no-artifact-note)` in cross-agent-review/scripts/deepseek-seat.mjs: a `NO_ARTIFACT` note makes the next turn fail too (reproduced offline 2026-11-25)
 - `FORWARD(description-budget)` in hooks/check-index.mjs: a CI check on the total length of the descriptions
 - A hook for staged deletes and renames, and the rest of Tier 2: docs/SKILL_PROPOSALS_2026-11-23.md
 - `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md:512; unpinned agents

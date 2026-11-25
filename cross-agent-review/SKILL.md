@@ -292,11 +292,10 @@ A third model for the panel, driven by `scripts/deepseek-seat.mjs` over DeepSeek
 
 - **Name artefacts by exact filename, never by pattern.** The DeepSeek seat reads
   `ARTIFACT_` and the name characters after it as a filename, so `ARTIFACT_billing_*` asks for a
-  file called `ARTIFACT_billing_` and the call fails as `NO_ARTIFACT`. The note run-seat then
-  writes into the review file repeats that name, and the message's own example path is read as a
-  missing artefact too, so the next turn fails even after the brief is corrected (reproduced
-  offline 2026-11-25). When a seat fails on its brief, start a clean review file; do not resume
-  the one holding the note. (ICC L-134.)
+  file called `ARTIFACT_billing_` and the call fails as `NO_ARTIFACT`. Correct the
+  name in the brief and run the turn again: the seat ignores the failure line run-seat wrote into
+  the file (fixed 2026-11-25; before that the line failed every later turn). It does not ignore a
+  quotation of that line, so do not paste the error into a section. (ICC L-134.)
 - **Give the DeepSeek seat its own review file.** It checks the whole file it is sent, so a name
   another seat wrote relative to a different root fails the call. One file for the seat, kept
   across rounds, because the thread is read from it. Give it a copy holding the CLAUDE sections
