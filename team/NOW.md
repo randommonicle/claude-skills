@@ -19,6 +19,7 @@ ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09). Open questions
 
 ## Deferred, with grep anchors
 
+- `FORWARD(no-artifact-note)` in cross-agent-review/scripts/deepseek-seat.mjs: a `NO_ARTIFACT` note makes the next turn fail too (reproduced offline 2026-11-25)
 - `FORWARD(description-budget)` in hooks/check-index.mjs: a CI check on the total length of the descriptions
 - A hook for staged deletes and renames, and the rest of Tier 2: docs/SKILL_PROPOSALS_2026-11-23.md
 - `FORWARD:` naming `team/INBOX/` in docs/DESIGN_team-loop_2026-10-02.md:512; unpinned agents

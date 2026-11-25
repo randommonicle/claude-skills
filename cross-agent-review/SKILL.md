@@ -290,15 +290,17 @@ A third model for the panel, driven by `scripts/deepseek-seat.mjs` over DeepSeek
 
 ## Additions from the misses-log sweep (2026-11-23)
 
-- **Name artefacts by exact filename, never by pattern.** The DeepSeek seat reads every
-  `ARTIFACT_` token in the review file as a filename, so a pattern with any text after the
-  prefix names a file that does not exist and the call fails. The failure note run-seat writes
-  carries the same names back into the file, so the next turn fails on the note. When a seat
-  fails on its brief, start a clean review file; do not resume the one holding the note.
-  (ICC L-134.)
-- **Give each DeepSeek turn its own review file.** It checks the whole file it is sent, so a name
-  another seat wrote relative to a different root fails the call. Give it a copy holding the
-  CLAUDE sections and a summary of the others, with every artefact named relative to its own
+- **Name artefacts by exact filename, never by pattern.** The DeepSeek seat reads
+  `ARTIFACT_` and the name characters after it as a filename, so `ARTIFACT_billing_*` asks for a
+  file called `ARTIFACT_billing_` and the call fails as `NO_ARTIFACT`. The note run-seat then
+  writes into the review file repeats that name, and the message's own example path is read as a
+  missing artefact too, so the next turn fails even after the brief is corrected (reproduced
+  offline 2026-11-25). When a seat fails on its brief, start a clean review file; do not resume
+  the one holding the note. (ICC L-134.)
+- **Give the DeepSeek seat its own review file.** It checks the whole file it is sent, so a name
+  another seat wrote relative to a different root fails the call. One file for the seat, kept
+  across rounds, because the thread is read from it. Give it a copy holding the CLAUDE sections
+  and a summary of the others, with every artefact named relative to its own
   `--cwd` (under `--cwd exchange` that is the bare name), and copy its section back verbatim
   with a note saying so. (passive income L-097 addenda.)
 - **A seat with no repository access gets the core diff only.** Given the whole of a large diff,
@@ -306,7 +308,7 @@ A third model for the panel, driven by `scripts/deepseek-seat.mjs` over DeepSeek
 - **A stop token stands alone on its own line.** Two seats closed with "SEND. [[CONVERGED]]" and
   the gate, which reads the token only on a line of its own, rightly recorded no convergence;
   each needed another round. The seat prompt, the protocol and the kickoffs now say so. Read the
-  gate's verdict, not the seat's prose, before treating a review as converged. (AI domain L-169.)
+  gate's verdict as well as the section before treating a review as converged. (AI domain L-169.)
 - **What no seat really read needs a reader before it goes out.** Two kinds slip through. An
   amendment to wording already reviewed, however small: two seats passed one because it looked
   like a detail, and the amendment carried the error. And text addressed to the decider: a

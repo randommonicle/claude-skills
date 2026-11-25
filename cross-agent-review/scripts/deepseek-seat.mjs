@@ -145,6 +145,8 @@ async function main() {
   const asked = readFileSync(0, "utf8");
   if (!asked.trim()) return fail("BAD_ARGS", "No prompt on stdin.");
   const named = namedArtifacts(asked, WORK);
+  // FORWARD(no-artifact-note): this message reaches the review file through run-seat's failure note,
+  // and the names in it, the example included, are read as artefacts on the next turn.
   if (named.missing.length || named.refused.length) {
     const parts = [];
     if (named.missing.length) parts.push(`not found under ${WORK}: ${named.missing.join(", ")}`);
