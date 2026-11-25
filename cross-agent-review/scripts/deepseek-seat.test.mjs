@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 import { isPeak, costOf, namedArtifacts } from "./deepseek-seat.mjs";
 
 const SEAT = join(dirname(fileURLToPath(import.meta.url)), "deepseek-seat.mjs");
+const RUN_SEAT = join(dirname(SEAT), "run-seat.mjs");
 
 test("peak is 01:00-04:00 and 06:00-10:00 UTC on weekdays only", () => {
   assert.equal(isPeak(new Date("2026-10-26T01:00:00Z")), true, "Monday 01:00");
@@ -68,6 +69,52 @@ test("a named artifact that is missing is NO_ARTIFACT, and nothing reaches DeepS
     assert.equal(b.env.status, "SUCCESS");
     assert.match(fake.seen[0].body.messages.at(-1).content, /THE DRAFT/, "the path as written is attached");
   } finally { fake.server.close(); rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("run-seat's own NO_ARTIFACT note does not fail the next turn once the brief is corrected", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "ds-note-"));
+  writeFileSync(join(dir, "key"), "sk-" + "a".repeat(32));
+  writeFileSync(join(dir, "ARTIFACT_billing_a.txt"), "THE DRAFT");
+  const review = join(dir, "REVIEW_t.md");
+  const brief = (line) => "# REVIEW\n\n## [CLAUDE round 1]\n\n" + line + "\nNEXT: ALL\n\n[[END CLAUDE round 1]]\n";
+  writeFileSync(review, brief("Read ARTIFACT_billing_* please."));
+  writeFileSync(join(dir, "seats.jsonc"), JSON.stringify({ DEEPSEEK: {
+    command: process.execPath, promptVia: "stdin", start: [SEAT, "start"], continue: [SEAT, "continue", "{thread}"],
+    outputFormat: "envelope", replyPath: "response", threadIdPath: "conversation_id", usagePath: "usage",
+    grounding: "prompt-only", timeoutMs: 30000 } }));
+  const fake = await fakeDeepSeek(() => reply("A finding."));
+  const turn = () => new Promise((done) => {
+    const c = spawn(process.execPath, [RUN_SEAT, review, "DEEPSEEK", "--cwd", dir, "--seats", join(dir, "seats.jsonc"), "--ask", "review"],
+      { env: { ...process.env, DEEPSEEK_KEY_FILE: join(dir, "key"), DEEPSEEK_API_URL: fake.url } });
+    let out = "";
+    c.stdout.on("data", (d) => out += d);
+    c.stderr.on("data", (d) => out += d);
+    c.on("close", (code) => done({ code, out }));
+  });
+  try {
+    const a = await turn();
+    assert.equal(a.code, 1, a.out);
+    const noted = readFileSync(review, "utf8");
+    assert.match(noted, /\[transport\] DEEPSEEK round 1 did not complete.*NO_ARTIFACT.*ARTIFACT_billing_/, "the note is in the file, naming what was missing");
+    assert.equal(fake.seen.length, 0);
+    writeFileSync(review, noted.replace("ARTIFACT_billing_* please", "ARTIFACT_billing_a.txt please"));
+    const b = await turn();
+    assert.equal(b.code, 0, b.out);
+    assert.match(fake.seen[0].body.messages.at(-1).content, /===== FILE ARTIFACT_billing_a\.txt =====\nTHE DRAFT/);
+    assert.match(readFileSync(review, "utf8"), /## \[DEEPSEEK round 1\]\s+A finding\./);
+  } finally { fake.server.close(); rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("only run-seat's failure line is set aside: a quoted or half-matching line still names its artefacts", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ds-quote-"));
+  const got = namedArtifacts([
+    "> **[transport] DEEPSEEK round 2 did not complete** - status NO_ARTIFACT: ARTIFACT_old.txt.",
+    "> read ARTIFACT_quoted.txt",
+    "> **[transport] notes** ARTIFACT_half.txt",
+    "x > **[transport] DEEPSEEK round 2 did not complete** - ARTIFACT_inline.txt",
+  ].join("\r\n"), dir);
+  assert.deepEqual(got.missing, ["ARTIFACT_quoted.txt", "ARTIFACT_half.txt", "ARTIFACT_inline.txt"]);
+  rmSync(dir, { recursive: true, force: true });
 });
 
 function fakeDeepSeek(answer) {

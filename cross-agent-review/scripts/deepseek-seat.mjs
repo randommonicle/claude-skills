@@ -73,11 +73,15 @@ export function costOf(model, u, at) {
   return Math.round((hit * p.hit[i] + miss * p.miss[i] + out * p.out[i]) / 1e6 * 1e6) / 1e6;
 }
 
+// run-seat records a failed turn in the review file as one line. The names on it belong to the
+// turn that failed; read as this turn's, they fail it too, however the brief was corrected.
+const FAILURE_NOTE = /^> \*\*\[transport\] [A-Z][A-Z0-9_-]* round \d+ did not complete\*\* - .*$/gm;
+
 /** The ARTIFACT_* files a prompt names, once each, resolved as written under `dir`:
  *  found (attach), missing (no such file), refused (absolute, or outside `dir`). */
 export function namedArtifacts(prompt, dir) {
   const root = resolve(dir);
-  const tokens = prompt.match(/[^\s`'"()<>[\]]*ARTIFACT_[A-Za-z0-9_.-]+/g) || [];
+  const tokens = prompt.replace(FAILURE_NOTE, "").match(/[^\s`'"()<>[\]]*ARTIFACT_[A-Za-z0-9_.-]+/g) || [];
   const names = [...new Set(tokens.map((n) => n.replace(/[.]+$/, "").replaceAll("\\", "/")))];
   const out = { found: [], missing: [], refused: [] };
   for (const n of names) {
@@ -145,8 +149,6 @@ async function main() {
   const asked = readFileSync(0, "utf8");
   if (!asked.trim()) return fail("BAD_ARGS", "No prompt on stdin.");
   const named = namedArtifacts(asked, WORK);
-  // FORWARD(no-artifact-note): this message reaches the review file through run-seat's failure note,
-  // and the names in it, the example included, are read as artefacts on the next turn.
   if (named.missing.length || named.refused.length) {
     const parts = [];
     if (named.missing.length) parts.push(`not found under ${WORK}: ${named.missing.join(", ")}`);
