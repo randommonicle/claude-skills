@@ -56,6 +56,12 @@ Anything absent from the approved roster does not get spawned. An agent that wan
 comes back to the lead, and the lead comes back to the operator, because sub-delegation is
 exactly how a nine-agent plan becomes thirty.
 
+**Before a roster that generates options, ask the operator in one line whether they already have a
+shape in mind.** Three writers were commissioned to pitch the same question independently. They cost
+280,000 tokens against a budget of 150,000, converged on the same central elements, and were replaced
+within the hour by the operator's own outline. Where options are still wanted, give each agent a different
+angle so they cannot converge. (Project C, 2026-11-21.)
+
 ## Rule 2: tier by decision class, not by seniority of the topic
 
 Seniority language ("Senior Database Engineer") invites the best model by flattery. Assign the

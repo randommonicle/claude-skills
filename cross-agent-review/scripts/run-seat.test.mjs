@@ -296,6 +296,16 @@ test('refuses an unconfigured seat and names the ones that exist', (s) => {
   return true;
 });
 
+// Two seats ended a section "SEND. [[CONVERGED]]" and a gate that reads the token only on its
+// own line recorded no convergence (AI domain L-169). A CLI seat sees nothing but this prompt.
+test('the composed prompt tells a seat its stop token stands alone on its own line', (s) => {
+  const r = spawnSync(process.execPath, [RUN, s.review, 'GPT', '--dry-run'], { encoding: 'utf8' });
+  const rules = r.stdout.slice(r.stdout.lastIndexOf('===== END EXCHANGE FILE'));
+  if (!/\[\[CONVERGED\]\]/.test(rules)) return 'the stop token is not named in the rules';
+  if (!/stop token stands alone on its own line, as the last line of your\s+reply/.test(rules)) return 'the prompt does not say the token stands alone on its own line';
+  return true;
+});
+
 test('the composed prompt frames the exchange file as untrusted material', (s) => {
   const r = spawnSync(process.execPath, [RUN, s.review, 'GPT', '--dry-run'], { encoding: 'utf8' });
   if (!/untrusted material/.test(r.stdout)) return 'no untrusted framing';

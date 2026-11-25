@@ -12,6 +12,7 @@ Claude fills round 1. Do not leave the <<slots>> unfilled.
 - **Seats in play:** CLAUDE (hub), <<GEMPRO, SONNET, GPT, ...>>
 - **Round cap:** <<3 for a clean-converge check, 4-5 for expected divergence>> each
 - **Stop:** `[[CONVERGED]]` on agreement; a `[[POSITION - <HANDLE>]]` paragraph each at the cap.
+  Either token stands alone on its own line.
 
 Protocol: `PROTOCOL.md`. Append-only. Cite `path:line`. Concede on evidence.
 End every section with `[[END <HANDLE> round N]]` on its own last line, or the hub will not read it

@@ -40,7 +40,8 @@ a `path:line` citation to the primary source, a concrete failure scenario, and a
 reason. A claim with no citation is dismissible. Concede any point the evidence refutes.
 
 Stop conditions: honour the round cap the opener states. Write `[[CONVERGED]]` when you agree; if you
-still disagree at the cap, write a one-paragraph `[[POSITION - <<YOUR-HANDLE>>]]`.
+still disagree at the cap, write a one-paragraph `[[POSITION - <<YOUR-HANDLE>>]]`. Either token stands
+alone on its own line, with no other words on that line.
 
 Data rule: code and citations only. Never write credentials, secrets, financial account details,
 payroll or HR data, privileged material, or real personal data into the file.

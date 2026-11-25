@@ -106,7 +106,8 @@ Rules: every contested claim carries a \`path:line\` citation to the primary sou
 a concrete query result. A claim with no citation is dismissible. Concede any point the
 evidence refutes; a verified concession outranks an unverified defence. The repository
 is READ ONLY - cite it, never change it. Write \`[[CONVERGED]]\` if you agree and the
-debate is done.${suffix ? '\n\n' + suffix : ''}`;
+debate is done. A stop token stands alone on its own line, as the last line of your
+reply, with no other words on that line.${suffix ? '\n\n' + suffix : ''}`;
 }
 
 // Windows: an npm-installed CLI on PATH is a .cmd shim, and spawnSync cannot execute one
