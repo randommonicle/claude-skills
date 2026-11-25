@@ -142,7 +142,9 @@ A checkout is fast-forwarded under exactly the library's rules (same origin guar
 refusals). A port is refreshed by `sync-port.mjs`, and only when the library itself read
 `current` or `updated`, so a port never receives a HEAD that differs from origin. Results
 land in the status file's `mirrors` list; session-recon names any mirror that wants a
-human and is silent otherwise. No file, no mirrors: the status file keeps its old shape.
+human, with the time of the run that saw it, and is silent otherwise. A failed checkout
+whose HEAD now equals the target in the record was cleared since, and is silent too. No
+file, no mirrors: the status file keeps its old shape.
 
 A new port starts as a folder holding a `plugin.json` (the guard refuses anything else);
 the first run fills it. `ports/antigravity/` in this repo is the port's source of truth, so
