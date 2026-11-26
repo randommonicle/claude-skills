@@ -1,10 +1,10 @@
 # NOW: claude-skills
 
 template: team-loop NOW v1
-updated: 2026-11-25 19:11Z, home machine (`bengr`). Diagnoses are unverified unless marked
+updated: 2026-11-26 12:03Z, home machine (`bengr`). Diagnoses are unverified unless marked
 topic: the 23 November sweep. First items merged (PR #50); three more rows and half a fourth merged (PR #53)
 next: on the work machine (`ASH-HP-241`), run `node hooks/audit-fires.mjs` and count name-only skills in its session listings, before building rows on skills that do not load. Detail: `docs/HANDOVER_sweep_2026-11-24.md`
-branches: main 8fdfe00; fix/no-artifact-note (this note); PR #43 open, conflicting; PR #49 open
+branches: main 473a780; docs/updater-noon-trigger (this note); PR #43 open, conflicting; PR #49 open
 ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09). Open questions are in the handover, section 7
 
 ## Landed since the last NOW.md
@@ -13,10 +13,12 @@ ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09). Open questions
 - 6d94307 PR #51, the handover for the sweep; 7bde76f PR #52, `session-recon` dates the mirror line and drops one that has cleared. Verified: four checks green on each merge commit, #52 ridden on the home machine's real record
 - Home machine settings: `skillListingBudgetFraction` 0.03 (verified, 57,870 characters, no name-only skills) and `record-time-warn` wired (verified by two real commits). Both are per machine and neither is on the work machine
 - Task `lessons-watch mirror`, daily 16:00, home machine; verified on its own schedule, `ranAt` 2026-11-25 16:00Z
+- 473a780 PR #54, a DeepSeek `NO_ARTIFACT` note no longer fails the next turn
+- Task `claude-skills update`, home machine: trigger moved from 05:30 to 12:00 GMT on 2026-11-26, because the 05:30 run fell in the nightly sleep and the catch-up skipped 25 and 26 November. Verified on its own schedule: `LastRunTime` 2026-11-26 12:00:00, result 0, record `at` 12:00:02Z. The work machine's task is unchanged and unchecked
 
 ## In flight
 
-- nothing half-built. Two local branches and the worktree `~/.claude/skills-wt-sweep-2026-11-23` are left over and merged
+- this branch: `hooks/HOOKS.md` records the 12:00 trigger and why. Worktree `~/.claude/skills-wt-sweep-2026-11-23` removed 2026-11-26 (clean, merged; branch kept)
 
 ## Deferred, with grep anchors
 
