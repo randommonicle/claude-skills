@@ -3,7 +3,7 @@
 template: team-loop NOW v1
 updated: 2026-11-26 12:03Z, home machine (`bengr`). Diagnoses are unverified unless marked
 topic: the 23 November sweep. First items merged (PR #50); three more rows and half a fourth merged (PR #53)
-next: on the work machine (`ASH-HP-241`), run `node hooks/audit-fires.mjs` and count name-only skills in its session listings, before building rows on skills that do not load. Detail: `docs/HANDOVER_sweep_2026-11-24.md`
+next: the remaining Tier 2 rows of `docs/SKILL_PROPOSALS_2026-11-23.md` (its "Order proposed": in one pass by skill, after the four-week FIRE_LOG reading of about 2026-12-22; the rows on `cross-agent-review`, `handover` and `commission-the-roster` are built, PR #53, the `preflight-unattended` half is not), on Ben's yes. The work-machine `audit-fires.mjs` reading that `docs/HANDOVER_sweep_2026-11-24.md` puts first was DROPPED by Ben on 2026-11-26 ("Yeah drop it"); rows no longer wait on it
 branches: main 473a780; docs/updater-noon-trigger (this note); PR #43 open, conflicting; PR #49 open
 ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09). Open questions are in the handover, section 7
 
