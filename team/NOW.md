@@ -33,7 +33,7 @@ ask: none (board declared dead 2026-11-09, DECISIONS 2026-11-09). Open questions
 
 ## Traps
 
-- The watch still says a sweep is due, because its baselines were not reset after 23 November. Read the newest sweep handover before calling a sweep due
+- The watch's baselines were reset to the 23 November figures on 2026-11-25 (private repo `96601a1`); a local run then read 3 against a threshold of 10. Read the newest sweep handover before calling a sweep due
 - Two machines: work `ASH-HP-241` (`C:\Users\ben`), home `C:\Users\bengr`. The Antigravity port, both vendor packs and the Occam trial are home only. A machine-local fact names its host
 - The Avast moratorium stands, so `hooks-windows` in CI is the only run of the four win32 suites. Never rename it or soften it
 - Never put `~/.agents/skills` under `checkouts` or `ports`. Never squash past or rewrite c58fe69: the private weekly workflow pins it
