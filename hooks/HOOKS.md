@@ -106,15 +106,24 @@ it. On Windows, per user, no elevation:
 $node   = (Get-Command node).Source          # full path: a scheduled task's PATH is not the shell's
 $script = "$env:USERPROFILE\.claude\skills\hooks\update-skills.mjs"
 $action   = New-ScheduledTaskAction -Execute $node -Argument ('"' + $script + '"')
-$trigger  = New-ScheduledTaskTrigger -Daily -At '06:30'
+$trigger  = New-ScheduledTaskTrigger -Daily -At '12:00'
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
 Register-ScheduledTask -TaskName 'claude-skills update' -Action $action -Trigger $trigger -Settings $settings -Force
 ```
 
 This is the form that was run and proven on 2026-09-15, not a `schtasks /create` line — the
 `/tr` form wants `%USERPROFILE%` and this file already records what that costs elsewhere.
-`-StartWhenAvailable` matters on a laptop: a 06:30 missed because the machine was off runs
-at the next wake instead of being skipped for the day.
+
+Pick a time the machine is awake. The trigger was 06:30 until 2026-11-26. On the home machine
+that fell inside the nightly sleep every day, so every run depended on `-StartWhenAvailable`
+catching up after the wake, and it did not: the task caught up on 24 November and then missed
+25 and 26 November (`NumberOfMissedRuns` 2) with the machine awake from 07:39. Why is not
+known; the Task Scheduler operational log is off by default, so there was nothing to read.
+`-StartWhenAvailable` stays as a fallback, not as the plan. Moving an existing task needs no
+re-registration: `Set-ScheduledTask -TaskName 'claude-skills update' -Trigger (New-ScheduledTaskTrigger -Daily -At '12:00')`.
+The time is stored with the offset in force when it is set, so 12:00 set in GMT runs at 13:00
+in BST. A daytime run can land while sessions are open; a running session keeps the skill
+listing it started with.
 
 Remove with `Unregister-ScheduledTask -TaskName 'claude-skills update' -Confirm:$false`
 (without `-Confirm:$false` it prompts, and hangs in a non-interactive shell); inspect with
